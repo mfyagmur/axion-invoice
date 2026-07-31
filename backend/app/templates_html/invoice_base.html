@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; padding: 0; }
+  .page { position: relative; width: 210mm; height: 297mm; font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; }
+  .field { position: absolute; white-space: pre-wrap; overflow: hidden; }
+  .line-items-block { position: absolute; left: 15mm; top: 90mm; width: 180mm; }
+  .line-items-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .line-items-table th, .line-items-table td { border-bottom: 0.2mm solid #ccc; padding: 2mm; text-align: left; }
+  .line-items-table th { border-bottom: 0.4mm solid #333; }
+  .totals { margin-top: 4mm; width: 70mm; margin-left: auto; font-size: 9pt; }
+  .totals-row { display: flex; justify-content: space-between; padding: 1mm 0; }
+  .totals-row.grand { font-weight: bold; border-top: 0.3mm solid #333; margin-top: 1mm; padding-top: 2mm; }
+  .watermark {
+    position: absolute; inset: 0; z-index: 10; overflow: hidden; pointer-events: none;
+    display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around;
+    transform: rotate(-30deg) scale(1.4);
+  }
+  .watermark span {
+    font-size: 16pt; font-weight: bold; color: rgba(120, 120, 120, 0.28);
+    white-space: nowrap; margin: 12mm;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    {% if show_watermark %}
+    <div class="watermark">
+      {% for _ in range(24) %}<span>ÜCRETSİZ PLAN</span>{% endfor %}
+    </div>
+    {% endif %}
+    {% for entry in layout_json %}
+    <div class="field" style="
+        left:{{ entry.x_mm }}mm; top:{{ entry.y_mm }}mm;
+        width:{{ entry.width_mm }}mm; height:{{ entry.height_mm }}mm;
+        font-size:{{ entry.font_size }}pt;
+        font-weight:{{ 'bold' if entry.bold else 'normal' }};
+        text-align:{{ entry.align }};">{{ field_values.get(entry.field_key, '') }}</div>
+    {% endfor %}
+
+    <div class="line-items-block">
+      <table class="line-items-table">
+        <thead>
+          <tr>
+            <th>{{ labels.description }}</th>
+            <th>{{ labels.quantity }}</th>
+            <th>{{ labels.unit_price }}</th>
+            <th>{{ labels.line_total }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in line_items %}
+          <tr>
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit_price }}</td>
+            <td>{{ item.line_total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="totals">
+        <div class="totals-row"><span>{{ labels.subtotal }}</span><span>{{ subtotal }} {{ currency }}</span></div>
+        <div class="totals-row"><span>{{ labels.tax }}</span><span>{{ tax_total }} {{ currency }}</span></div>
+        <div class="totals-row grand"><span>{{ labels.grand_total }}</span><span>{{ grand_total }} {{ currency }}</span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,234 @@
+{
+  "common": {
+    "appName": "Axion Invoice",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "loading": "Yükleniyor...",
+    "comingSoon": "Bu bölüm ileriki bir fazda eklenecek.",
+    "genericError": "Bir hata oluştu, lütfen tekrar deneyin.",
+    "retry": "Tekrar Dene"
+  },
+  "landing": {
+    "nav": {
+      "features": "Özellikler",
+      "pricing": "Fiyatlandırma",
+      "login": "Giriş Yap",
+      "signup": "Ücretsiz Başla"
+    },
+    "hero": {
+      "title": "Faturalarınızı kendi tasarımınızla oluşturun",
+      "subtitle": "Hazır şablonlardan seçin ya da sürükle-bırak editörüyle sıfırdan kendi fatura tasarımınızı yaratın. Bireysel ve kurumsal kullanıcılar için.",
+      "ctaPrimary": "Ücretsiz Başla",
+      "ctaSecondary": "Giriş Yap"
+    },
+    "features": {
+      "title": "Neden Axion Invoice?",
+      "customFieldTitle": "Özel Alanlar",
+      "customFieldBody": "Sistemde tanımlı olmayan alanları (örn. Ek İskonto Oranı) kendiniz oluşturun.",
+      "designTitle": "Sürükle-Bırak Tasarım",
+      "designBody": "A4 sayfası üzerinde kendi fatura tasarımınızı oluşturun, gördüğünüz PDF'te de aynı çıkar.",
+      "multiUserTitle": "Bireysel & Kurumsal",
+      "multiUserBody": "Serbest çalışanlar ve KOBİ'ler için ayrı hesap türleri."
+    },
+    "pricing": {
+      "title": "Fiyatlandırma",
+      "perMonth": "/ay",
+      "free": { "name": "Free", "price": "0₺", "feature1": "Ayda 5 fatura", "feature2": "1 hazır şablon", "feature3": "Watermark'lı PDF" },
+      "pro": { "name": "Pro", "price": "149₺", "feature1": "Ayda 100 fatura", "feature2": "10 şablon (özel tasarım dahil)", "feature3": "Watermark yok" },
+      "business": { "name": "Business", "price": "399₺", "feature1": "Sınırsız fatura", "feature2": "Sınırsız şablon", "feature3": "API erişimi" }
+    },
+    "cta": {
+      "title": "Hemen ücretsiz başlayın",
+      "subtitle": "Kredi kartı gerekmez.",
+      "button": "Hesap Oluştur",
+      "demoButton": "Demoyu Dene"
+    },
+    "footer": {
+      "rights": "Tüm hakları saklıdır."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Giriş Yap",
+      "subtitle": "Hesabınıza giriş yapın",
+      "email": "E-posta",
+      "password": "Şifre",
+      "submit": "Giriş Yap",
+      "noAccount": "Hesabınız yok mu?",
+      "signupLink": "Kayıt olun",
+      "googleDivider": "veya",
+      "error": "E-posta veya şifre hatalı"
+    },
+    "signup": {
+      "title": "Hesap Oluştur",
+      "subtitle": "Ücretsiz hesabınızı oluşturun",
+      "fullName": "Ad Soyad",
+      "email": "E-posta",
+      "password": "Şifre",
+      "confirmPassword": "Şifre (Tekrar)",
+      "accountType": "Hesap Türü",
+      "accountTypeBireysel": "Bireysel",
+      "accountTypeKurumsal": "Kurumsal",
+      "companyName": "Şirket Adı",
+      "submit": "Hesap Oluştur",
+      "hasAccount": "Zaten hesabınız var mı?",
+      "loginLink": "Giriş yapın",
+      "errors": {
+        "passwordMin": "Şifre en az 8 karakter olmalı",
+        "passwordMismatch": "Şifreler eşleşmiyor",
+        "fullNameRequired": "Ad soyad gerekli",
+        "companyNameRequired": "Kurumsal hesap için şirket adı gerekli",
+        "emailInvalid": "Geçerli bir e-posta girin",
+        "emailTaken": "Bu e-posta zaten kayıtlı"
+      }
+    },
+    "google": {
+      "button": "Google ile devam et"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "invoices": "Faturalar",
+    "templates": "Şablonlar",
+    "customers": "Müşteriler",
+    "settings": "Ayarlar",
+    "billing": "Faturalama",
+    "logout": "Çıkış Yap"
+  },
+  "dashboard": {
+    "home": {
+      "welcome": "Hoş geldiniz, {{name}}",
+      "subtitle": "Axion Invoice panelinize genel bakış."
+    }
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "body": "Aradığınız sayfa mevcut değil.",
+    "backHome": "Ana sayfaya dön"
+  },
+  "templates": {
+    "list": {
+      "newTemplate": "Yeni Şablon",
+      "sectionSystem": "Sistem Şablonları",
+      "sectionMine": "Şablonlarım",
+      "empty": "Henüz şablonunuz yok.",
+      "use": "Kullan",
+      "edit": "Düzenle",
+      "deleteConfirm": "Bu şablonu silmek istediğinize emin misiniz?",
+      "limitReached": "Özel şablon limitinize ulaştınız. Devam etmek için planınızı yükseltin."
+    }
+  },
+  "editor": {
+    "field": {
+      "customer_name": "Müşteri Adı",
+      "invoice_date": "Fatura Tarihi",
+      "due_date": "Vade Tarihi",
+      "invoice_number": "Fatura No",
+      "company_name": "Şirket Adı",
+      "subtotal": "Ara Toplam",
+      "tax": "Vergi",
+      "custom_blank": "Boş Alan"
+    },
+    "palette": {
+      "title": "Alanlar",
+      "dragHint": "Sayfaya sürükleyin"
+    },
+    "stylePanel": {
+      "title": "Stil",
+      "emptyState": "Bir alan seçin",
+      "fontSize": "Font Boyutu",
+      "bold": "Kalın",
+      "align": "Hizalama"
+    },
+    "customFieldPopover": {
+      "title": "Özel Alan Ekle",
+      "labelField": "Etiket",
+      "valueType": "Değer Tipi",
+      "confirm": "Ekle",
+      "cancel": "İptal",
+      "valueTypes": {
+        "text": "Metin",
+        "number": "Sayı",
+        "date": "Tarih",
+        "currency": "Para Birimi"
+      }
+    },
+    "actions": {
+      "save": "Kaydet",
+      "templateName": "Şablon Adı",
+      "untitled": "İsimsiz Şablon"
+    },
+    "systemTemplateBanner": "Bu bir sistem şablonu — kaydettiğinizde kendi kopyanız oluşturulur."
+  },
+  "demo": {
+    "banner": "Demo modundasınız, değişiklikler kaydedilmez."
+  },
+  "customers": {
+    "form": {
+      "name": "Ad Soyad / Şirket",
+      "email": "E-posta",
+      "submit": "Ekle"
+    },
+    "list": {
+      "empty": "Henüz müşteriniz yok.",
+      "delete": "Sil"
+    }
+  },
+  "invoices": {
+    "list": {
+      "newInvoice": "Yeni Fatura",
+      "empty": "Henüz faturanız yok.",
+      "ready": "Hazır",
+      "processing": "İşleniyor…"
+    },
+    "status": {
+      "draft": "Taslak",
+      "sent": "Gönderildi",
+      "paid": "Ödendi",
+      "overdue": "Gecikmiş",
+      "cancelled": "İptal"
+    },
+    "form": {
+      "template": "Şablon",
+      "selectTemplate": "Şablon seçin",
+      "customer": "Müşteri",
+      "existingCustomer": "Mevcut müşteri",
+      "newCustomer": "Yeni müşteri",
+      "selectCustomer": "Müşteri seçin",
+      "fields": "Fatura Alanları",
+      "computed": "hesaplanır",
+      "lineItems": "Kalemler",
+      "addLineItem": "Kalem Ekle",
+      "removeLineItem": "Sil",
+      "description": "Açıklama",
+      "quantity": "Miktar",
+      "unitPrice": "Birim Fiyat",
+      "taxTotal": "Vergi Tutarı",
+      "subtotal": "Ara Toplam",
+      "tax": "Vergi",
+      "grandTotal": "Genel Toplam",
+      "submit": "Fatura Oluştur",
+      "limitReached": "Aylık fatura limitinize ulaştınız. Devam etmek için planınızı yükseltin."
+    },
+    "detail": {
+      "download": "PDF İndir",
+      "sendEmail": "E-posta Gönder",
+      "emailSent": "E-posta gönderim kuyruğuna alındı."
+    }
+  },
+  "billing": {
+    "currentPlan": "Mevcut Plan",
+    "usageInvoices": "Fatura kullanımı",
+    "usageTemplates": "Şablon kullanımı",
+    "unlimited": "Sınırsız",
+    "manageSubscription": "Aboneliği Yönet",
+    "upgrade": "Yükselt",
+    "currentPlanBadge": "Mevcut Plan",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "perMonth": "/ay",
+    "perYear": "/yıl",
+    "checkoutSuccess": "Aboneliğiniz başarıyla başlatıldı.",
+    "checkoutCancel": "Ödeme işlemi iptal edildi."
+  }
+}
