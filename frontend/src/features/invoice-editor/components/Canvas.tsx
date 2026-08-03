@@ -31,7 +31,7 @@ export function Canvas({ containerRef, scale, onScaleChange, fieldLabel, guides 
     <div
       ref={containerRef}
       onClick={() => selectField(null)}
-      className="relative mx-auto w-full max-w-[794px] border border-slate-300 bg-white shadow-sm"
+      className="relative mx-auto w-full max-w-198.5 border border-slate-300 bg-white shadow-sm"
       style={{ aspectRatio: `${A4_WIDTH_MM} / ${A4_HEIGHT_MM}` }}
     >
       {scale > 0 &&
