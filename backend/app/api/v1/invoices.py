@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
-from app.models.invoice import Invoice
+from app.models.invoice import Invoice, InvoicePdfStatus
 from app.models.user import User
 from app.schemas.invoice import InvoiceCreatePayload, InvoiceDetailResponse, InvoiceSummaryResponse
 from app.services.invoice_service import create_invoice, get_own_invoice
@@ -73,6 +73,21 @@ def download_invoice_pdf(
         media_type="application/pdf",
         filename=f"{invoice.invoice_number}.pdf",
     )
+
+
+@router.post("/{invoice_id}/retry-pdf", response_model=InvoiceDetailResponse)
+def retry_invoice_pdf(
+    invoice_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, current_user)
+    invoice.pdf_status = InvoicePdfStatus.PENDING
+    invoice.pdf_error = None
+    db.commit()
+    db.refresh(invoice)
+    generate_invoice_pdf_task.delay(str(invoice.id))
+    return invoice
 
 
 @router.post("/{invoice_id}/send-email", status_code=status.HTTP_202_ACCEPTED)

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
-import { useCreateCustomer } from '@/features/customers/hooks/useCreateCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
@@ -37,7 +36,6 @@ export function InvoiceForm() {
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
   const createInvoice = useCreateInvoice()
-  const createCustomer = useCreateCustomer()
 
   const { register, control, handleSubmit, watch, setValue } = useForm<InvoiceFormValues>({
     defaultValues: {
@@ -70,18 +68,14 @@ export function InvoiceForm() {
     }
   }, [template, setValue])
 
-  const onSubmit = handleSubmit(async (values) => {
-    if (values.customerMode === 'new') {
-      const newCustomer = await createCustomer.mutateAsync({
-        name: values.newCustomerName,
-        email: values.newCustomerEmail || undefined,
-      })
-      values.customer_id = newCustomer.id
-    }
-
+  const onSubmit = handleSubmit((values) => {
     createInvoice.mutate({
       template_id: values.template_id,
-      customer_id: values.customer_id,
+      customer_id: values.customerMode === 'existing' ? values.customer_id : undefined,
+      customer:
+        values.customerMode === 'new'
+          ? { name: values.newCustomerName, email: values.newCustomerEmail || undefined }
+          : undefined,
       currency: values.currency,
       tax_total: Number(values.tax_total) || 0,
       field_values: values.field_values,
@@ -251,7 +245,7 @@ export function InvoiceForm() {
         </p>
       )}
 
-      <Button type="submit" disabled={createInvoice.isPending || createCustomer.isPending}>
+      <Button type="submit" disabled={createInvoice.isPending}>
         {t('invoices.form.submit')}
       </Button>
     </form>

@@ -1,20 +1,21 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { authApi } from '@/features/auth/api/authApi'
-import { syncLocaleFromUser } from '@/features/auth/syncLocaleFromUser'
+import { applyAuthSuccess } from '@/features/auth/applyAuthSuccess'
 import { useAuthStore } from '@/store/authStore'
 
 export function useSessionBootstrap(): void {
+  const hasRunRef = useRef(false)
+
   useEffect(() => {
-    const { setStatus, setAuth, clearAuth } = useAuthStore.getState()
+    if (hasRunRef.current) return
+    hasRunRef.current = true
+
+    const { setStatus, clearAuth } = useAuthStore.getState()
     setStatus('loading')
 
     authApi
       .refresh()
-      .then(async ({ access_token }) => {
-        const user = await authApi.me()
-        setAuth(user, access_token)
-        syncLocaleFromUser(user)
-      })
+      .then(({ access_token }) => applyAuthSuccess(access_token))
       .catch(() => {
         clearAuth()
       })

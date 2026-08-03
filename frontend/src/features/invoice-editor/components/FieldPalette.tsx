@@ -1,12 +1,13 @@
 import { useDraggable } from '@dnd-kit/core'
 import { PlusSquare } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { twMerge } from 'tailwind-merge'
 import { BUILTIN_FIELD_CATALOG, CUSTOM_FIELD_PALETTE_KEY } from '@/features/invoice-editor/constants/fieldCatalog'
 import type { FieldCatalogEntry } from '@/features/invoice-editor/constants/fieldCatalog'
 import type { PaletteDragData } from '@/features/invoice-editor/dndTypes'
 
 function PaletteItem({ fieldKey, label, data }: { fieldKey: string; label: string; data: PaletteDragData }) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `palette-${fieldKey}`,
     data,
   })
@@ -17,10 +18,10 @@ function PaletteItem({ fieldKey, label, data }: { fieldKey: string; label: strin
       type="button"
       {...listeners}
       {...attributes}
-      style={{
-        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-      }}
-      className="cursor-move rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 hover:border-slate-400"
+      className={twMerge(
+        'cursor-move rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 hover:border-slate-400',
+        isDragging && 'opacity-40',
+      )}
     >
       {label}
     </button>

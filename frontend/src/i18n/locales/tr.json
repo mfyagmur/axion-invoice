@@ -115,7 +115,8 @@
       "use": "Kullan",
       "edit": "Düzenle",
       "deleteConfirm": "Bu şablonu silmek istediğinize emin misiniz?",
-      "limitReached": "Özel şablon limitinize ulaştınız. Devam etmek için planınızı yükseltin."
+      "limitReached": "Özel şablon limitinize ulaştınız. Devam etmek için planınızı yükseltin.",
+      "freeUseBlocked": "Free planda hazır şablon kullanılamaz. Devam etmek için planınızı yükseltin."
     }
   },
   "editor": {
@@ -161,16 +162,39 @@
     "systemTemplateBanner": "Bu bir sistem şablonu — kaydettiğinizde kendi kopyanız oluşturulur."
   },
   "demo": {
-    "banner": "Demo modundasınız, değişiklikler kaydedilmez."
+    "banner": "Demo modundasınız, değişiklikler kaydedilmez.",
+    "actionBlocked": "Demo modunda bu işlem yapılamaz."
+  },
+  "session": {
+    "idleTimeout": "Oturumunuz uzun süre işlem yapılmadığı için sonlandırıldı."
   },
   "customers": {
     "form": {
       "name": "Ad Soyad / Şirket",
       "email": "E-posta",
-      "submit": "Ekle"
+      "address": "Adres",
+      "phone": "Telefon",
+      "fax": "Faks",
+      "taxOffice": "Vergi Dairesi",
+      "taxNumber": "Vergi Numarası",
+      "mersisNo": "MERSİS No",
+      "submit": "Ekle",
+      "update": "Güncelle",
+      "cancel": "Vazgeç",
+      "editTitle": "Müşteriyi Düzenle",
+      "errors": {
+        "nameRequired": "Ad zorunludur.",
+        "emailRequired": "E-posta zorunludur.",
+        "emailInvalid": "Geçerli bir e-posta girin.",
+        "addressRequired": "Adres zorunludur.",
+        "phoneRequired": "Telefon zorunludur.",
+        "taxOfficeRequired": "Vergi dairesi zorunludur.",
+        "taxNumberRequired": "Vergi numarası zorunludur."
+      }
     },
     "list": {
       "empty": "Henüz müşteriniz yok.",
+      "edit": "Düzenle",
       "delete": "Sil"
     }
   },
@@ -179,7 +203,8 @@
       "newInvoice": "Yeni Fatura",
       "empty": "Henüz faturanız yok.",
       "ready": "Hazır",
-      "processing": "İşleniyor…"
+      "processing": "İşleniyor…",
+      "failed": "Başarısız"
     },
     "status": {
       "draft": "Taslak",
@@ -213,7 +238,9 @@
     "detail": {
       "download": "PDF İndir",
       "sendEmail": "E-posta Gönder",
-      "emailSent": "E-posta gönderim kuyruğuna alındı."
+      "emailSent": "E-posta gönderim kuyruğuna alındı.",
+      "pdfFailed": "PDF üretilemedi.",
+      "retryPdf": "Tekrar Dene"
     }
   },
   "billing": {

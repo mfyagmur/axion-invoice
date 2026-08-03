@@ -6,6 +6,6 @@ export function useInvoice(id: string | undefined) {
     queryKey: ['invoices', id],
     queryFn: () => invoicesApi.get(id!),
     enabled: !!id,
-    refetchInterval: (query) => (query.state.data?.pdf_url ? false : 2000),
+    refetchInterval: (query) => (query.state.data?.pdf_status === 'pending' ? 2000 : false),
   })
 }

@@ -1,5 +1,5 @@
 import { useEffect, type RefObject } from 'react'
-import { A4_HEIGHT_MM, A4_WIDTH_MM } from '@/features/invoice-editor/canvasGeometry'
+import { A4_HEIGHT_MM, A4_WIDTH_MM, mmToPx, type SnapGuides } from '@/features/invoice-editor/canvasGeometry'
 import { PlacedField } from '@/features/invoice-editor/components/PlacedField'
 import { useEditorStore } from '@/features/invoice-editor/store/editorStore'
 
@@ -8,9 +8,10 @@ interface CanvasProps {
   scale: number
   onScaleChange: (scale: number) => void
   fieldLabel: (fieldKey: string) => string
+  guides?: SnapGuides
 }
 
-export function Canvas({ containerRef, scale, onScaleChange, fieldLabel }: CanvasProps) {
+export function Canvas({ containerRef, scale, onScaleChange, fieldLabel, guides }: CanvasProps) {
   const layoutEntries = useEditorStore((state) => state.layoutEntries)
   const selectField = useEditorStore((state) => state.selectField)
 
@@ -37,6 +38,19 @@ export function Canvas({ containerRef, scale, onScaleChange, fieldLabel }: Canva
         layoutEntries.map((entry) => (
           <PlacedField key={entry.field_key} entry={entry} label={fieldLabel(entry.field_key)} scale={scale} />
         ))}
+
+      {guides?.vertical != null && (
+        <div
+          className="pointer-events-none absolute top-0 bottom-0 z-30 w-px bg-blue-500"
+          style={{ left: mmToPx(guides.vertical, scale) }}
+        />
+      )}
+      {guides?.horizontal != null && (
+        <div
+          className="pointer-events-none absolute left-0 right-0 z-30 h-px bg-blue-500"
+          style={{ top: mmToPx(guides.horizontal, scale) }}
+        />
+      )}
     </div>
   )
 }

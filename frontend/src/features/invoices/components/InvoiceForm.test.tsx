@@ -3,14 +3,12 @@ import axios from 'axios'
 import { describe, expect, it, vi } from 'vitest'
 import { InvoiceForm } from '@/features/invoices/components/InvoiceForm'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
-import { useCreateCustomer } from '@/features/customers/hooks/useCreateCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
 import { useTemplate } from '@/features/invoice-editor/hooks/useTemplate'
 import { renderWithProviders } from '@/test/renderWithProviders'
 
 vi.mock('@/features/invoices/hooks/useCreateInvoice', () => ({ useCreateInvoice: vi.fn() }))
-vi.mock('@/features/customers/hooks/useCreateCustomer', () => ({ useCreateCustomer: vi.fn() }))
 vi.mock('@/features/customers/hooks/useCustomers', () => ({ useCustomers: vi.fn() }))
 vi.mock('@/features/invoice-editor/hooks/useTemplates', () => ({ useTemplates: vi.fn() }))
 vi.mock('@/features/invoice-editor/hooks/useTemplate', () => ({ useTemplate: vi.fn() }))
@@ -27,10 +25,6 @@ describe('InvoiceForm', () => {
     vi.mocked(useTemplates).mockReturnValue({ data: [] } as unknown as ReturnType<typeof useTemplates>)
     vi.mocked(useCustomers).mockReturnValue({ data: [] } as unknown as ReturnType<typeof useCustomers>)
     vi.mocked(useTemplate).mockReturnValue({ data: undefined } as unknown as ReturnType<typeof useTemplate>)
-    vi.mocked(useCreateCustomer).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useCreateCustomer>)
     vi.mocked(useCreateInvoice).mockReturnValue({
       mutate: vi.fn(),
       isPending: false,

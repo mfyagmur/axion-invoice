@@ -14,7 +14,11 @@ COPY . .
 
 # Playwright's browser download lands under /root, which a non-root user can't traverse
 # (mode 0700) even if its contents are chowned — copy it into appuser's own home instead.
+# /app/generated_pdfs must exist (owned by appuser) *before* it's mounted as a named volume —
+# Docker seeds a fresh named volume's ownership from whatever's already at that path in the
+# image; without this the volume is created as root:root and Playwright can't write to it.
 RUN useradd --create-home --uid 1000 appuser \
+    && mkdir -p /app/generated_pdfs \
     && chown -R appuser:appuser /app \
     && mkdir -p /home/appuser/.cache \
     && cp -r /root/.cache/ms-playwright /home/appuser/.cache/ \

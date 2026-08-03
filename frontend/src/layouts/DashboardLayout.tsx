@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { useIdleLogout } from '@/features/auth/hooks/useIdleLogout'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { Sidebar } from '@/layouts/Sidebar'
 import { useAuthStore } from '@/store/authStore'
@@ -13,6 +14,7 @@ export function DashboardLayout() {
   const user = useAuthStore((state) => state.user)
   const logout = useLogout()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  useIdleLogout()
 
   return (
     <div className="flex min-h-screen">

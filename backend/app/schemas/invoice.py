@@ -4,8 +4,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
-from app.models.invoice import InvoiceStatus
-from app.schemas.customer import CustomerCreatePayload, CustomerResponse
+from app.models.invoice import InvoicePdfStatus, InvoiceStatus
+from app.schemas.customer import CustomerResponse, InvoiceCustomerPayload
 
 
 class LineItemPayload(BaseModel):
@@ -17,7 +17,7 @@ class LineItemPayload(BaseModel):
 class InvoiceCreatePayload(BaseModel):
     template_id: uuid.UUID
     customer_id: uuid.UUID | None = None
-    customer: CustomerCreatePayload | None = None
+    customer: InvoiceCustomerPayload | None = None
     currency: str = Field(default="TRY", min_length=3, max_length=3)
     tax_total: Decimal = Field(default=Decimal("0"), ge=0)
     field_values: dict[str, str] = Field(default_factory=dict)
@@ -53,6 +53,7 @@ class InvoiceSummaryResponse(BaseModel):
     currency: str
     grand_total: Decimal
     pdf_url: str | None
+    pdf_status: InvoicePdfStatus
     issued_at: date | None
     created_at: datetime
     customer: CustomerResponse
@@ -65,5 +66,6 @@ class InvoiceDetailResponse(InvoiceSummaryResponse):
     data_json: dict[str, str]
     subtotal: Decimal
     tax_total: Decimal
+    pdf_error: str | None
     due_at: date | None
     line_items: list[InvoiceLineItemResponse]

@@ -55,7 +55,9 @@ export function InvoicesPage() {
                   {Number(invoice.grand_total).toFixed(2)} {invoice.currency}
                 </span>
                 <span className="text-slate-400">
-                  {invoice.pdf_url ? t('invoices.list.ready') : t('invoices.list.processing')}
+                  {invoice.pdf_status === 'ready' && t('invoices.list.ready')}
+                  {invoice.pdf_status === 'pending' && t('invoices.list.processing')}
+                  {invoice.pdf_status === 'failed' && t('invoices.list.failed')}
                 </span>
               </div>
             </Link>

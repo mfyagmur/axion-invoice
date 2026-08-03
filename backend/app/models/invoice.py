@@ -18,6 +18,12 @@ class InvoiceStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class InvoicePdfStatus(str, Enum):
+    PENDING = "pending"
+    READY = "ready"
+    FAILED = "failed"
+
+
 class InvoiceCustomer(Base):
     __tablename__ = "invoice_customers"
 
@@ -29,6 +35,10 @@ class InvoiceCustomer(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     tax_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    fax: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    tax_office: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mersis_no: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
 
 class Invoice(Base):
@@ -54,6 +64,12 @@ class Invoice(Base):
     grand_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     data_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     pdf_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    pdf_status: Mapped[InvoicePdfStatus] = mapped_column(
+        SAEnum(InvoicePdfStatus, name="invoice_pdf_status"),
+        nullable=False,
+        default=InvoicePdfStatus.PENDING,
+    )
+    pdf_error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     issued_at: Mapped[date | None] = mapped_column(nullable=True)
     due_at: Mapped[date | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

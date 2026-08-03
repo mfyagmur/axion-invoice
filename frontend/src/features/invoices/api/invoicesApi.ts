@@ -13,6 +13,8 @@ export const invoicesApi = {
 
   sendEmail: (id: string) => apiClient.post<void>(`/invoices/${id}/send-email`).then((res) => res.data),
 
+  retryPdf: (id: string) => apiClient.post<InvoiceDetail>(`/invoices/${id}/retry-pdf`).then((res) => res.data),
+
   downloadPdf: (id: string) =>
     apiClient.get<Blob>(`/invoices/${id}/download`, { responseType: 'blob' }).then((res) => res.data),
 }

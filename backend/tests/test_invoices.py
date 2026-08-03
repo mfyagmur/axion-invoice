@@ -26,7 +26,7 @@ def test_create_invoice_success(client, auth_headers: dict[str, str]):
 
 
 def test_create_invoice_over_free_limit_returns_402(client, auth_headers: dict[str, str]):
-    for _ in range(5):
+    for _ in range(3):
         response = client.post("/api/v1/invoices", json=_invoice_payload(), headers=auth_headers)
         assert response.status_code == 201
 

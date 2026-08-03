@@ -43,9 +43,9 @@ export function PlacedField({ entry, label, scale }: PlacedFieldProps) {
         selectField(entry.field_key)
       }}
       className={twMerge(
-        'absolute flex cursor-move items-center overflow-hidden border border-dashed border-slate-400 bg-white/80 px-1 text-slate-800',
+        'absolute flex cursor-move items-center overflow-hidden border border-dashed border-slate-400 bg-white/80 px-1 text-slate-800 transition-shadow',
         isSelected && 'border-solid border-slate-900 ring-2 ring-slate-900',
-        isDragging && 'z-10 opacity-70',
+        isDragging && 'z-20 scale-[1.02] border-solid border-blue-500 bg-white shadow-lg ring-2 ring-blue-400',
       )}
     >
       {label}

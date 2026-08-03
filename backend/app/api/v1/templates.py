@@ -11,7 +11,7 @@ from app.core.deps import get_current_user, require_not_demo
 from app.models.template import InvoiceTemplate, InvoiceTemplateField
 from app.models.user import User
 from app.schemas.template import TemplateDetailResponse, TemplateSavePayload, TemplateSummaryResponse
-from app.services.subscription_service import check_template_limit
+from app.services.subscription_service import check_template_limit, get_active_plan
 from app.services.template_service import reconcile_fields
 
 router = APIRouter(prefix="/templates", tags=["templates"])
@@ -126,6 +126,11 @@ def duplicate_template(
     current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> InvoiceTemplate:
+    if get_active_plan(db, current_user).key == "free":
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Free planda hazır şablon kullanılamaz. Planınızı yükseltin.",
+        )
     check_template_limit(db, current_user)
     original = _get_visible_template(db, template_id, current_user)
 

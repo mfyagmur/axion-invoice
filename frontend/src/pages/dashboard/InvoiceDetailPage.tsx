@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 import { useInvoice } from '@/features/invoices/hooks/useInvoice'
+import { useRetryInvoicePdf } from '@/features/invoices/hooks/useRetryInvoicePdf'
 import { useSendInvoiceEmail } from '@/features/invoices/hooks/useSendInvoiceEmail'
 
 export function InvoiceDetailPage() {
@@ -11,6 +12,7 @@ export function InvoiceDetailPage() {
   const { data: invoice, isLoading } = useInvoice(id)
   const downloadPdf = useDownloadInvoicePdf()
   const sendEmail = useSendInvoiceEmail()
+  const retryPdf = useRetryInvoicePdf()
 
   if (isLoading || !invoice) {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
@@ -56,17 +58,32 @@ export function InvoiceDetailPage() {
         ))}
       </div>
 
-      <div className="flex gap-3">
-        {invoice.pdf_url ? (
-          <Button
-            onClick={() => downloadPdf.mutate({ id: invoice.id, filename: invoice.invoice_number })}
-            disabled={downloadPdf.isPending}
-          >
-            {t('invoices.detail.download')}
-          </Button>
-        ) : (
-          <p className="text-sm text-slate-500">{t('invoices.list.processing')}</p>
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-3">
+          {invoice.pdf_status === 'ready' && invoice.pdf_url ? (
+            <Button
+              onClick={() => downloadPdf.mutate({ id: invoice.id, filename: invoice.invoice_number })}
+              disabled={downloadPdf.isPending}
+            >
+              {t('invoices.detail.download')}
+            </Button>
+          ) : invoice.pdf_status === 'failed' ? (
+            <Button
+              variant="secondary"
+              onClick={() => retryPdf.mutate(invoice.id)}
+              disabled={retryPdf.isPending}
+            >
+              {t('invoices.detail.retryPdf')}
+            </Button>
+          ) : (
+            <p className="text-sm text-slate-500">{t('invoices.list.processing')}</p>
+          )}
+        </div>
+        {invoice.pdf_status === 'failed' && (
+          <p className="text-sm text-red-600">{t('invoices.detail.pdfFailed')}</p>
         )}
+      </div>
+      <div className="flex gap-3">
         <Button
           variant="secondary"
           onClick={() => sendEmail.mutate(invoice.id)}

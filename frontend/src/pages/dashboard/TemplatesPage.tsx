@@ -3,22 +3,35 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { ErrorState } from '@/components/ErrorState'
+import { useMySubscription } from '@/features/billing/hooks/useMySubscription'
 import { useDeleteTemplate } from '@/features/invoice-editor/hooks/useDeleteTemplate'
 import { useDuplicateTemplate } from '@/features/invoice-editor/hooks/useDuplicateTemplate'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
+import { useToastStore } from '@/store/toastStore'
 import type { TemplateSummary } from '@/types/template'
 
-function TemplateCard({ template }: { template: TemplateSummary }) {
+function TemplateCard({ template, isFreePlan }: { template: TemplateSummary; isFreePlan: boolean }) {
   const { t } = useTranslation()
   const duplicateTemplate = useDuplicateTemplate()
   const deleteTemplate = useDeleteTemplate()
+  const pushToast = useToastStore((state) => state.push)
 
   return (
     <div className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3">
       <span className="font-medium text-slate-900">{template.name}</span>
       <div className="flex gap-2">
         {template.is_system_template ? (
-          <Button variant="secondary" onClick={() => duplicateTemplate.mutate(template.id)}>
+          <Button
+            variant="secondary"
+            className={isFreePlan ? 'opacity-60' : undefined}
+            onClick={() => {
+              if (isFreePlan) {
+                pushToast(t('templates.list.freeUseBlocked'))
+                return
+              }
+              duplicateTemplate.mutate(template.id)
+            }}
+          >
             {t('templates.list.use')}
           </Button>
         ) : (
@@ -46,6 +59,8 @@ function TemplateCard({ template }: { template: TemplateSummary }) {
 export function TemplatesPage() {
   const { t } = useTranslation()
   const { data: templates, isLoading, isError, refetch } = useTemplates()
+  const { data: subscription } = useMySubscription()
+  const isFreePlan = subscription?.plan.key === 'free'
 
   const systemTemplates = templates?.filter((template) => template.is_system_template) ?? []
   const ownTemplates = templates?.filter((template) => !template.is_system_template) ?? []
@@ -72,7 +87,7 @@ export function TemplatesPage() {
             <h2 className="text-sm font-semibold text-slate-700">{t('templates.list.sectionSystem')}</h2>
             <div className="flex flex-col gap-2">
               {systemTemplates.map((template) => (
-                <TemplateCard key={template.id} template={template} />
+                <TemplateCard key={template.id} template={template} isFreePlan={isFreePlan} />
               ))}
             </div>
           </section>
@@ -84,7 +99,7 @@ export function TemplatesPage() {
             ) : (
               <div className="flex flex-col gap-2">
                 {ownTemplates.map((template) => (
-                  <TemplateCard key={template.id} template={template} />
+                  <TemplateCard key={template.id} template={template} isFreePlan={isFreePlan} />
                 ))}
               </div>
             )}

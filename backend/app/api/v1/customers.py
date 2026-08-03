@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
 from app.models.invoice import InvoiceCustomer
 from app.models.user import User
-from app.schemas.customer import CustomerCreatePayload, CustomerResponse
+from app.schemas.customer import CustomerCreatePayload, CustomerResponse, CustomerUpdatePayload
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -38,6 +38,21 @@ def create_customer(
 ) -> InvoiceCustomer:
     customer = InvoiceCustomer(user_id=current_user.id, **payload.model_dump())
     db.add(customer)
+    db.commit()
+    db.refresh(customer)
+    return customer
+
+
+@router.put("/{customer_id}", response_model=CustomerResponse)
+def update_customer(
+    customer_id: uuid.UUID,
+    payload: CustomerUpdatePayload,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> InvoiceCustomer:
+    customer = _get_own_customer(db, customer_id, current_user)
+    for field, value in payload.model_dump().items():
+        setattr(customer, field, value)
     db.commit()
     db.refresh(customer)
     return customer
