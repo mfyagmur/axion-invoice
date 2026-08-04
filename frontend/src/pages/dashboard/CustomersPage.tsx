@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Download, Plus } from 'lucide-react'
 import { Button } from '@/components/Button'
+import { CountryAutocomplete } from '@/components/CountryAutocomplete'
 import { ErrorState } from '@/components/ErrorState'
 import { Input } from '@/components/Input'
 import { Modal } from '@/components/Modal'
@@ -43,6 +44,7 @@ export function CustomersPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -188,9 +190,17 @@ export function CustomersPage() {
 
           {/* Ülke ve Web Adresi */}
           <div className="grid grid-cols-2 gap-3">
-            <Input
-              label={t('customers.form.country')}
-              {...register('country')}
+            <Controller
+              control={control}
+              name="country"
+              render={({ field }) => (
+                <CountryAutocomplete
+                  label={t('customers.form.country')}
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
             />
             <Input
               label={t('customers.form.website')}
