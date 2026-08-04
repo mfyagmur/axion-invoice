@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
 from app.models.invoice import InvoiceCustomer
 from app.models.user import User
-from app.schemas.customer import CustomerCreatePayload, CustomerResponse, CustomerUpdatePayload
+from app.schemas.customer import CustomerCreatePayload, CustomerResponse, CustomerStatusUpdatePayload, CustomerUpdatePayload
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -58,12 +58,15 @@ def update_customer(
     return customer
 
 
-@router.delete("/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_customer(
+@router.patch("/{customer_id}/status", response_model=CustomerResponse)
+def update_customer_status(
     customer_id: uuid.UUID,
+    payload: CustomerStatusUpdatePayload,
     current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
-) -> None:
+) -> InvoiceCustomer:
     customer = _get_own_customer(db, customer_id, current_user)
-    db.delete(customer)
+    customer.is_active = payload.is_active
     db.commit()
+    db.refresh(customer)
+    return customer

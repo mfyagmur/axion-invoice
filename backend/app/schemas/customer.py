@@ -28,8 +28,13 @@ class CustomerResponse(BaseModel):
     tax_number: str | None
     fax: str | None
     mersis_no: str | None
+    is_active: bool
 
     model_config = {"from_attributes": True}
+
+
+class CustomerStatusUpdatePayload(BaseModel):
+    is_active: bool
 
 
 class InvoiceCustomerPayload(BaseModel):

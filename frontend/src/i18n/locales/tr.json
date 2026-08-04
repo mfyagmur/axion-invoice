@@ -195,7 +195,9 @@
     "list": {
       "empty": "Henüz müşteriniz yok.",
       "edit": "Düzenle",
-      "delete": "Sil"
+      "activate": "Aktif Et",
+      "deactivate": "Pasif Et",
+      "statusPassive": "Pasif"
     }
   },
   "invoices": {

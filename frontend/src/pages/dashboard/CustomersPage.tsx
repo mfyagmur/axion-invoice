@@ -7,8 +7,8 @@ import { ErrorState } from '@/components/ErrorState'
 import { Input } from '@/components/Input'
 import { useCreateCustomer } from '@/features/customers/hooks/useCreateCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
-import { useDeleteCustomer } from '@/features/customers/hooks/useDeleteCustomer'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
+import { useUpdateCustomerStatus } from '@/features/customers/hooks/useUpdateCustomerStatus'
 import { customerSchema, type CustomerFormValues } from '@/features/customers/schemas/customerSchema'
 import type { Customer } from '@/types/customer'
 
@@ -28,7 +28,7 @@ export function CustomersPage() {
   const { data: customers, isLoading, isError, refetch } = useCustomers()
   const createCustomer = useCreateCustomer()
   const updateCustomer = useUpdateCustomer()
-  const deleteCustomer = useDeleteCustomer()
+  const updateStatus = useUpdateCustomerStatus()
   const [editingId, setEditingId] = useState<string | null>(null)
 
   const {
@@ -152,13 +152,17 @@ export function CustomersPage() {
                 <span className="font-medium text-slate-900">{customer.name}</span>
                 {customer.email && <span className="text-sm text-slate-500">{customer.email}</span>}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-1 sm:flex-row sm:gap-2">
                 <Button variant="secondary" onClick={() => startEdit(customer)}>
                   {t('customers.list.edit')}
                 </Button>
-                <Button variant="ghost" onClick={() => deleteCustomer.mutate(customer.id)}>
-                  {t('customers.list.delete')}
+                <Button
+                  variant={customer.is_active ? 'ghost' : 'secondary'}
+                  onClick={() => updateStatus.mutate({ id: customer.id, isActive: !customer.is_active })}
+                >
+                  {customer.is_active ? t('customers.list.deactivate') : t('customers.list.activate')}
                 </Button>
+                {!customer.is_active && <span className="text-xs text-slate-400">{t('customers.list.statusPassive')}</span>}
               </div>
             </div>
           ))}

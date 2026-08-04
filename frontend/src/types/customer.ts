@@ -8,6 +8,7 @@ export interface Customer {
   tax_number: string | null
   fax: string | null
   mersis_no: string | null
+  is_active: boolean
 }
 
 export interface CustomerCreatePayload {

@@ -195,7 +195,9 @@
     "list": {
       "empty": "You don't have any customers yet.",
       "edit": "Edit",
-      "delete": "Delete"
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "statusPassive": "Inactive"
     }
   },
   "invoices": {
