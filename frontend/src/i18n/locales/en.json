@@ -182,6 +182,7 @@
       "update": "Update",
       "cancel": "Cancel",
       "editTitle": "Edit Customer",
+      "newTitle": "New Customer",
       "errors": {
         "nameRequired": "Name is required.",
         "emailRequired": "Email is required.",
@@ -197,7 +198,9 @@
       "edit": "Edit",
       "activate": "Activate",
       "deactivate": "Deactivate",
-      "statusPassive": "Inactive"
+      "statusPassive": "Inactive",
+      "newCustomer": "New Customer",
+      "exportExcel": "Export to Excel"
     }
   },
   "invoices": {

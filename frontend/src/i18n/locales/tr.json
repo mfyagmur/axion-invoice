@@ -182,6 +182,7 @@
       "update": "Güncelle",
       "cancel": "Vazgeç",
       "editTitle": "Müşteriyi Düzenle",
+      "newTitle": "Yeni Müşteri",
       "errors": {
         "nameRequired": "Ad zorunludur.",
         "emailRequired": "E-posta zorunludur.",
@@ -197,7 +198,9 @@
       "edit": "Düzenle",
       "activate": "Aktif Et",
       "deactivate": "Pasif Et",
-      "statusPassive": "Pasif"
+      "statusPassive": "Pasif",
+      "newCustomer": "Yeni Müşteri",
+      "exportExcel": "Excel'e Aktar"
     }
   },
   "invoices": {
