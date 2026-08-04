@@ -127,7 +127,7 @@ export function InvoiceForm() {
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
           >
             <option value="">{t('invoices.form.selectCustomer')}</option>
-            {customers?.map((customer) => (
+            {customers?.filter((customer) => customer.is_active).map((customer) => (
               <option key={customer.id} value={customer.id}>
                 {customer.name}
               </option>
