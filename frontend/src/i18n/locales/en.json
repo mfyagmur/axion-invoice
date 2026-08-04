@@ -170,13 +170,19 @@
   },
   "customers": {
     "form": {
-      "name": "Name / Company",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "companyName": "Company Name",
       "email": "Email",
-      "address": "Address",
       "phone": "Phone",
-      "fax": "Fax",
+      "address": "Address",
+      "city": "City",
+      "postalCode": "Postal Code",
+      "country": "Country",
+      "website": "Website",
       "taxOffice": "Tax Office",
       "taxNumber": "Tax Number",
+      "fax": "Fax",
       "mersisNo": "MERSIS No",
       "submit": "Add",
       "update": "Update",
@@ -184,11 +190,12 @@
       "editTitle": "Edit Customer",
       "newTitle": "New Customer",
       "errors": {
-        "nameRequired": "Name is required.",
+        "firstNameRequired": "First name is required.",
+        "lastNameRequired": "Last name is required.",
         "emailRequired": "Email is required.",
         "emailInvalid": "Enter a valid email address.",
-        "addressRequired": "Address is required.",
         "phoneRequired": "Phone is required.",
+        "addressRequired": "Address is required.",
         "taxOfficeRequired": "Tax office is required.",
         "taxNumberRequired": "Tax number is required."
       }

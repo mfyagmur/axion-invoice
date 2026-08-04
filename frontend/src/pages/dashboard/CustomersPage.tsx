@@ -16,10 +16,16 @@ import { exportCustomersToExcel } from '@/features/customers/utils/exportCustome
 import type { Customer } from '@/types/customer'
 
 const EMPTY_VALUES: CustomerFormValues = {
-  name: '',
+  first_name: '',
+  last_name: '',
+  company_name: '',
   email: '',
-  address: '',
   phone: '',
+  address: '',
+  city: '',
+  postal_code: '',
+  country: '',
+  website: '',
   tax_office: '',
   tax_number: '',
   fax: '',
@@ -48,10 +54,16 @@ export function CustomersPage() {
   const startEdit = (customer: Customer) => {
     setEditingId(customer.id)
     reset({
-      name: customer.name,
+      first_name: customer.first_name ?? '',
+      last_name: customer.last_name ?? '',
+      company_name: customer.company_name ?? '',
       email: customer.email ?? '',
-      address: customer.address ?? '',
       phone: customer.phone ?? '',
+      address: customer.address ?? '',
+      city: customer.city ?? '',
+      postal_code: customer.postal_code ?? '',
+      country: customer.country ?? '',
+      website: customer.website ?? '',
       tax_office: customer.tax_office ?? '',
       tax_number: customer.tax_number ?? '',
       fax: customer.fax ?? '',
@@ -119,13 +131,29 @@ export function CustomersPage() {
         onClose={cancelEdit}
         title={editingId ? t('customers.form.editTitle') : t('customers.form.newTitle')}
       >
-        <form onSubmit={onSubmit} className="flex flex-col gap-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          {/* Ad Soyad */}
+          <div className="grid grid-cols-2 gap-3">
             <Input
-              label={t('customers.form.name')}
-              error={errors.name && t(errors.name.message ?? '')}
-              {...register('name')}
+              label={t('customers.form.firstName')}
+              error={errors.first_name && t(errors.first_name.message ?? '')}
+              {...register('first_name')}
             />
+            <Input
+              label={t('customers.form.lastName')}
+              error={errors.last_name && t(errors.last_name.message ?? '')}
+              {...register('last_name')}
+            />
+          </div>
+
+          {/* Şirket Adı */}
+          <Input
+            label={t('customers.form.companyName')}
+            {...register('company_name')}
+          />
+
+          {/* E-posta ve Telefon */}
+          <div className="grid grid-cols-2 gap-3">
             <Input
               label={t('customers.form.email')}
               type="email"
@@ -133,15 +161,46 @@ export function CustomersPage() {
               {...register('email')}
             />
             <Input
-              label={t('customers.form.address')}
-              error={errors.address && t(errors.address.message ?? '')}
-              {...register('address')}
-            />
-            <Input
               label={t('customers.form.phone')}
               error={errors.phone && t(errors.phone.message ?? '')}
               {...register('phone')}
             />
+          </div>
+
+          {/* Adres (Uzun) */}
+          <Input
+            label={t('customers.form.address')}
+            error={errors.address && t(errors.address.message ?? '')}
+            {...register('address')}
+          />
+
+          {/* Şehir ve Posta Kodu */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={t('customers.form.city')}
+              {...register('city')}
+            />
+            <Input
+              label={t('customers.form.postalCode')}
+              {...register('postal_code')}
+            />
+          </div>
+
+          {/* Ülke ve Web Adresi */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={t('customers.form.country')}
+              {...register('country')}
+            />
+            <Input
+              label={t('customers.form.website')}
+              type="url"
+              {...register('website')}
+            />
+          </div>
+
+          {/* Vergi Dairesi ve Vergi Numarası */}
+          <div className="grid grid-cols-2 gap-3">
             <Input
               label={t('customers.form.taxOffice')}
               error={errors.tax_office && t(errors.tax_office.message ?? '')}
@@ -152,10 +211,16 @@ export function CustomersPage() {
               error={errors.tax_number && t(errors.tax_number.message ?? '')}
               {...register('tax_number')}
             />
+          </div>
+
+          {/* Faks ve MERSIS No */}
+          <div className="grid grid-cols-2 gap-3">
             <Input label={t('customers.form.fax')} {...register('fax')} />
             <Input label={t('customers.form.mersisNo')} {...register('mersis_no')} />
           </div>
-          <div className="flex gap-2 pt-2">
+
+          {/* Butonlar */}
+          <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isSaving}>
               {editingId ? t('customers.form.update') : t('customers.form.submit')}
             </Button>
@@ -184,12 +249,7 @@ export function CustomersPage() {
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
                   <span className="text-sm font-semibold text-slate-600">
-                    {customer.name
-                      .split(' ')
-                      .slice(0, 2)
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()}
+                    {((customer.first_name?.[0] || '') + (customer.last_name?.[0] || '')).toUpperCase()}
                   </span>
                 </div>
                 <div className="flex flex-col">

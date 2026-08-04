@@ -3,10 +3,16 @@ import type { Customer } from '@/types/customer'
 
 export function exportCustomersToExcel(customers: Customer[]) {
   const data = customers.map((customer) => ({
-    'Ad Soyad / Şirket': customer.name,
+    'Ad': customer.first_name || '',
+    'Soyad': customer.last_name || '',
+    'Şirket Adı': customer.company_name || '',
     'E-posta': customer.email || '',
     'Telefon': customer.phone || '',
     'Adres': customer.address || '',
+    'Şehir': customer.city || '',
+    'Posta Kodu': customer.postal_code || '',
+    'Ülke': customer.country || '',
+    'Web Adresi': customer.website || '',
     'Vergi Dairesi': customer.tax_office || '',
     'Vergi No': customer.tax_number || '',
     'Faks': customer.fax || '',
@@ -19,10 +25,16 @@ export function exportCustomersToExcel(customers: Customer[]) {
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Müşteriler')
 
   worksheet['!cols'] = [
+    { wch: 15 },
+    { wch: 15 },
     { wch: 20 },
     { wch: 25 },
     { wch: 15 },
-    { wch: 20 },
+    { wch: 25 },
+    { wch: 15 },
+    { wch: 12 },
+    { wch: 15 },
+    { wch: 15 },
     { wch: 15 },
     { wch: 12 },
     { wch: 12 },

@@ -1,9 +1,16 @@
 export interface Customer {
   id: string
   name: string
+  first_name: string | null
+  last_name: string | null
+  company_name: string | null
   email: string | null
-  address: string | null
   phone: string | null
+  address: string | null
+  city: string | null
+  postal_code: string | null
+  country: string | null
+  website: string | null
   tax_office: string | null
   tax_number: string | null
   fax: string | null
@@ -12,10 +19,16 @@ export interface Customer {
 }
 
 export interface CustomerCreatePayload {
-  name: string
+  first_name: string
+  last_name: string
+  company_name?: string
   email: string
-  address: string
   phone: string
+  address: string
+  city?: string
+  postal_code?: string
+  country?: string
+  website?: string
   tax_office: string
   tax_number: string
   fax?: string

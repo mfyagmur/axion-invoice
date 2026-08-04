@@ -170,13 +170,19 @@
   },
   "customers": {
     "form": {
-      "name": "Ad Soyad / Şirket",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "companyName": "Şirket Adı",
       "email": "E-posta",
-      "address": "Adres",
       "phone": "Telefon",
-      "fax": "Faks",
+      "address": "Adres",
+      "city": "Şehir",
+      "postalCode": "Posta Kodu",
+      "country": "Ülke",
+      "website": "Web Adresi",
       "taxOffice": "Vergi Dairesi",
       "taxNumber": "Vergi Numarası",
+      "fax": "Faks",
       "mersisNo": "MERSİS No",
       "submit": "Ekle",
       "update": "Güncelle",
@@ -184,11 +190,12 @@
       "editTitle": "Müşteriyi Düzenle",
       "newTitle": "Yeni Müşteri",
       "errors": {
-        "nameRequired": "Ad zorunludur.",
+        "firstNameRequired": "Ad zorunludur.",
+        "lastNameRequired": "Soyad zorunludur.",
         "emailRequired": "E-posta zorunludur.",
         "emailInvalid": "Geçerli bir e-posta girin.",
-        "addressRequired": "Adres zorunludur.",
         "phoneRequired": "Telefon zorunludur.",
+        "addressRequired": "Adres zorunludur.",
         "taxOfficeRequired": "Vergi dairesi zorunludur.",
         "taxNumberRequired": "Vergi numarası zorunludur."
       }

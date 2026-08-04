@@ -36,7 +36,9 @@ def create_customer(
     current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> InvoiceCustomer:
-    customer = InvoiceCustomer(user_id=current_user.id, **payload.model_dump())
+    data = payload.model_dump()
+    name = f"{data['first_name']} {data['last_name']}".strip()
+    customer = InvoiceCustomer(user_id=current_user.id, name=name, **data)
     db.add(customer)
     db.commit()
     db.refresh(customer)
@@ -51,7 +53,12 @@ def update_customer(
     db: Annotated[Session, Depends(get_db)],
 ) -> InvoiceCustomer:
     customer = _get_own_customer(db, customer_id, current_user)
-    for field, value in payload.model_dump().items():
+    data = payload.model_dump()
+    if 'first_name' in data or 'last_name' in data:
+        first_name = data.get('first_name', customer.first_name or '')
+        last_name = data.get('last_name', customer.last_name or '')
+        data['name'] = f"{first_name} {last_name}".strip()
+    for field, value in data.items():
         setattr(customer, field, value)
     db.commit()
     db.refresh(customer)
