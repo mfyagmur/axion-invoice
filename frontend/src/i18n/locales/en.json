@@ -208,6 +208,22 @@
       "statusPassive": "Inactive",
       "newCustomer": "New Customer",
       "exportExcel": "Export to Excel"
+    },
+    "detail": {
+      "back": "Back",
+      "title": "Customer Details",
+      "taxIdLabel": "VAT, EIN or Tax ID / ID Number",
+      "tabs": {
+        "invoices": "Invoices",
+        "contact": "Contact"
+      },
+      "invoicesTab": {
+        "empty": "This customer has no invoices yet."
+      },
+      "contact": {
+        "name": "Name",
+        "email": "Email"
+      }
     }
   },
   "invoices": {

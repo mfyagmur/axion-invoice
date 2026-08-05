@@ -30,6 +30,15 @@ def list_customers(
     ).all()
 
 
+@router.get("/{customer_id}", response_model=CustomerResponse)
+def get_customer(
+    customer_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> InvoiceCustomer:
+    return _get_own_customer(db, customer_id, current_user)
+
+
 @router.post("", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 def create_customer(
     payload: CustomerCreatePayload,

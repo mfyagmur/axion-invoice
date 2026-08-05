@@ -6,6 +6,7 @@ import { PublicLayout } from '@/layouts/PublicLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { BillingPage } from '@/pages/dashboard/BillingPage'
+import { CustomerDetailPage } from '@/pages/dashboard/CustomerDetailPage'
 import { CustomersPage } from '@/pages/dashboard/CustomersPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
 import { InvoiceCreatePage } from '@/pages/dashboard/InvoiceCreatePage'
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
           { path: '/dashboard/templates/new', element: <TemplateEditorPage /> },
           { path: '/dashboard/templates/:id/edit', element: <TemplateEditorPage /> },
           { path: '/dashboard/customers', element: <CustomersPage /> },
+          { path: '/dashboard/customers/:id', element: <CustomerDetailPage /> },
           { path: '/dashboard/settings', element: <SettingsPage /> },
           { path: '/dashboard/billing', element: <BillingPage /> },
         ],

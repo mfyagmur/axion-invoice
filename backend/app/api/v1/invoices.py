@@ -2,7 +2,7 @@ import uuid
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -24,13 +24,12 @@ router = APIRouter(prefix="/invoices", tags=["invoices"])
 def list_invoices(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    customer_id: uuid.UUID | None = Query(None),
 ) -> list[Invoice]:
-    return (
-        db.query(Invoice)
-        .filter(Invoice.user_id == current_user.id)
-        .order_by(Invoice.created_at.desc())
-        .all()
-    )
+    query = db.query(Invoice).filter(Invoice.user_id == current_user.id)
+    if customer_id is not None:
+        query = query.filter(Invoice.customer_id == customer_id)
+    return query.order_by(Invoice.created_at.desc()).all()
 
 
 @router.post("", response_model=InvoiceDetailResponse, status_code=status.HTTP_201_CREATED)

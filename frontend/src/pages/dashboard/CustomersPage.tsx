@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { Download, Plus } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { CountryAutocomplete } from '@/components/CountryAutocomplete'
@@ -35,6 +36,7 @@ const EMPTY_VALUES: CustomerFormValues = {
 
 export function CustomersPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { data: customers, isLoading, isError, refetch } = useCustomers()
   const createCustomer = useCreateCustomer()
   const updateCustomer = useUpdateCustomer()
@@ -254,7 +256,8 @@ export function CustomersPage() {
           {customers?.map((customer) => (
             <div
               key={customer.id}
-              className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
+              onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
+              className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
@@ -273,12 +276,21 @@ export function CustomersPage() {
                     {t('customers.list.statusPassive')}
                   </span>
                 )}
-                <Button variant="secondary" onClick={() => startEdit(customer)}>
+                <Button
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    startEdit(customer)
+                  }}
+                >
                   {t('customers.list.edit')}
                 </Button>
                 <Button
                   variant={customer.is_active ? 'ghost' : 'secondary'}
-                  onClick={() => updateStatus.mutate({ id: customer.id, isActive: !customer.is_active })}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    updateStatus.mutate({ id: customer.id, isActive: !customer.is_active })
+                  }}
                 >
                   {customer.is_active ? t('customers.list.deactivate') : t('customers.list.activate')}
                 </Button>

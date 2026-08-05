@@ -2,7 +2,12 @@ import { apiClient } from '@/lib/apiClient'
 import type { InvoiceCreatePayload, InvoiceDetail, InvoiceSummary } from '@/types/invoice'
 
 export const invoicesApi = {
-  list: () => apiClient.get<InvoiceSummary[]>('/invoices').then((res) => res.data),
+  list: (params?: { customerId?: string }) =>
+    apiClient
+      .get<InvoiceSummary[]>('/invoices', {
+        params: params?.customerId ? { customer_id: params.customerId } : undefined,
+      })
+      .then((res) => res.data),
 
   get: (id: string) => apiClient.get<InvoiceDetail>(`/invoices/${id}`).then((res) => res.data),
 

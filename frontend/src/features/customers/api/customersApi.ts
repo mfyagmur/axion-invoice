@@ -4,6 +4,8 @@ import type { Customer, CustomerCreatePayload, CustomerUpdatePayload } from '@/t
 export const customersApi = {
   list: () => apiClient.get<Customer[]>('/customers').then((res) => res.data),
 
+  get: (id: string) => apiClient.get<Customer>(`/customers/${id}`).then((res) => res.data),
+
   create: (payload: CustomerCreatePayload) =>
     apiClient.post<Customer>('/customers', payload).then((res) => res.data),
 

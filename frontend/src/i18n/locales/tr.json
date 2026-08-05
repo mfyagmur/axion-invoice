@@ -208,6 +208,22 @@
       "statusPassive": "Pasif",
       "newCustomer": "Yeni Müşteri",
       "exportExcel": "Excel'e Aktar"
+    },
+    "detail": {
+      "back": "Geri",
+      "title": "Müşteri Detayları",
+      "taxIdLabel": "VAT, EIN veya Vergi Numarası / Kimlik No",
+      "tabs": {
+        "invoices": "Faturalar",
+        "contact": "İletişim"
+      },
+      "invoicesTab": {
+        "empty": "Bu müşterinin henüz faturası yok."
+      },
+      "contact": {
+        "name": "Ad Soyad",
+        "email": "E-posta"
+      }
     }
   },
   "invoices": {
