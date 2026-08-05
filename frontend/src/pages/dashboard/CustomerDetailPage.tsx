@@ -29,7 +29,7 @@ export function CustomerDetailPage() {
   const displayName = customer.company_name || customer.name
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -101,9 +101,22 @@ export function CustomerDetailPage() {
 
         {activeTab === 'contact' && (
           <div className="rounded-xl border border-slate-200 p-6 text-sm">
-            <Field label={t('customers.detail.contact.name')} value={customer.name} />
-            <div className="mt-4">
-              <Field label={t('customers.detail.contact.email')} value={customer.email} />
+            <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-8 gap-y-2">
+              <div />
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                {t('customers.detail.contact.name')}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                {t('customers.detail.contact.email')}
+              </span>
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                <span className="text-sm font-semibold text-slate-600">
+                  {((customer.first_name?.[0] || '') + (customer.last_name?.[0] || '')).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-slate-900">{customer.name || '—'}</span>
+              <span className="text-slate-900">{customer.email || '—'}</span>
             </div>
           </div>
         )}
