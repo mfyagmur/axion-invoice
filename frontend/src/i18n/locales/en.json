@@ -173,14 +173,14 @@
       "firstName": "First Name",
       "lastName": "Last Name",
       "companyName": "Company Name",
-      "email": "Email",
+      "email": "Emaıl",
       "phone": "Phone",
       "address": "Address",
-      "city": "City",
+      "city": "Cıty",
       "postalCode": "Postal Code",
       "country": "Country",
-      "website": "Website",
-      "taxOffice": "Tax Office",
+      "website": "Websıte",
+      "taxOffice": "Tax Offıce",
       "taxNumber": "Tax Number",
       "fax": "Fax",
       "mersisNo": "MERSIS No",
@@ -222,7 +222,7 @@
       },
       "contact": {
         "name": "Name",
-        "email": "Email"
+        "email": "Emaıl"
       }
     }
   },
