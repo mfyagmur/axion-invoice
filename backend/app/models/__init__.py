@@ -1,4 +1,4 @@
-from app.models.customer import Customer, CustomerContact
+from app.models.customer import CustomerContact
 from app.models.invoice import Invoice, InvoiceCustomer, InvoiceLineItem, InvoiceStatus
 from app.models.plan import Plan
 from app.models.subscription import BillingInterval, Subscription, SubscriptionStatus
@@ -7,7 +7,6 @@ from app.models.user import User
 
 __all__ = [
     "User",
-    "Customer",
     "CustomerContact",
     "InvoiceTemplate",
     "InvoiceTemplateField",

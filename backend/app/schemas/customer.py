@@ -24,6 +24,16 @@ class CustomerUpdatePayload(CustomerCreatePayload):
     pass
 
 
+class CustomerContactResponse(BaseModel):
+    id: uuid.UUID
+    first_name: str
+    last_name: str
+    email: str | None
+    phone: str | None
+
+    model_config = {"from_attributes": True}
+
+
 class CustomerResponse(BaseModel):
     id: uuid.UUID
     name: str
@@ -42,6 +52,7 @@ class CustomerResponse(BaseModel):
     fax: str | None
     mersis_no: str | None
     is_active: bool
+    contacts: list[CustomerContactResponse] = []
 
     model_config = {"from_attributes": True}
 
@@ -66,17 +77,3 @@ class CustomerContactPayload(BaseModel):
     last_name: str = Field(min_length=1, max_length=255)
     email: EmailStr | None = None
     phone: str | None = Field(default=None, max_length=50)
-
-
-class CustomerContactResponse(BaseModel):
-    id: uuid.UUID
-    first_name: str
-    last_name: str
-    email: str | None
-    phone: str | None
-
-    model_config = {"from_attributes": True}
-
-
-class CustomerResponseWithContacts(CustomerResponse):
-    contacts: list[CustomerContactResponse] = []

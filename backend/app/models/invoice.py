@@ -47,6 +47,9 @@ class InvoiceCustomer(Base):
     tax_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     mersis_no: Mapped[str | None] = mapped_column(String(50), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    contacts: Mapped[list["CustomerContact"]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan"
+    )
 
 
 class Invoice(Base):
