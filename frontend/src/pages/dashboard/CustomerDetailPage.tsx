@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, FileText, Plus } from 'lucide-react'
+import { ArrowLeft, FileText, Plus, Trash2 } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Button } from '@/components/Button'
@@ -15,6 +15,7 @@ import { useInvoices } from '@/features/invoices/hooks/useInvoices'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
 import { useUpdateCustomerContact } from '@/features/customers/hooks/useUpdateCustomerContact'
+import { useDeleteCustomerContact } from '@/features/customers/hooks/useDeleteCustomerContact'
 import type { CustomerUpdatePayload, CustomerContactPayload } from '@/types/customer'
 
 const STATUS_KEYS: Record<string, string> = {
@@ -43,6 +44,7 @@ export function CustomerDetailPage() {
   const updateCustomer = useUpdateCustomer()
   const addContact = useAddCustomerContact()
   const updateContact = useUpdateCustomerContact()
+  const deleteContact = useDeleteCustomerContact()
   const [activeTab, setActiveTab] = useState<'invoices' | 'contact'>('invoices')
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
@@ -221,7 +223,7 @@ export function CustomerDetailPage() {
 
         {activeTab === 'contact' && (
           <div className="rounded-xl border border-slate-200 p-6 text-sm">
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-x-8 gap-y-4">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-x-8 gap-y-4">
               <div />
               <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 {t('customers.detail.contact.name')}
@@ -232,6 +234,7 @@ export function CustomerDetailPage() {
               <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 {t('customers.form.phone')}
               </span>
+              <div />
 
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
                 <span className="text-sm font-semibold text-slate-600">
@@ -250,6 +253,7 @@ export function CustomerDetailPage() {
                 value={customer.phone || ''}
                 onSave={(newValue) => saveCustomerField('phone', newValue)}
               />
+              <div />
 
               {customer.contacts?.map((contact) => (
                 <>
@@ -273,6 +277,18 @@ export function CustomerDetailPage() {
                     value={contact.phone || ''}
                     onSave={(newValue) => updateContactField(contact.id, 'phone', newValue)}
                   />
+                  <button
+                    key={`delete-${contact.id}`}
+                    type="button"
+                    onClick={() => {
+                      if (!id) return
+                      deleteContact.mutate({ customerId: id, contactId: contact.id })
+                    }}
+                    className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    aria-label="Sil"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </>
               ))}
             </div>
