@@ -1,4 +1,5 @@
 import '@/i18n/config'
+import 'flag-icons/css/flag-icons.min.css'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'

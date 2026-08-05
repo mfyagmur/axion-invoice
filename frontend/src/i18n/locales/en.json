@@ -6,7 +6,8 @@
     "loading": "Loading...",
     "comingSoon": "This section will be added in a later phase.",
     "genericError": "Something went wrong, please try again.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "language": "Language"
   },
   "landing": {
     "nav": {
@@ -93,7 +94,8 @@
     "customers": "Customers",
     "settings": "Settings",
     "billing": "Billing",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "support": "Support"
   },
   "dashboard": {
     "home": {

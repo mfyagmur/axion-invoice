@@ -1,35 +1,166 @@
+import { ChevronDown, ChevronUp, HelpCircle, LogOut, Settings } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 import { twMerge } from 'tailwind-merge'
 import { dashboardNavItems } from '@/config/navigation'
+import { useLogout } from '@/features/auth/hooks/useLogout'
+import { useAuthStore } from '@/store/authStore'
+import { useLocaleStore } from '@/store/localeStore'
+import type { Locale } from '@/types/auth'
 
 interface SidebarProps {
   onNavigate?: () => void
 }
 
+const LOCALES: Locale[] = ['tr', 'en']
+
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const user = useAuthStore((state) => state.user)
+  const logout = useLogout()
+  const { locale, setLocale } = useLocaleStore()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMenuOpen])
+
+  const handleLogout = () => {
+    logout.mutate()
+    setIsMenuOpen(false)
+  }
+
+  const handleLanguageChange = (newLocale: Locale) => {
+    setLocale(newLocale)
+    i18n.changeLanguage(newLocale)
+  }
 
   return (
-    <nav className="flex h-full w-60 flex-col gap-1 border-r border-slate-200 bg-white p-4">
-      <span className="mb-2 px-2 text-lg font-semibold text-slate-900">{t('common.appName')}</span>
-      {dashboardNavItems.map(({ labelKey, path, icon: Icon }) => (
-        <NavLink
-          key={path}
-          to={path}
-          end={path === '/dashboard'}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            twMerge(
-              'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
-              isActive && 'bg-slate-900 text-white hover:bg-slate-900',
-            )
-          }
-        >
-          <Icon size={18} />
-          {t(labelKey)}
-        </NavLink>
-      ))}
+    <nav className="flex h-full w-60 flex-col border-r border-slate-200 bg-white p-4">
+      <span className="mb-4 px-2 text-lg font-semibold text-slate-900">{t('common.appName')}</span>
+
+      <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
+        {dashboardNavItems.map(({ labelKey, path, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
+            end={path === '/dashboard'}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              twMerge(
+                'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
+                isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+              )
+            }
+          >
+            <Icon size={18} />
+            {t(labelKey)}
+          </NavLink>
+        ))}
+      </div>
+
+      {user && (
+        <div className="relative mt-4 border-t border-slate-200 pt-4" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-slate-100"
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold">
+                {user.full_name.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-medium text-slate-900">{user.full_name}</span>
+              </div>
+            </div>
+            {isMenuOpen ? <ChevronUp size={16} className="text-slate-600" /> : <ChevronDown size={16} className="text-slate-600" />}
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 rounded-md border border-slate-200 bg-white shadow-lg">
+              <div className="border-b border-slate-200 px-3 py-2">
+                <p className="mb-1 text-sm font-medium text-slate-900">{user.full_name}</p>
+                <p className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">{user.email}</p>
+              </div>
+
+              <div className="border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
+                >
+                  <LogOut size={16} />
+                  {t('nav.logout')}
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                >
+                  <HelpCircle size={16} />
+                  {t('nav.support') || 'Support'}
+                </button>
+              </div>
+
+              <div className="border-t border-slate-200">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                >
+                  <Settings size={16} />
+                  {t('nav.settings')}
+                </button>
+                <div className="px-3 py-2">
+                  <div className="mb-2 text-xs font-medium text-slate-600">{t('common.language')}</div>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleLanguageChange('tr')
+                        setIsMenuOpen(false)
+                      }}
+                      className={twMerge(
+                        'flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-slate-200',
+                        locale === 'tr' && 'bg-slate-800',
+                      )}
+                      title="Türkçe"
+                    >
+                      <span className="fi fi-tr h-4 w-6 rounded-sm" />
+                      <span className={locale === 'tr' ? 'text-white' : 'text-slate-600'}>TR</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleLanguageChange('en')
+                        setIsMenuOpen(false)
+                      }}
+                      className={twMerge(
+                        'flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-slate-200',
+                        locale === 'en' && 'bg-slate-800',
+                      )}
+                      title="English"
+                    >
+                      <span className="fi fi-gb h-4 w-6 rounded-sm" />
+                      <span className={locale === 'en' ? 'text-white' : 'text-slate-600'}>EN</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   )
 }

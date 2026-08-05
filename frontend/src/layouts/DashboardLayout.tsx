@@ -2,17 +2,13 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
-import { Button } from '@/components/Button'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { useIdleLogout } from '@/features/auth/hooks/useIdleLogout'
-import { useLogout } from '@/features/auth/hooks/useLogout'
 import { Sidebar } from '@/layouts/Sidebar'
 import { useAuthStore } from '@/store/authStore'
 
 export function DashboardLayout() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
-  const logout = useLogout()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   useIdleLogout()
 
@@ -32,23 +28,14 @@ export function DashboardLayout() {
       )}
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 px-6 py-3">
+        <header className="flex items-center border-b border-slate-200 px-6 py-3 lg:hidden">
           <button
             type="button"
-            className="lg:hidden"
             onClick={() => setMobileNavOpen((open) => !open)}
             aria-label="menu"
           >
             {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-
-          <div className="ml-auto flex items-center gap-4">
-            <LanguageSwitcher />
-            {user && <span className="text-sm text-slate-600">{user.full_name}</span>}
-            <Button variant="ghost" onClick={() => logout.mutate()}>
-              {t('nav.logout')}
-            </Button>
-          </div>
         </header>
 
         {user?.is_demo && (

@@ -6,7 +6,8 @@
     "loading": "Yükleniyor...",
     "comingSoon": "Bu bölüm ileriki bir fazda eklenecek.",
     "genericError": "Bir hata oluştu, lütfen tekrar deneyin.",
-    "retry": "Tekrar Dene"
+    "retry": "Tekrar Dene",
+    "language": "Dil"
   },
   "landing": {
     "nav": {
@@ -93,7 +94,8 @@
     "customers": "Müşteriler",
     "settings": "Ayarlar",
     "billing": "Faturalama",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "support": "Destek"
   },
   "dashboard": {
     "home": {
