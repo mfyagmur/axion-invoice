@@ -59,3 +59,24 @@ class InvoiceCustomerPayload(BaseModel):
     email: EmailStr | None = None
     tax_number: str | None = Field(default=None, max_length=50)
     address: str | None = Field(default=None, max_length=1000)
+
+
+class CustomerContactPayload(BaseModel):
+    first_name: str = Field(min_length=1, max_length=255)
+    last_name: str = Field(min_length=1, max_length=255)
+    email: EmailStr | None = None
+    phone: str | None = Field(default=None, max_length=50)
+
+
+class CustomerContactResponse(BaseModel):
+    id: uuid.UUID
+    first_name: str
+    last_name: str
+    email: str | None
+    phone: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class CustomerResponseWithContacts(CustomerResponse):
+    contacts: list[CustomerContactResponse] = []

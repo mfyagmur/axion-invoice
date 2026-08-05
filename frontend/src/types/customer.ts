@@ -1,3 +1,11 @@
+export interface CustomerContact {
+  id: string
+  first_name: string
+  last_name: string
+  email: string | null
+  phone: string | null
+}
+
 export interface Customer {
   id: string
   name: string
@@ -16,6 +24,7 @@ export interface Customer {
   fax: string | null
   mersis_no: string | null
   is_active: boolean
+  contacts?: CustomerContact[]
 }
 
 export interface CustomerCreatePayload {
@@ -42,4 +51,19 @@ export interface InvoiceCustomerPayload {
   email?: string
   tax_number?: string
   address?: string
+}
+
+export interface CustomerContact {
+  id: string
+  first_name: string
+  last_name: string
+  email: string | null
+  phone: string | null
+}
+
+export interface CustomerContactPayload {
+  first_name: string
+  last_name: string
+  email?: string
+  phone?: string
 }

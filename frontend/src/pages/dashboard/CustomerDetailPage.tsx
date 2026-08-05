@@ -6,11 +6,16 @@ import { ArrowLeft, FileText, Plus } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Button } from '@/components/Button'
+import { EditableField } from '@/components/EditableField'
 import { Input } from '@/components/Input'
 import { Modal } from '@/components/Modal'
 import { Tabs } from '@/components/Tabs'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { useInvoices } from '@/features/invoices/hooks/useInvoices'
+import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
+import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
+import { useUpdateCustomerContact } from '@/features/customers/hooks/useUpdateCustomerContact'
+import type { CustomerUpdatePayload, CustomerContactPayload } from '@/types/customer'
 
 const STATUS_KEYS: Record<string, string> = {
   draft: 'invoices.status.draft',
@@ -35,8 +40,10 @@ export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: customer, isLoading } = useCustomer(id)
   const { data: invoices, isLoading: isInvoicesLoading } = useInvoices(id)
+  const updateCustomer = useUpdateCustomer()
+  const addContact = useAddCustomerContact()
+  const updateContact = useUpdateCustomerContact()
   const [activeTab, setActiveTab] = useState<'invoices' | 'contact'>('invoices')
-  const [contacts, setContacts] = useState<ContactFormValues[]>([])
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
   const {
@@ -55,10 +62,70 @@ export function CustomerDetailPage() {
   })
 
   const onAddContact = handleSubmit((data) => {
-    setContacts([...contacts, data])
-    reset()
-    setIsContactModalOpen(false)
+    if (!id) return
+    addContact.mutate(
+      { customerId: id, payload: data },
+      {
+        onSuccess: () => {
+          reset()
+          setIsContactModalOpen(false)
+        },
+      },
+    )
   })
+
+  const updateContactField = (contactId: string, field: 'name' | 'email' | 'phone', newValue: string) => {
+    if (!id) return
+    const contact = customer?.contacts?.find((c) => c.id === contactId)
+    if (!contact) return
+
+    const payload: CustomerContactPayload = {
+      first_name: contact.first_name,
+      last_name: contact.last_name,
+      email: contact.email || undefined,
+      phone: contact.phone || undefined,
+    }
+
+    if (field === 'name') {
+      const [first, ...rest] = newValue.split(' ')
+      payload.first_name = first ?? ''
+      payload.last_name = rest.join(' ')
+    } else if (field === 'email') {
+      payload.email = newValue
+    } else if (field === 'phone') {
+      payload.phone = newValue
+    }
+
+    updateContact.mutate({ customerId: id, contactId, payload })
+  }
+
+  const saveCustomerField = (field: 'name' | 'email' | 'phone', newValue: string) => {
+    if (!id || !customer) return
+    const payload: CustomerUpdatePayload = {
+      first_name: customer.first_name ?? '',
+      last_name: customer.last_name ?? '',
+      company_name: customer.company_name ?? undefined,
+      email: customer.email ?? '',
+      phone: customer.phone ?? '',
+      address: customer.address ?? '',
+      city: customer.city ?? undefined,
+      postal_code: customer.postal_code ?? undefined,
+      country: customer.country ?? undefined,
+      website: customer.website ?? undefined,
+      tax_office: customer.tax_office ?? '',
+      tax_number: customer.tax_number ?? '',
+      fax: customer.fax ?? undefined,
+      mersis_no: customer.mersis_no ?? undefined,
+    }
+    if (field === 'name') {
+      const [first, ...rest] = newValue.split(' ')
+      payload.first_name = first ?? ''
+      payload.last_name = rest.join(' ')
+    } else {
+      payload[field] = newValue
+    }
+    updateCustomer.mutate({ id, payload })
+  }
 
   if (isLoading || !customer) {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
@@ -154,66 +221,61 @@ export function CustomerDetailPage() {
 
         {activeTab === 'contact' && (
           <div className="rounded-xl border border-slate-200 p-6 text-sm">
-            <div className="flex items-start gap-6">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-x-8 gap-y-4">
+              <div />
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                {t('customers.detail.contact.name')}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                {t('customers.detail.contact.email')}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                {t('customers.form.phone')}
+              </span>
+
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
                 <span className="text-sm font-semibold text-slate-600">
                   {((customer.first_name?.[0] || '') + (customer.last_name?.[0] || '')).toUpperCase()}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-x-8">
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {t('customers.detail.contact.name')}
-                  </span>
-                  <span className="text-slate-900">{customer.name || '—'}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {t('customers.detail.contact.email')}
-                  </span>
-                  <span className="text-slate-900">{customer.email || '—'}</span>
-                </div>
-              </div>
-            </div>
+              <EditableField
+                value={customer.name || ''}
+                onSave={(newValue) => saveCustomerField('name', newValue)}
+              />
+              <EditableField
+                value={customer.email || ''}
+                onSave={(newValue) => saveCustomerField('email', newValue)}
+              />
+              <EditableField
+                value={customer.phone || ''}
+                onSave={(newValue) => saveCustomerField('phone', newValue)}
+              />
 
-            {contacts.length > 0 && (
-              <div className="mt-6 border-t border-slate-200 pt-6">
-                <h3 className="mb-4 text-sm font-medium text-slate-900">
-                  {t('customers.detail.contact.additionalContacts')}
-                </h3>
-                {contacts.map((contact, idx) => (
-                  <div key={idx} className="mb-4 flex items-start gap-6">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                      <span className="text-sm font-semibold text-slate-600">
-                        {((contact.first_name?.[0] || '') + (contact.last_name?.[0] || '')).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                          {t('customers.detail.contact.name')}
-                        </span>
-                        <span className="text-slate-900">
-                          {contact.first_name} {contact.last_name}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                          {t('customers.detail.contact.email')}
-                        </span>
-                        <span className="text-slate-900">{contact.email}</span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                          {t('customers.form.phone')}
-                        </span>
-                        <span className="text-slate-900">{contact.phone}</span>
-                      </div>
-                    </div>
+              {customer.contacts?.map((contact) => (
+                <>
+                  <div key={`avatar-${contact.id}`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                    <span className="text-sm font-semibold text-slate-600">
+                      {((contact.first_name?.[0] || '') + (contact.last_name?.[0] || '')).toUpperCase()}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  <EditableField
+                    key={`name-${contact.id}`}
+                    value={`${contact.first_name} ${contact.last_name}`}
+                    onSave={(newValue) => updateContactField(contact.id, 'name', newValue)}
+                  />
+                  <EditableField
+                    key={`email-${contact.id}`}
+                    value={contact.email || ''}
+                    onSave={(newValue) => updateContactField(contact.id, 'email', newValue)}
+                  />
+                  <EditableField
+                    key={`phone-${contact.id}`}
+                    value={contact.phone || ''}
+                    onSave={(newValue) => updateContactField(contact.id, 'phone', newValue)}
+                  />
+                </>
+              ))}
+            </div>
           </div>
         )}
       </div>

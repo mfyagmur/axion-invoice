@@ -7,8 +7,16 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
 from app.models.invoice import InvoiceCustomer
+from app.models.customer import CustomerContact
 from app.models.user import User
-from app.schemas.customer import CustomerCreatePayload, CustomerResponse, CustomerStatusUpdatePayload, CustomerUpdatePayload
+from app.schemas.customer import (
+    CustomerCreatePayload,
+    CustomerResponse,
+    CustomerStatusUpdatePayload,
+    CustomerUpdatePayload,
+    CustomerContactPayload,
+    CustomerContactResponse,
+)
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -86,3 +94,52 @@ def update_customer_status(
     db.commit()
     db.refresh(customer)
     return customer
+
+
+@router.post("/{customer_id}/contacts", response_model=CustomerContactResponse, status_code=status.HTTP_201_CREATED)
+def add_customer_contact(
+    customer_id: uuid.UUID,
+    payload: CustomerContactPayload,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> CustomerContact:
+    _get_own_customer(db, customer_id, current_user)
+    contact = CustomerContact(customer_id=customer_id, **payload.model_dump())
+    db.add(contact)
+    db.commit()
+    db.refresh(contact)
+    return contact
+
+
+@router.put("/{customer_id}/contacts/{contact_id}", response_model=CustomerContactResponse)
+def update_customer_contact(
+    customer_id: uuid.UUID,
+    contact_id: uuid.UUID,
+    payload: CustomerContactPayload,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> CustomerContact:
+    _get_own_customer(db, customer_id, current_user)
+    contact = db.get(CustomerContact, contact_id)
+    if contact is None or contact.customer_id != customer_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kişi bulunamadı")
+    for field, value in payload.model_dump().items():
+        setattr(contact, field, value)
+    db.commit()
+    db.refresh(contact)
+    return contact
+
+
+@router.delete("/{customer_id}/contacts/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_customer_contact(
+    customer_id: uuid.UUID,
+    contact_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    _get_own_customer(db, customer_id, current_user)
+    contact = db.get(CustomerContact, contact_id)
+    if contact is None or contact.customer_id != customer_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kişi bulunamadı")
+    db.delete(contact)
+    db.commit()
