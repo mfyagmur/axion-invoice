@@ -29,7 +29,7 @@ export function CustomerDetailPage() {
   const displayName = customer.company_name || customer.name
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -46,14 +46,14 @@ export function CustomerDetailPage() {
         <h2 className="text-2xl font-bold text-slate-900">{displayName}</h2>
 
         <div className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <Field label={t('customers.form.country')} value={customer.country} />
             <Field label={t('customers.form.city')} value={customer.city} />
             <Field label={t('customers.form.postalCode')} value={customer.postal_code} />
             <Field label={t('customers.form.phone')} value={customer.phone} />
             <Field label={t('customers.form.address')} value={customer.address} />
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <Field label={t('customers.detail.taxIdLabel')} value={customer.tax_number} />
             <Field label={t('customers.form.taxOffice')} value={customer.tax_office} />
             <Field label={t('customers.form.mersisNo')} value={customer.mersis_no} />
@@ -62,7 +62,7 @@ export function CustomerDetailPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <Tabs
           items={[
             { key: 'invoices', label: t('customers.detail.tabs.invoices') },
@@ -101,7 +101,7 @@ export function CustomerDetailPage() {
 
         {activeTab === 'contact' && (
           <div className="rounded-xl border border-slate-200 p-6 text-sm">
-            <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-8 gap-y-2">
+            <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-8 gap-y-1">
               <div />
               <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 {t('customers.detail.contact.name')}
