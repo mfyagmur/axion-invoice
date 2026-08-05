@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, FileText } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Tabs } from '@/components/Tabs'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
@@ -76,7 +76,10 @@ export function CustomerDetailPage() {
           <div className="flex flex-col gap-2">
             {isInvoicesLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
             {!isInvoicesLoading && (invoices?.length ?? 0) === 0 && (
-              <p className="text-sm text-slate-500">{t('customers.detail.invoicesTab.empty')}</p>
+              <div className="flex flex-col items-center justify-center gap-3 py-12">
+                <FileText size={48} className="text-slate-300" />
+                <p className="text-sm text-slate-500">{t('customers.detail.invoicesTab.empty')}</p>
+              </div>
             )}
             {invoices?.map((invoice) => (
               <Link
