@@ -222,7 +222,11 @@
       },
       "contact": {
         "name": "Ad Soyad",
-        "email": "E-posta"
+        "email": "E-posta",
+        "additionalContacts": "Ek Kişiler",
+        "addButton": "Kişi Ekle",
+        "addContactTitle": "Kişi Ekle",
+        "addContactSubmit": "Ekle"
       }
     }
   },

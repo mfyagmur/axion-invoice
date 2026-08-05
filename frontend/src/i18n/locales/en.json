@@ -222,7 +222,11 @@
       },
       "contact": {
         "name": "Name",
-        "email": "Emaıl"
+        "email": "Emaıl",
+        "additionalContacts": "Additional Contacts",
+        "addButton": "Add Contact",
+        "addContactTitle": "Add Contact",
+        "addContactSubmit": "Add"
       }
     }
   },
