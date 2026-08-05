@@ -36,5 +36,6 @@ class UserResponse(BaseModel):
     company_name: str | None
     locale: str
     is_demo: bool
+    is_admin: bool
 
     model_config = {"from_attributes": True}

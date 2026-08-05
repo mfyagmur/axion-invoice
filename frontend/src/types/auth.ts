@@ -9,6 +9,7 @@ export interface User {
   company_name: string | null
   locale: Locale
   is_demo: boolean
+  is_admin: boolean
 }
 
 export interface SignupPayload {

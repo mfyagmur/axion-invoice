@@ -3,6 +3,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
+import { AdminTemplatesPage } from '@/pages/admin/AdminTemplatesPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { BillingPage } from '@/pages/dashboard/BillingPage'
@@ -15,6 +16,7 @@ import { InvoicesPage } from '@/pages/dashboard/InvoicesPage'
 import { SettingsPage } from '@/pages/dashboard/SettingsPage'
 import { TemplateEditorPage } from '@/pages/dashboard/TemplateEditorPage'
 import { TemplatesPage } from '@/pages/dashboard/TemplatesPage'
+import { XsltTemplateCreatePage } from '@/pages/dashboard/XsltTemplateCreatePage'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
@@ -44,11 +46,13 @@ export const router = createBrowserRouter([
           { path: '/dashboard/invoices/:id', element: <InvoiceDetailPage /> },
           { path: '/dashboard/templates', element: <TemplatesPage /> },
           { path: '/dashboard/templates/new', element: <TemplateEditorPage /> },
+          { path: '/dashboard/templates/new-xslt', element: <XsltTemplateCreatePage /> },
           { path: '/dashboard/templates/:id/edit', element: <TemplateEditorPage /> },
           { path: '/dashboard/customers', element: <CustomersPage /> },
           { path: '/dashboard/customers/:id', element: <CustomerDetailPage /> },
           { path: '/dashboard/settings', element: <SettingsPage /> },
           { path: '/dashboard/billing', element: <BillingPage /> },
+          { path: '/dashboard/admin/templates', element: <AdminTemplatesPage /> },
         ],
       },
     ],

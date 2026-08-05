@@ -12,5 +12,6 @@ class PlanResponse(BaseModel):
     price_yearly: Decimal
     max_invoices_per_month: int | None
     max_templates: int | None
+    allows_custom_xslt_templates: bool
 
     model_config = {"from_attributes": True}

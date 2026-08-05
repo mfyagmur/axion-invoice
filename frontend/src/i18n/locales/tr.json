@@ -274,7 +274,9 @@
       "sendEmail": "E-posta Gönder",
       "emailSent": "E-posta gönderim kuyruğuna alındı.",
       "pdfFailed": "PDF üretilemedi.",
-      "retryPdf": "Tekrar Dene"
+      "retryPdf": "Tekrar Dene",
+      "preview": "Önizle",
+      "hidePreview": "Önizlemeyi Gizle"
     }
   },
   "billing": {

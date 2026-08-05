@@ -9,6 +9,7 @@ export interface Plan {
   price_yearly: string
   max_invoices_per_month: number | null
   max_templates: number | null
+  allows_custom_xslt_templates: boolean
 }
 
 export interface Subscription {

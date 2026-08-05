@@ -4,7 +4,8 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.constants import COMPUTED_FIELD_KEYS
 from app.models.invoice import Invoice
-from app.models.template import InvoiceTemplate
+from app.models.template import InvoiceTemplate, TemplateEngine
+from app.services import xslt_service
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates_html"
 
@@ -25,7 +26,7 @@ def _money(value) -> str:
     return f"{value:.2f}"
 
 
-def render_invoice_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool = False) -> str:
+def _collect_render_data(invoice: Invoice) -> tuple[dict[str, str], list[dict], dict[str, str]]:
     field_values = dict(invoice.data_json)
     for key in COMPUTED_FIELD_KEYS:
         if key == "subtotal":
@@ -43,18 +44,55 @@ def render_invoice_html(invoice: Invoice, template: InvoiceTemplate, show_waterm
         for item in invoice.line_items
     ]
 
+    totals = {
+        "subtotal": _money(invoice.subtotal),
+        "tax_total": _money(invoice.tax_total),
+        "grand_total": _money(invoice.grand_total),
+        "currency": invoice.currency,
+    }
+
+    return field_values, line_items, totals
+
+
+def _apply_watermark(html: str, show_watermark: bool) -> str:
+    if not show_watermark:
+        return html
+
+    watermark_html = (
+        '<div style="position:fixed;inset:0;z-index:9999;display:flex;'
+        "align-items:center;justify-content:center;pointer-events:none;"
+        'transform:rotate(-30deg);font-size:48pt;font-weight:bold;'
+        'color:rgba(120,120,120,0.28);">ÜCRETSİZ PLAN</div>'
+    )
+    if "</body>" in html:
+        return html.replace("</body>", f"{watermark_html}</body>")
+    return html + watermark_html
+
+
+def _render_visual_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
+    field_values, line_items, totals = _collect_render_data(invoice)
+
     jinja_template = _env.get_template("invoice_base.html")
     return jinja_template.render(
         layout_json=template.layout_json,
         field_values=field_values,
         line_items=line_items,
         labels=LABELS,
-        subtotal=_money(invoice.subtotal),
-        tax_total=_money(invoice.tax_total),
-        grand_total=_money(invoice.grand_total),
-        currency=invoice.currency,
+        subtotal=totals["subtotal"],
+        tax_total=totals["tax_total"],
+        grand_total=totals["grand_total"],
+        currency=totals["currency"],
         show_watermark=show_watermark,
     )
+
+
+def render_invoice_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool = False) -> str:
+    if template.engine == TemplateEngine.XSLT:
+        field_values, line_items, totals = _collect_render_data(invoice)
+        html = xslt_service.render_xslt_html(template.xslt_content, invoice, field_values, line_items, totals)
+        return _apply_watermark(html, show_watermark)
+
+    return _render_visual_html(invoice, template, show_watermark)
 
 
 def generate_invoice_pdf(

@@ -1,7 +1,7 @@
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import Integer, Numeric, String
+from sqlalchemy import Boolean, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,3 +20,4 @@ class Plan(Base):
     max_templates: Mapped[int | None] = mapped_column(Integer, nullable=True)
     stripe_price_id_monthly: Mapped[str | None] = mapped_column(String(255), nullable=True)
     stripe_price_id_yearly: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    allows_custom_xslt_templates: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

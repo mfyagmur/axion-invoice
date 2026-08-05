@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 import { useInvoice } from '@/features/invoices/hooks/useInvoice'
+import { useInvoicePreview } from '@/features/invoices/hooks/useInvoicePreview'
 import { useRetryInvoicePdf } from '@/features/invoices/hooks/useRetryInvoicePdf'
 import { useSendInvoiceEmail } from '@/features/invoices/hooks/useSendInvoiceEmail'
 
@@ -13,6 +15,8 @@ export function InvoiceDetailPage() {
   const downloadPdf = useDownloadInvoicePdf()
   const sendEmail = useSendInvoiceEmail()
   const retryPdf = useRetryInvoicePdf()
+  const [showPreview, setShowPreview] = useState(false)
+  const { data: previewHtml, isLoading: isPreviewLoading } = useInvoicePreview(id, showPreview)
 
   if (isLoading || !invoice) {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
@@ -91,8 +95,24 @@ export function InvoiceDetailPage() {
         >
           {t('invoices.detail.sendEmail')}
         </Button>
+        <Button variant="secondary" onClick={() => setShowPreview((open) => !open)}>
+          {showPreview ? t('invoices.detail.hidePreview') : t('invoices.detail.preview')}
+        </Button>
       </div>
       {sendEmail.isSuccess && <p className="text-sm text-green-600">{t('invoices.detail.emailSent')}</p>}
+
+      {showPreview && (
+        <div className="max-w-3xl">
+          {isPreviewLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+          {previewHtml && (
+            <iframe
+              title="invoice-preview"
+              srcDoc={previewHtml}
+              className="h-200 w-full rounded-md border border-slate-200"
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }

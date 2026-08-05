@@ -8,11 +8,18 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
-from app.models.template import InvoiceTemplate, InvoiceTemplateField
+from app.models.template import InvoiceTemplate, InvoiceTemplateField, TemplateEngine
 from app.models.user import User
-from app.schemas.template import TemplateDetailResponse, TemplateSavePayload, TemplateSummaryResponse
-from app.services.subscription_service import check_template_limit, get_active_plan
+from app.schemas.template import (
+    TemplateDetailResponse,
+    TemplateSavePayload,
+    TemplateSummaryResponse,
+    XsltTemplateSavePayload,
+)
+from app.services import xslt_service
+from app.services.subscription_service import check_can_create_xslt_template, check_min_plan, check_template_limit
 from app.services.template_service import reconcile_fields
+from app.services.xslt_service import XsltValidationError
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -82,6 +89,39 @@ def create_template(
     return template
 
 
+@router.post("/xslt", response_model=TemplateDetailResponse, status_code=status.HTTP_201_CREATED)
+def create_xslt_template(
+    payload: XsltTemplateSavePayload,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> InvoiceTemplate:
+    check_can_create_xslt_template(db, current_user)
+    check_template_limit(db, current_user)
+    try:
+        xslt_service.validate_xslt(payload.xslt_content)
+    except XsltValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    template = InvoiceTemplate(
+        user_id=current_user.id,
+        name=payload.name,
+        is_system_template=False,
+        engine=TemplateEngine.XSLT,
+        target_format=payload.target_format,
+        xslt_content=payload.xslt_content,
+        layout_json=[],
+        min_plan_key=None,
+    )
+    db.add(template)
+    db.flush()
+
+    reconcile_fields(db, template.id, set(payload.fields.keys()), payload.fields)
+
+    db.commit()
+    db.refresh(template)
+    return template
+
+
 @router.put("/{template_id}", response_model=TemplateDetailResponse)
 def update_template(
     template_id: uuid.UUID,
@@ -126,13 +166,9 @@ def duplicate_template(
     current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> InvoiceTemplate:
-    if get_active_plan(db, current_user).key == "free":
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Free planda hazır şablon kullanılamaz. Planınızı yükseltin.",
-        )
-    check_template_limit(db, current_user)
     original = _get_visible_template(db, template_id, current_user)
+    check_min_plan(db, current_user, original)
+    check_template_limit(db, current_user)
 
     duplicate = InvoiceTemplate(
         user_id=current_user.id,
@@ -140,6 +176,10 @@ def duplicate_template(
         is_system_template=False,
         page_size=original.page_size,
         layout_json=list(original.layout_json),
+        engine=original.engine,
+        target_format=original.target_format,
+        xslt_content=original.xslt_content,
+        min_plan_key=None,
     )
     db.add(duplicate)
     db.flush()

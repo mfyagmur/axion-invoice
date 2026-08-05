@@ -1,6 +1,8 @@
 export type FieldType = 'text' | 'number' | 'date' | 'currency' | 'custom'
 export type Align = 'left' | 'center' | 'right'
 export type PageSize = 'a4'
+export type TemplateEngine = 'visual' | 'xslt'
+export type TemplateFormat = 'generic' | 'e_fatura' | 'international' | 'e_irsaliye_arsiv'
 
 export interface LayoutFieldEntry {
   field_key: string
@@ -35,12 +37,16 @@ export interface TemplateSummary {
   name: string
   is_system_template: boolean
   page_size: PageSize
+  engine: TemplateEngine
+  target_format: TemplateFormat
+  min_plan_key: string | null
   updated_at: string
 }
 
 export interface TemplateDetail extends TemplateSummary {
   layout_json: LayoutFieldEntry[]
   fields: TemplateField[]
+  xslt_content: string | null
 }
 
 export interface TemplateSavePayload {
@@ -48,4 +54,12 @@ export interface TemplateSavePayload {
   page_size: PageSize
   layout_json: LayoutFieldEntry[]
   fields: Record<string, FieldMeta>
+}
+
+export interface XsltTemplateSavePayload {
+  name: string
+  target_format: TemplateFormat
+  xslt_content: string
+  fields: Record<string, FieldMeta>
+  min_plan_key?: string | null
 }

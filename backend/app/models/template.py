@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +21,18 @@ class PageSize(str, Enum):
     A4 = "a4"
 
 
+class TemplateEngine(str, Enum):
+    VISUAL = "visual"
+    XSLT = "xslt"
+
+
+class TemplateFormat(str, Enum):
+    GENERIC = "generic"
+    E_FATURA = "e_fatura"
+    INTERNATIONAL = "international"
+    E_IRSALIYE_ARSIV = "e_irsaliye_arsiv"
+
+
 class InvoiceTemplate(Base):
     __tablename__ = "invoice_templates"
 
@@ -34,6 +46,14 @@ class InvoiceTemplate(Base):
         SAEnum(PageSize, name="page_size"), nullable=False, default=PageSize.A4
     )
     layout_json: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    engine: Mapped[TemplateEngine] = mapped_column(
+        SAEnum(TemplateEngine, name="template_engine"), nullable=False, default=TemplateEngine.VISUAL
+    )
+    target_format: Mapped[TemplateFormat] = mapped_column(
+        SAEnum(TemplateFormat, name="template_format"), nullable=False, default=TemplateFormat.GENERIC
+    )
+    xslt_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    min_plan_key: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

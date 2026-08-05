@@ -22,4 +22,7 @@ export const invoicesApi = {
 
   downloadPdf: (id: string) =>
     apiClient.get<Blob>(`/invoices/${id}/download`, { responseType: 'blob' }).then((res) => res.data),
+
+  preview: (id: string) =>
+    apiClient.get<string>(`/invoices/${id}/preview`, { responseType: 'text' }).then((res) => res.data),
 }

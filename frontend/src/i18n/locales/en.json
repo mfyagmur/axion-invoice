@@ -274,7 +274,9 @@
       "sendEmail": "Send Email",
       "emailSent": "Email queued for delivery.",
       "pdfFailed": "PDF generation failed.",
-      "retryPdf": "Retry"
+      "retryPdf": "Retry",
+      "preview": "Preview",
+      "hidePreview": "Hide Preview"
     }
   },
   "billing": {

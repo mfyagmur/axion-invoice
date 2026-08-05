@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, computed_field
 
 from app.constants import COMPUTED_FIELD_KEYS
-from app.models.template import FieldType, PageSize
+from app.models.template import FieldType, PageSize, TemplateEngine, TemplateFormat
 
 Align = Literal["left", "center", "right"]
 
@@ -35,6 +35,14 @@ class TemplateSavePayload(BaseModel):
     fields: dict[str, FieldMeta] = Field(default_factory=dict)
 
 
+class XsltTemplateSavePayload(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    target_format: TemplateFormat = TemplateFormat.GENERIC
+    xslt_content: str = Field(min_length=1)
+    fields: dict[str, FieldMeta] = Field(default_factory=dict)
+    min_plan_key: str | None = None
+
+
 class TemplateFieldResponse(BaseModel):
     id: uuid.UUID
     field_key: str
@@ -56,6 +64,9 @@ class TemplateSummaryResponse(BaseModel):
     name: str
     is_system_template: bool
     page_size: PageSize
+    engine: TemplateEngine
+    target_format: TemplateFormat
+    min_plan_key: str | None
     updated_at: datetime
 
     model_config = {"from_attributes": True}
@@ -64,3 +75,4 @@ class TemplateSummaryResponse(BaseModel):
 class TemplateDetailResponse(TemplateSummaryResponse):
     layout_json: list[LayoutFieldEntry]
     fields: list[TemplateFieldResponse]
+    xslt_content: str | None

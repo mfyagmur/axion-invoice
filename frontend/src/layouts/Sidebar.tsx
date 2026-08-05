@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, HelpCircle, LogOut, Settings } from 'lucide-react'
+import { ChevronDown, ChevronUp, HelpCircle, LogOut, ShieldCheck, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
@@ -68,6 +68,22 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             {t(labelKey)}
           </NavLink>
         ))}
+
+        {user?.is_admin && (
+          <NavLink
+            to="/dashboard/admin/templates"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              twMerge(
+                'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
+                isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+              )
+            }
+          >
+            <ShieldCheck size={18} />
+            Admin
+          </NavLink>
+        )}
       </div>
 
       {user && (

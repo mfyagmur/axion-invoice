@@ -13,6 +13,11 @@ from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
+# Ordinal ranking of plan tiers, used to compare a user's plan against a template's
+# min_plan_key or to decide upgrade eligibility. Deliberately a small hardcoded dict —
+# a richer "plan tier" column is out of scope until final free-tier rules are defined.
+PLAN_RANK: dict[str, int] = {"free": 0, "pro": 1, "business": 2}
+
 
 def _get_plan_by_key(db: Session, key: str) -> Plan:
     plan = db.query(Plan).filter(Plan.key == key).first()
@@ -86,6 +91,29 @@ def check_template_limit(db: Session, user: User) -> None:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail=f"Özel şablon limitine ulaştınız ({plan.max_templates}). Planınızı yükseltin.",
+        )
+
+
+def check_min_plan(db: Session, user: User, template: InvoiceTemplate) -> None:
+    if template.min_plan_key is None:
+        return
+
+    plan = get_active_plan(db, user)
+    user_rank = PLAN_RANK.get(plan.key, 0)
+    required_rank = PLAN_RANK.get(template.min_plan_key, 0)
+    if user_rank < required_rank:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=f"Bu şablon için '{template.min_plan_key}' plan gereklidir. Planınızı yükseltin.",
+        )
+
+
+def check_can_create_xslt_template(db: Session, user: User) -> None:
+    plan = get_active_plan(db, user)
+    if not plan.allows_custom_xslt_templates:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Planınız özel XSLT şablonu oluşturmaya izin vermiyor. Planınızı yükseltin.",
         )
 
 
