@@ -68,16 +68,28 @@ export function CustomerDetailPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
-          aria-label={t('customers.detail.back')}
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <h1 className="text-xl font-semibold text-slate-900">{t('customers.detail.title')}</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+            aria-label={t('customers.detail.back')}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <h1 className="text-xl font-semibold text-slate-900">{t('customers.detail.title')}</h1>
+        </div>
+        {activeTab === 'contact' && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setIsContactModalOpen(true)}
+          >
+            <Plus size={16} className="mr-2" />
+            {t('customers.detail.contact.addButton')}
+          </Button>
+        )}
       </div>
 
       <div className="rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -202,17 +214,6 @@ export function CustomerDetailPage() {
                 ))}
               </div>
             )}
-
-            <div className="mt-6 flex justify-end">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setIsContactModalOpen(true)}
-              >
-                <Plus size={16} className="mr-2" />
-                {t('customers.detail.contact.addButton')}
-              </Button>
-            </div>
           </div>
         )}
       </div>
