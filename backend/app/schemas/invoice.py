@@ -4,7 +4,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from pydantic import BaseModel, Field, computed_field
 
-from app.models.invoice import InvoicePdfStatus, InvoiceStatus
+from app.models.invoice import CommissionPayer, InvoicePdfStatus, InvoiceScenario, InvoiceStatus, InvoiceType
 from app.schemas.customer import CustomerResponse
 
 
@@ -22,6 +22,11 @@ class InvoiceCreatePayload(BaseModel):
     template_id: uuid.UUID
     customer_id: uuid.UUID
     currency: str = Field(default="TRY", min_length=3, max_length=3)
+    payment_currency: str = Field(default="TRY", min_length=3, max_length=3)
+    invoice_type: InvoiceType = Field(default=InvoiceType.SALE)
+    scenario: InvoiceScenario = Field(default=InvoiceScenario.COMMERCIAL)
+    commission_payer: CommissionPayer = Field(default=CommissionPayer.SELF)
+    recipient_contact_ids: list[uuid.UUID] = Field(default_factory=list, max_length=2)
     field_values: dict[str, str] = Field(default_factory=dict)
     line_items: list[LineItemPayload] = Field(min_length=1)
     issued_at: date | None = None
@@ -59,6 +64,10 @@ class InvoiceSummaryResponse(BaseModel):
     invoice_number: str
     status: InvoiceStatus
     currency: str
+    payment_currency: str
+    invoice_type: InvoiceType
+    scenario: InvoiceScenario
+    commission_payer: CommissionPayer
     grand_total: Decimal
     pdf_url: str | None
     pdf_status: InvoicePdfStatus
@@ -76,4 +85,5 @@ class InvoiceDetailResponse(InvoiceSummaryResponse):
     tax_total: Decimal
     pdf_error: str | None
     due_at: date | None
+    recipient_contact_ids: list[str]
     line_items: list[InvoiceLineItemResponse]

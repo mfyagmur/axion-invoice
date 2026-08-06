@@ -68,6 +68,12 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
     if customer is None or customer.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Müşteri bulunamadı")
 
+    for contact_id_str in payload.recipient_contact_ids:
+        contact_id = uuid.UUID(contact_id_str)
+        contact = next((c for c in customer.contacts if c.id == contact_id), None)
+        if contact is None:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Geçerli olmayan kişi seçimi")
+
     subtotal, tax_total, grand_total, line_computations = compute_totals(payload)
 
     field_values = {key: value for key, value in payload.field_values.items() if key not in COMPUTED_FIELD_KEYS}
@@ -78,6 +84,11 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         invoice_number=next_invoice_number(db, user),
         customer_id=customer.id,
         currency=payload.currency,
+        payment_currency=payload.payment_currency,
+        invoice_type=payload.invoice_type,
+        scenario=payload.scenario,
+        commission_payer=payload.commission_payer,
+        recipient_contact_ids=[str(cid) for cid in payload.recipient_contact_ids],
         subtotal=subtotal,
         tax_total=tax_total,
         grand_total=grand_total,

@@ -2,6 +2,9 @@ import type { Customer } from '@/types/customer'
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
 export type InvoicePdfStatus = 'pending' | 'ready' | 'failed'
+export type InvoiceType = 'sale' | 'purchase'
+export type InvoiceScenario = 'commercial'
+export type CommissionPayer = 'self' | 'customer'
 
 export interface LineItem {
   id: string
@@ -32,6 +35,10 @@ export interface InvoiceSummary {
   invoice_number: string
   status: InvoiceStatus
   currency: string
+  payment_currency: string
+  invoice_type: InvoiceType
+  scenario: InvoiceScenario
+  commission_payer: CommissionPayer
   grand_total: string
   pdf_url: string | null
   pdf_status: InvoicePdfStatus
@@ -47,6 +54,7 @@ export interface InvoiceDetail extends InvoiceSummary {
   tax_total: string
   pdf_error: string | null
   due_at: string | null
+  recipient_contact_ids: string[]
   line_items: LineItem[]
 }
 
@@ -54,6 +62,11 @@ export interface InvoiceCreatePayload {
   template_id: string
   customer_id: string
   currency: string
+  payment_currency: string
+  invoice_type: InvoiceType
+  scenario: InvoiceScenario
+  commission_payer: CommissionPayer
+  recipient_contact_ids: string[]
   field_values: Record<string, string>
   line_items: LineItemPayload[]
   issued_at?: string

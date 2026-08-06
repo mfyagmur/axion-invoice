@@ -338,4 +338,43 @@ hemen render" time-window'u yakalayamadı). Düzeltme, hesaplama mantığını d
 formülü hiç dokunulmaz) ve sadece geçici durumu idare eder.
 
 ---
+### /dashboard/invoices/new ekranı tam olarak yeniden tasarlandı ve yeni alanlarla genişletildi.
 
+### Yapılan İşler
+### Backend (Full-stack) ✓
+Model (invoice.py): 3 yeni enum + 5 yeni kolon (invoice_type, scenario, commission_payer, payment_currency, recipient_contact_ids)
+Migration (j4k5l6m7n8o9_...): Enum tipler + kolonlar (server defaults ile geriye uyumlu)
+Schema (invoice.py): InvoiceCreatePayload + response tiplerinde yeni alanlar
+Service (invoice_service.py): recipient_contact_ids validasyonu (customer.contacts içinde kontrol)
+Frontend ✓
+Card bileşeni (Card.tsx): Icon + title + action yapısıyla tüm formlar sarılı
+
+Layout: grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] — responsive iki kolon (sol form, sağ sticky özet)
+
+### Form Kartları:
+
+Şablon Seçimi (FileStack ikonu)
+Fatura Ayrıntıları (User ikonu): müşteri + gönderim kişi + 2x ek kişi dropdown'ları
+Ödeme Detayları (Banknote ikonu): para birimi'ler + komisyon ödeyici (radio) + fatura tipi + senaryo
+Kalemler: mevcut yapı kart içinde
+İşlem Özeti Sidebar:
+
+"Müşterin tarafından ödenecek" (fatura para birimi) + "Alacağınız tutar" (ödeme para birimi)
+Aynı sayısal grand_total, sadece para birimi etiketi farklı (kur dönüşümü yok)
+Önizleme butonu (disabled/no-op, ileri faz) + Devam Et (disabled) + Kaydet
+InvoiceCreatePage: Geri ok butonu (← + navigate(-1), CustomerDetailPage pattern'i)
+
+i18n: TR + EN tüm key'ler eklenmiş (paymentDetails, commissionPayer*, invoiceType*, scenario*, additionalContact*, summary, preview, amountToBeCharged, amountToReceive, continueAction, save, back, optional)
+
+Types: InvoiceType, InvoiceScenario, CommissionPayer enum'ları + InvoiceCreatePayload genişletildi
+
+### Doğrulama ✓
+TypeScript build: hatasız ✓
+Frontend build (tsc + vite): başarılı ✓
+Frontend dev server: http://localhost:5173 → 200 OK ✓
+Commit: ebd59d1 ✓
+### Bilinen Kısıtlamalar
+Backend DB migrate'i çalıştırılmadı (PostgreSQL bağlantısı yok local'de)
+Full end-to-end test: DB running sonrası yapılmalı (alembic upgrade head → Kaydet butonuyla fatura oluştur)
+
+---

@@ -24,6 +24,20 @@ class InvoicePdfStatus(str, Enum):
     FAILED = "failed"
 
 
+class InvoiceType(str, Enum):
+    SALE = "sale"
+    PURCHASE = "purchase"
+
+
+class InvoiceScenario(str, Enum):
+    COMMERCIAL = "commercial"
+
+
+class CommissionPayer(str, Enum):
+    SELF = "self"
+    CUSTOMER = "customer"
+
+
 class InvoiceCustomer(Base):
     __tablename__ = "invoice_customers"
 
@@ -70,6 +84,17 @@ class Invoice(Base):
         SAEnum(InvoiceStatus, name="invoice_status"), nullable=False, default=InvoiceStatus.DRAFT
     )
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="TRY")
+    payment_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="TRY")
+    invoice_type: Mapped[InvoiceType] = mapped_column(
+        SAEnum(InvoiceType, name="invoice_type"), nullable=False, default=InvoiceType.SALE
+    )
+    scenario: Mapped[InvoiceScenario] = mapped_column(
+        SAEnum(InvoiceScenario, name="invoice_scenario"), nullable=False, default=InvoiceScenario.COMMERCIAL
+    )
+    commission_payer: Mapped[CommissionPayer] = mapped_column(
+        SAEnum(CommissionPayer, name="commission_payer"), nullable=False, default=CommissionPayer.SELF
+    )
+    recipient_contact_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     tax_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     grand_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
