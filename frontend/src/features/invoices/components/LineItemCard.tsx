@@ -119,7 +119,7 @@ export function LineItemCard({
           </div>
         </div>
 
-        <div className="relative flex-1 min-w-[150px]">
+        <div className="relative flex-1 min-w-37.5">
           <label className="sr-only">{t('invoices.form.unitPrice')}</label>
           <input
             type="number"
@@ -132,7 +132,7 @@ export function LineItemCard({
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
         </div>
 
-        <div className="relative flex-1 min-w-[120px]">
+        <div className="relative flex-1 min-w-37.5">
           <label className="sr-only">{t('invoices.form.discountRate')}</label>
           <input
             type="number"
@@ -145,7 +145,7 @@ export function LineItemCard({
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
         </div>
 
-        <div className="relative flex-1 min-w-[120px]">
+        <div className="relative flex-1 min-w-30">
           <label className="sr-only">{t('invoices.form.taxRate')}</label>
           <input
             type="number"
@@ -158,7 +158,7 @@ export function LineItemCard({
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
         </div>
 
-        <div className="relative flex-1 min-w-[150px]">
+        <div className="relative flex-1 min-w-37.5">
           <label className="sr-only">{t('invoices.form.otherTaxes')}</label>
           <input
             type="number"
@@ -171,7 +171,7 @@ export function LineItemCard({
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
         </div>
 
-        <div className="relative flex-1 min-w-[140px]">
+        <div className="relative flex-1 min-w-35">
           <label className="sr-only">{t('invoices.form.amount')}</label>
           <div className="flex flex-col justify-center rounded-md bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 h-10">
             <span>{computed.lineTotal.toFixed(2)}</span>
