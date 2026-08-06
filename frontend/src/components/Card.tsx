@@ -11,7 +11,7 @@ interface CardProps {
 
 export function Card({ icon, title, children, action, className }: CardProps) {
   return (
-    <div className={twMerge('rounded-lg border border-slate-200 bg-white p-5', className)}>
+    <div className={twMerge('rounded-lg border border-slate-300 bg-white p-5 shadow-sm', className)}>
       {(icon || title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">

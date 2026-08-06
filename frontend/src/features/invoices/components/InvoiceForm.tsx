@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Banknote, FileStack, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Input } from '@/components/Input'
+import { Select } from '@/components/Select'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
@@ -177,90 +178,97 @@ export function InvoiceForm() {
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
       <div className="flex flex-col gap-6">
         <Card icon={<FileStack size={20} />} title={t('invoices.form.template')}>
-          <select
-            {...register('template_id', { required: true })}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          >
-            <option value="">{t('invoices.form.selectTemplate')}</option>
-            {templates?.map((tpl) => (
-              <option key={tpl.id} value={tpl.id}>
-                {tpl.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="template_id"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onChange={field.onChange}
+                options={templates?.map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
+                placeholder={t('invoices.form.selectTemplate')}
+              />
+            )}
+          />
         </Card>
 
         <Card icon={<User size={20} />} title={t('invoices.form.invoiceDetails')}>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  {t('invoices.form.companyName')}
-                </label>
-                <select
-                  {...register('customer_id', { required: true })}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="">{t('invoices.form.selectCustomer')}</option>
-                  {customers?.filter((customer) => customer.is_active).map((customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.company_name || customer.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Controller
+                name="customer_id"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Select
+                    label={t('invoices.form.companyName')}
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={customers?.filter((customer) => customer.is_active).map((customer) => ({
+                      value: customer.id,
+                      label: customer.company_name || customer.name,
+                    })) || []}
+                    placeholder={t('invoices.form.selectCustomer')}
+                  />
+                )}
+              />
 
               {selectedCustomer && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    {t('invoices.form.recipientContact')}
-                  </label>
-                  <select
-                    {...register('recipient_contact_ids.0')}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  >
-                    <option value="">{t('invoices.form.customerInfoOption')}</option>
-                    {selectedCustomer.contacts?.map((contact) => (
-                      <option key={contact.id} value={contact.id}>
-                        {contact.first_name} {contact.last_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Controller
+                  name="recipient_contact_ids.0"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label={t('invoices.form.recipientContact')}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      options={selectedCustomer.contacts?.map((contact) => ({
+                        value: contact.id,
+                        label: `${contact.first_name} ${contact.last_name}`,
+                      })) || []}
+                      placeholder={t('invoices.form.customerInfoOption')}
+                    />
+                  )}
+                />
               )}
             </div>
 
             {selectedCustomer && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">{t('invoices.form.additionalContact1')}</label>
-                  <select
-                    {...register('recipient_contact_ids.1')}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  >
-                    <option value="">{t('invoices.form.customerInfoOption')}</option>
-                    {selectedCustomer.contacts?.map((contact) => (
-                      <option key={contact.id} value={contact.id}>
-                        {contact.first_name} {contact.last_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Controller
+                  name="recipient_contact_ids.1"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label={t('invoices.form.additionalContact1')}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      options={selectedCustomer.contacts?.map((contact) => ({
+                        value: contact.id,
+                        label: `${contact.first_name} ${contact.last_name}`,
+                      })) || []}
+                      placeholder={t('invoices.form.customerInfoOption')}
+                    />
+                  )}
+                />
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">{t('invoices.form.additionalContact2')}</label>
-                  <select
-                    {...register('recipient_contact_ids.2')}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  >
-                    <option value="">{t('invoices.form.customerInfoOption')}</option>
-                    {selectedCustomer.contacts?.map((contact) => (
-                      <option key={contact.id} value={contact.id}>
-                        {contact.first_name} {contact.last_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Controller
+                  name="recipient_contact_ids.2"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label={t('invoices.form.additionalContact2')}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      options={selectedCustomer.contacts?.map((contact) => ({
+                        value: contact.id,
+                        label: `${contact.first_name} ${contact.last_name}`,
+                      })) || []}
+                      placeholder={t('invoices.form.customerInfoOption')}
+                    />
+                  )}
+                />
               </div>
             )}
           </div>
@@ -269,76 +277,82 @@ export function InvoiceForm() {
         <Card icon={<Banknote size={20} />} title={t('invoices.form.paymentDetails')}>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  {t('invoices.form.paymentCurrency')}
-                </label>
-                <select
-                  {...register('payment_currency')}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  {CURRENCY_OPTIONS.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  {t('invoices.form.invoiceCurrency')}
-                </label>
-                <select
-                  {...register('currency')}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  {CURRENCY_OPTIONS.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Controller
+                name="payment_currency"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label={t('invoices.form.paymentCurrency')}
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={CURRENCY_OPTIONS.map((code) => ({ value: code, label: code }))}
+                  />
+                )}
+              />
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label={t('invoices.form.invoiceCurrency')}
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={CURRENCY_OPTIONS.map((code) => ({ value: code, label: code }))}
+                  />
+                )}
+              />
             </div>
 
             <fieldset className="border-t border-slate-200 pt-4">
               <legend className="mb-3 text-sm font-medium text-slate-700">{t('invoices.form.commissionPayer')}</legend>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
-                  <input type="radio" {...register('commission_payer')} value="self" className="rounded" />
+                  <Controller
+                    name="commission_payer"
+                    control={control}
+                    render={({ field }) => <input type="radio" {...field} value="self" className="rounded" />}
+                  />
                   <span className="text-sm text-slate-700">{t('invoices.form.commissionPayerSelf')}</span>
                 </label>
                 <label className="flex items-center gap-2">
-                  <input type="radio" {...register('commission_payer')} value="customer" className="rounded" />
+                  <Controller
+                    name="commission_payer"
+                    control={control}
+                    render={({ field }) => <input type="radio" {...field} value="customer" className="rounded" />}
+                  />
                   <span className="text-sm text-slate-700">{t('invoices.form.commissionPayerCustomer')}</span>
                 </label>
               </div>
             </fieldset>
 
             <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  {t('invoices.form.invoiceType')}
-                </label>
-                <select
-                  {...register('invoice_type')}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="sale">{t('invoices.form.invoiceTypeSale')}</option>
-                  <option value="purchase">{t('invoices.form.invoiceTypePurchase')}</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  {t('invoices.form.scenario')}
-                </label>
-                <select
-                  {...register('scenario')}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="commercial">{t('invoices.form.scenarioCommercial')}</option>
-                </select>
-              </div>
+              <Controller
+                name="invoice_type"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label={t('invoices.form.invoiceType')}
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={[
+                      { value: 'sale', label: t('invoices.form.invoiceTypeSale') },
+                      { value: 'purchase', label: t('invoices.form.invoiceTypePurchase') },
+                    ]}
+                  />
+                )}
+              />
+              <Controller
+                name="scenario"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label={t('invoices.form.scenario')}
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={[{ value: 'commercial', label: t('invoices.form.scenarioCommercial') }]}
+                  />
+                )}
+              />
             </div>
           </div>
         </Card>
