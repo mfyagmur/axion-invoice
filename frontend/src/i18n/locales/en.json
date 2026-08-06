@@ -279,12 +279,14 @@
       "itemCode": "Item/Service Code",
       "description": "Item/Service Description",
       "quantity": "Quantity",
+      "unit": "Unit",
       "unitPrice": "Unit Price",
       "discountRate": "Discount Rate (%)",
       "discountAmount": "Discount Amount",
       "taxRate": "VAT Rate (%)",
       "taxAmount": "VAT Amount",
       "otherTaxes": "Other Taxes",
+      "amount": "Amount",
       "summary": "Summary",
       "preview": "Preview",
       "amountToBeCharged": "Amount to be charged to customer",
@@ -296,7 +298,14 @@
       "grandTotal": "Grand Total",
       "submit": "Create Invoice",
       "limitReached": "You've reached your monthly invoice limit. Upgrade your plan to continue.",
-      "customerInfoOption": "Customer Info"
+      "customerInfoOption": "Customer Info",
+      "errors": {
+        "templateRequired": "Template selection is required.",
+        "customerRequired": "Company name selection is required.",
+        "recipientRequired": "Recipient contact is required.",
+        "itemCodeRequired": "Item/Service code is required.",
+        "descriptionRequired": "Item/Service description is required."
+      }
     },
     "detail": {
       "download": "Download PDF",

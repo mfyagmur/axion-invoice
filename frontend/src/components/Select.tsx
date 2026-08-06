@@ -14,6 +14,7 @@ interface SelectProps {
   options: SelectOption[]
   placeholder?: string
   disabled?: boolean
+  error?: string
   className?: string
 }
 
@@ -24,6 +25,7 @@ export function Select({
   options,
   placeholder = 'Seçiniz',
   disabled = false,
+  error,
   className,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -63,6 +65,7 @@ export function Select({
           'flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-sm',
           'bg-slate-100 border-transparent transition-all',
           isOpen && 'border-slate-400 ring-1 ring-slate-300',
+          error && 'border-red-500',
           disabled && 'cursor-not-allowed opacity-60',
           !disabled && 'hover:bg-slate-150',
         )}
@@ -97,6 +100,7 @@ export function Select({
           )}
         </div>
       )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )
 }

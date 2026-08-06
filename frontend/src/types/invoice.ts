@@ -12,6 +12,7 @@ export interface LineItem {
   description: string
   quantity: string
   unit_price: string
+  unit: string
   discount_rate: string
   discount_amount: string
   tax_rate: string
@@ -25,6 +26,7 @@ export interface LineItemPayload {
   description: string
   quantity: number
   unit_price: number
+  unit?: string
   discount_rate: number
   tax_rate: number
   other_tax_amount: number

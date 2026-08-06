@@ -23,6 +23,13 @@ const FORMAT_LABELS: Record<TemplateFormat, string> = {
   e_irsaliye_arsiv: 'e-İrsaliye / e-Arşiv',
 }
 
+const MIN_PLAN_LABELS: Record<(typeof MIN_PLAN_OPTIONS)[number], string> = {
+  '': 'Tüm planlar',
+  'free': 'Free ve üzeri',
+  'pro': 'Pro ve üzeri',
+  'business': 'Sadece Business',
+}
+
 export function AdminTemplatesPage() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
@@ -99,10 +106,11 @@ export function AdminTemplatesPage() {
             onChange={(e) => setMinPlanKey(e.target.value as (typeof MIN_PLAN_OPTIONS)[number])}
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
           >
-            <option value="">Tüm planlar</option>
-            <option value="free">Free ve üzeri</option>
-            <option value="pro">Pro ve üzeri</option>
-            <option value="business">Sadece Business</option>
+            {MIN_PLAN_OPTIONS.map((plan) => (
+              <option key={plan} value={plan}>
+                {MIN_PLAN_LABELS[plan]}
+              </option>
+            ))}
           </select>
         </div>
 

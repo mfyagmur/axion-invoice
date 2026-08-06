@@ -4,16 +4,17 @@ import { twMerge } from 'tailwind-merge'
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
+  hideLabel?: boolean
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, className, id, ...props },
+  { label, error, className, id, hideLabel, ...props },
   ref,
 ) {
   const inputId = id ?? props.name
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
+      <label htmlFor={inputId} className={twMerge('text-sm font-medium text-slate-700', hideLabel && 'sr-only')}>
         {label}
       </label>
       <input

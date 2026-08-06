@@ -107,6 +107,7 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
                 description=item.description,
                 quantity=item.quantity,
                 unit_price=item.unit_price,
+                unit=item.unit,
                 discount_rate=item.discount_rate,
                 discount_amount=computed["discount_amount"],
                 tax_rate=item.tax_rate,

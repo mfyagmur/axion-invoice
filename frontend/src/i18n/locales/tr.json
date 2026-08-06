@@ -252,7 +252,7 @@
     "form": {
       "template": "Şablon",
       "selectTemplate": "Şablon seçin",
-      "invoiceDetails": "Fatura Ayrıntıları",
+      "invoiceDetails": "Firma Ayrıntıları",
       "companyName": "Şirket Adı",
       "customer": "Müşteri",
       "selectCustomer": "Müşteri seçin",
@@ -272,19 +272,21 @@
       "scenarioCommercial": "Ticari Fatura",
       "fields": "Fatura Alanları",
       "computed": "hesaplanır",
-      "lineItems": "Kalemler",
+      "lineItems": "Fatura Detayları",
       "addLineItem": "Kalem Ekle",
       "removeLineItem": "Sil",
       "rowNumber": "Sıra No",
       "itemCode": "Malzeme/Hizmet Kodu",
       "description": "Malzeme/Hizmet Açıklaması",
       "quantity": "Miktar",
+      "unit": "Birim",
       "unitPrice": "Birim Fiyat",
       "discountRate": "İskonto Oranı (%)",
       "discountAmount": "İskonto Tutarı",
       "taxRate": "KDV Oranı (%)",
       "taxAmount": "KDV Tutarı",
       "otherTaxes": "Diğer Vergiler",
+      "amount": "Tutar",
       "summary": "İşlem Özeti",
       "preview": "Önizleme",
       "amountToBeCharged": "Müşterin tarafından ödenecek toplam tutar",
@@ -296,7 +298,14 @@
       "grandTotal": "Genel Toplam",
       "submit": "Fatura Oluştur",
       "limitReached": "Aylık fatura limitinize ulaştınız. Devam etmek için planınızı yükseltin.",
-      "customerInfoOption": "Müşteri Bilgisi"
+      "customerInfoOption": "Müşteri Bilgisi",
+      "errors": {
+        "templateRequired": "Şablon seçimi zorunludur.",
+        "customerRequired": "Şirket adı seçimi zorunludur.",
+        "recipientRequired": "Faturanın gönderileceği kişi zorunludur.",
+        "itemCodeRequired": "Malzeme/Hizmet kodu zorunludur.",
+        "descriptionRequired": "Malzeme/Hizmet açıklaması zorunludur."
+      }
     },
     "detail": {
       "download": "PDF İndir",

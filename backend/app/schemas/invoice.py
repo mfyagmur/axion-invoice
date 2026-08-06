@@ -13,6 +13,7 @@ class LineItemPayload(BaseModel):
     description: str = Field(min_length=1, max_length=500)
     quantity: Decimal = Field(gt=0)
     unit_price: Decimal = Field(ge=0)
+    unit: str = Field(default="adet", max_length=20)
     discount_rate: Decimal = Field(default=Decimal("0"), ge=0, le=100)
     tax_rate: Decimal = Field(default=Decimal("0"), ge=0, le=100)
     other_tax_amount: Decimal = Field(default=Decimal("0"), ge=0)
@@ -39,6 +40,7 @@ class InvoiceLineItemResponse(BaseModel):
     description: str
     quantity: Decimal
     unit_price: Decimal
+    unit: str
     discount_rate: Decimal
     discount_amount: Decimal
     tax_rate: Decimal

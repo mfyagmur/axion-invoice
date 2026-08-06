@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Banknote, FileStack, Plus, Send, User } from 'lucide-react'
@@ -30,6 +30,7 @@ export interface InvoiceFormValues {
     description: string
     quantity: number
     unit_price: number
+    unit: string
     discount_rate: number
     tax_rate: number
     other_tax_amount: number
@@ -52,6 +53,7 @@ function emptyLineItem() {
     description: '',
     quantity: 1,
     unit_price: 0,
+    unit: 'adet',
     discount_rate: 0,
     tax_rate: 0,
     other_tax_amount: 0,
@@ -63,9 +65,8 @@ export function InvoiceForm() {
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
   const createInvoice = useCreateInvoice()
-  const [expandedIndexes, setExpandedIndexes] = useState<Set<number>>(new Set([0]))
 
-  const { register, control, handleSubmit, watch, setValue } = useForm<InvoiceFormValues>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<InvoiceFormValues>({
     defaultValues: {
       template_id: '',
       customer_id: '',
@@ -132,21 +133,8 @@ export function InvoiceForm() {
     setValue('recipient_contact_ids', [])
   }, [customerId, setValue])
 
-  function toggleExpand(index: number) {
-    setExpandedIndexes((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
-      } else {
-        next.add(index)
-      }
-      return next
-    })
-  }
-
   function handleAppend() {
     append(emptyLineItem())
-    setExpandedIndexes((prev) => new Set(prev).add(lineItemFields.length))
   }
 
   const onSubmit = handleSubmit((values) => {
@@ -165,6 +153,7 @@ export function InvoiceForm() {
         description: item.description,
         quantity: Number(item.quantity),
         unit_price: Number(item.unit_price),
+        unit: item.unit || 'adet',
         discount_rate: Number(item.discount_rate) || 0,
         tax_rate: Number(item.tax_rate) || 0,
         other_tax_amount: Number(item.other_tax_amount) || 0,
@@ -188,6 +177,7 @@ export function InvoiceForm() {
                 onChange={field.onChange}
                 options={templates?.map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
                 placeholder={t('invoices.form.selectTemplate')}
+                error={errors.template_id ? t('invoices.form.errors.templateRequired') : undefined}
               />
             )}
           />
@@ -210,6 +200,7 @@ export function InvoiceForm() {
                       label: customer.company_name || customer.name,
                     })) || []}
                     placeholder={t('invoices.form.selectCustomer')}
+                    error={errors.customer_id ? t('invoices.form.errors.customerRequired') : undefined}
                   />
                 )}
               />
@@ -218,6 +209,7 @@ export function InvoiceForm() {
                 <Controller
                   name="recipient_contact_ids.0"
                   control={control}
+                  rules={{ required: true }}
                   render={({ field }) => (
                     <Select
                       label={t('invoices.form.recipientContact')}
@@ -228,6 +220,7 @@ export function InvoiceForm() {
                         label: `${contact.first_name} ${contact.last_name}`,
                       })) || []}
                       placeholder={t('invoices.form.customerInfoOption')}
+                      error={errors.recipient_contact_ids?.[0] ? t('invoices.form.errors.recipientRequired') : undefined}
                     />
                   )}
                 />
@@ -303,28 +296,6 @@ export function InvoiceForm() {
               />
             </div>
 
-            <fieldset className="border-t border-slate-200 pt-4">
-              <legend className="mb-3 text-sm font-medium text-slate-700">{t('invoices.form.commissionPayer')}</legend>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <Controller
-                    name="commission_payer"
-                    control={control}
-                    render={({ field }) => <input type="radio" {...field} value="self" className="rounded" />}
-                  />
-                  <span className="text-sm text-slate-700">{t('invoices.form.commissionPayerSelf')}</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <Controller
-                    name="commission_payer"
-                    control={control}
-                    render={({ field }) => <input type="radio" {...field} value="customer" className="rounded" />}
-                  />
-                  <span className="text-sm text-slate-700">{t('invoices.form.commissionPayerCustomer')}</span>
-                </label>
-              </div>
-            </fieldset>
-
             <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
               <Controller
                 name="invoice_type"
@@ -372,12 +343,21 @@ export function InvoiceForm() {
                 index={index}
                 register={register}
                 computed={lineComputations[index] ?? { discountAmount: 0, taxAmount: 0, lineTotal: 0 }}
-                expanded={expandedIndexes.has(index)}
-                onToggleExpand={() => toggleExpand(index)}
+                currency={currency}
                 onRemove={() => remove(index)}
                 removeDisabled={lineItemFields.length === 1}
+                fieldErrors={errors.line_items?.[index]}
               />
             ))}
+
+            <button
+              type="button"
+              onClick={handleAppend}
+              className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-slate-900 hover:text-slate-900 hover:bg-slate-50 active:text-black transition-colors"
+            >
+              <Plus size={16} />
+              <span>{t('invoices.form.addLineItem')}</span>
+            </button>
           </div>
         </Card>
 
