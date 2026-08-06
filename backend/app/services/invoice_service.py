@@ -93,6 +93,7 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         tax_total=tax_total,
         grand_total=grand_total,
         data_json=field_values,
+        notes=payload.notes,
         issued_at=payload.issued_at,
         due_at=payload.due_at,
     )

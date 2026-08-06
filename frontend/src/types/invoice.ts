@@ -55,6 +55,7 @@ export interface InvoiceDetail extends InvoiceSummary {
   subtotal: string
   tax_total: string
   pdf_error: string | null
+  notes: string | null
   due_at: string | null
   recipient_contact_ids: string[]
   line_items: LineItem[]
@@ -71,6 +72,7 @@ export interface InvoiceCreatePayload {
   recipient_contact_ids: string[]
   field_values: Record<string, string>
   line_items: LineItemPayload[]
+  notes?: string
   issued_at?: string
   due_at?: string
 }

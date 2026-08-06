@@ -1,11 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Banknote, FileStack, Plus, Send, User } from 'lucide-react'
+import { Banknote, FileStack, FileText, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
+import { Textarea } from '@/components/Textarea'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
@@ -35,6 +36,7 @@ export interface InvoiceFormValues {
     tax_rate: number
     other_tax_amount: number
   }[]
+  notes: string
   issued_at: string
   due_at: string
 }
@@ -78,6 +80,7 @@ export function InvoiceForm() {
       recipient_contact_ids: [],
       field_values: {},
       line_items: [emptyLineItem()],
+      notes: '',
       issued_at: '',
       due_at: '',
     },
@@ -158,6 +161,7 @@ export function InvoiceForm() {
         tax_rate: Number(item.tax_rate) || 0,
         other_tax_amount: Number(item.other_tax_amount) || 0,
       })),
+      notes: values.notes || undefined,
       issued_at: values.issued_at || undefined,
       due_at: values.due_at || undefined,
     })
@@ -359,6 +363,15 @@ export function InvoiceForm() {
               <span>{t('invoices.form.addLineItem')}</span>
             </button>
           </div>
+        </Card>
+
+        <Card icon={<FileText size={20} />} title={t('invoices.form.notes')}>
+          <Textarea
+            label={t('invoices.form.notes')}
+            placeholder={t('invoices.form.notesPlaceholder')}
+            hideLabel
+            {...register('notes')}
+          />
         </Card>
 
         {template && (

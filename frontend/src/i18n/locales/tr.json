@@ -299,6 +299,8 @@
       "submit": "Fatura Oluştur",
       "limitReached": "Aylık fatura limitinize ulaştınız. Devam etmek için planınızı yükseltin.",
       "customerInfoOption": "Müşteri Bilgisi",
+      "notes": "Fatura Açıklaması",
+      "notesPlaceholder": "Faturaya eklenecek notlarınızı buraya yazın...",
       "errors": {
         "templateRequired": "Şablon seçimi zorunludur.",
         "customerRequired": "Şirket adı seçimi zorunludur.",

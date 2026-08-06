@@ -106,6 +106,7 @@ class Invoice(Base):
         default=InvoicePdfStatus.PENDING,
     )
     pdf_error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     issued_at: Mapped[date | None] = mapped_column(nullable=True)
     due_at: Mapped[date | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -299,6 +299,8 @@
       "submit": "Create Invoice",
       "limitReached": "You've reached your monthly invoice limit. Upgrade your plan to continue.",
       "customerInfoOption": "Customer Info",
+      "notes": "Invoice Notes",
+      "notesPlaceholder": "Write notes to include on the invoice...",
       "errors": {
         "templateRequired": "Template selection is required.",
         "customerRequired": "Company name selection is required.",

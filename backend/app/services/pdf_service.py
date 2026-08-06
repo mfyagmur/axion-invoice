@@ -101,6 +101,7 @@ def _render_visual_html(invoice: Invoice, template: InvoiceTemplate, show_waterm
         tax_total=totals["tax_total"],
         grand_total=totals["grand_total"],
         currency=totals["currency"],
+        notes=invoice.notes or '',
         show_watermark=show_watermark,
     )
 

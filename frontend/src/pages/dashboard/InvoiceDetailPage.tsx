@@ -62,6 +62,13 @@ export function InvoiceDetailPage() {
         ))}
       </div>
 
+      {invoice.notes && (
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold text-slate-900">{t('invoices.form.notes')}</h2>
+          <p className="whitespace-pre-wrap text-sm text-slate-600">{invoice.notes}</p>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <div className="flex gap-3">
           {invoice.pdf_status === 'ready' && invoice.pdf_url ? (

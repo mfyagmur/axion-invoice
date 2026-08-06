@@ -96,6 +96,13 @@
         <div class="totals-row grand"><span>{{ labels.grand_total }}</span><span>{{ grand_total }} {{ currency }}</span></div>
       </div>
     </div>
+
+    {% if notes %}
+    <div style="position: absolute; left: 15mm; bottom: 12mm; width: 180mm; font-size: 8pt; color: #333;">
+      <div style="font-weight: bold; margin-bottom: 2mm;">Notlar:</div>
+      <div style="white-space: pre-wrap; word-wrap: break-word;">{{ notes }}</div>
+    </div>
+    {% endif %}
   </div>
 </body>
 </html>

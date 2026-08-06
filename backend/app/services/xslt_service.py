@@ -90,6 +90,8 @@ def build_invoice_xml(
     }.items():
         etree.SubElement(customer_el, tag).text = value or ""
 
+    etree.SubElement(root, "Notes").text = invoice.notes or ""
+
     return root
 
 

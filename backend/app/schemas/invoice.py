@@ -30,6 +30,7 @@ class InvoiceCreatePayload(BaseModel):
     recipient_contact_ids: list[uuid.UUID] = Field(default_factory=list, max_length=3)
     field_values: dict[str, str] = Field(default_factory=dict)
     line_items: list[LineItemPayload] = Field(min_length=1)
+    notes: str | None = Field(default=None, max_length=2000)
     issued_at: date | None = None
     due_at: date | None = None
 
@@ -86,6 +87,7 @@ class InvoiceDetailResponse(InvoiceSummaryResponse):
     subtotal: Decimal
     tax_total: Decimal
     pdf_error: str | None
+    notes: str | None
     due_at: date | None
     recipient_contact_ids: list[str]
     line_items: list[InvoiceLineItemResponse]
