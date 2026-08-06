@@ -8,9 +8,10 @@
   .page { position: relative; width: 210mm; height: 297mm; font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; }
   .field { position: absolute; white-space: pre-wrap; overflow: hidden; }
   .line-items-block { position: absolute; left: 15mm; top: 90mm; width: 180mm; }
-  .line-items-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-  .line-items-table th, .line-items-table td { border-bottom: 0.2mm solid #ccc; padding: 2mm; text-align: left; }
+  .line-items-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; table-layout: fixed; }
+  .line-items-table th, .line-items-table td { border-bottom: 0.2mm solid #ccc; padding: 1.5mm; text-align: left; overflow-wrap: break-word; }
   .line-items-table th { border-bottom: 0.4mm solid #333; }
+  .line-items-table td.num, .line-items-table th.num { text-align: right; }
   .totals { margin-top: 4mm; width: 70mm; margin-left: auto; font-size: 9pt; }
   .totals-row { display: flex; justify-content: space-between; padding: 1mm 0; }
   .totals-row.grand { font-weight: bold; border-top: 0.3mm solid #333; margin-top: 1mm; padding-top: 2mm; }
@@ -43,21 +44,48 @@
 
     <div class="line-items-block">
       <table class="line-items-table">
+        <colgroup>
+          <col style="width:6%">
+          <col style="width:10%">
+          <col style="width:24%">
+          <col style="width:7%">
+          <col style="width:9%">
+          <col style="width:6%">
+          <col style="width:9%">
+          <col style="width:6%">
+          <col style="width:9%">
+          <col style="width:7%">
+          <col style="width:9%">
+        </colgroup>
         <thead>
           <tr>
+            <th>{{ labels.row_number }}</th>
+            <th>{{ labels.item_code }}</th>
             <th>{{ labels.description }}</th>
-            <th>{{ labels.quantity }}</th>
-            <th>{{ labels.unit_price }}</th>
-            <th>{{ labels.line_total }}</th>
+            <th class="num">{{ labels.quantity }}</th>
+            <th class="num">{{ labels.unit_price }}</th>
+            <th class="num">{{ labels.discount_rate }}</th>
+            <th class="num">{{ labels.discount_amount }}</th>
+            <th class="num">{{ labels.tax_rate }}</th>
+            <th class="num">{{ labels.tax_amount }}</th>
+            <th class="num">{{ labels.other_tax_amount }}</th>
+            <th class="num">{{ labels.line_total }}</th>
           </tr>
         </thead>
         <tbody>
           {% for item in line_items %}
           <tr>
+            <td>{{ item.row_number }}</td>
+            <td>{{ item.item_code }}</td>
             <td>{{ item.description }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.unit_price }}</td>
-            <td>{{ item.line_total }}</td>
+            <td class="num">{{ item.quantity }}</td>
+            <td class="num">{{ item.unit_price }}</td>
+            <td class="num">{{ item.discount_rate }}</td>
+            <td class="num">{{ item.discount_amount }}</td>
+            <td class="num">{{ item.tax_rate }}</td>
+            <td class="num">{{ item.tax_amount }}</td>
+            <td class="num">{{ item.other_tax_amount }}</td>
+            <td class="num">{{ item.line_total }}</td>
           </tr>
           {% endfor %}
         </tbody>

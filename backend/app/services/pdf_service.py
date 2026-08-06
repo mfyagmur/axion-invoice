@@ -12,9 +12,16 @@ TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates_html"
 _env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=select_autoescape())
 
 LABELS = {
+    "row_number": "Sıra No",
+    "item_code": "Kod",
     "description": "Açıklama",
     "quantity": "Miktar",
     "unit_price": "Birim Fiyat",
+    "discount_rate": "İsk. %",
+    "discount_amount": "İsk. Tutarı",
+    "tax_rate": "KDV %",
+    "tax_amount": "KDV Tutarı",
+    "other_tax_amount": "Diğer Vergi",
     "line_total": "Tutar",
     "subtotal": "Ara Toplam",
     "tax": "Vergi",
@@ -36,12 +43,24 @@ def _collect_render_data(invoice: Invoice) -> tuple[dict[str, str], list[dict], 
 
     line_items = [
         {
+            "row_number": index + 1,
+            "item_code": item.item_code or "",
             "description": item.description,
             "quantity": item.quantity,
             "unit_price": _money(item.unit_price),
-            "line_total": _money(item.quantity * item.unit_price),
+            "discount_rate": item.discount_rate,
+            "discount_amount": _money(item.discount_amount),
+            "tax_rate": item.tax_rate,
+            "tax_amount": _money(item.tax_amount),
+            "other_tax_amount": _money(item.other_tax_amount),
+            "line_total": _money(
+                item.quantity * item.unit_price
+                - item.discount_amount
+                + item.tax_amount
+                + item.other_tax_amount
+            ),
         }
-        for item in invoice.line_items
+        for index, item in enumerate(invoice.line_items)
     ]
 
     totals = {

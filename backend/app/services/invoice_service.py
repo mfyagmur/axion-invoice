@@ -1,5 +1,5 @@
 import uuid
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -8,13 +8,35 @@ from app.constants import COMPUTED_FIELD_KEYS
 from app.models.invoice import Invoice, InvoiceCustomer, InvoiceLineItem
 from app.models.template import InvoiceTemplate
 from app.models.user import User
-from app.schemas.invoice import InvoiceCreatePayload
+from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
 
 
-def compute_totals(payload: InvoiceCreatePayload) -> tuple[Decimal, Decimal, Decimal]:
-    subtotal = sum((item.quantity * item.unit_price for item in payload.line_items), Decimal("0"))
-    tax_total = payload.tax_total
-    return subtotal, tax_total, subtotal + tax_total
+def _round_money(value: Decimal) -> Decimal:
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def compute_line_item_totals(item: LineItemPayload) -> dict[str, Decimal]:
+    gross = item.quantity * item.unit_price
+    discount_amount = _round_money(gross * item.discount_rate / Decimal("100"))
+    taxable_base = gross - discount_amount
+    tax_amount = _round_money(taxable_base * item.tax_rate / Decimal("100"))
+    line_total = taxable_base + tax_amount + item.other_tax_amount
+    return {
+        "taxable_base": taxable_base,
+        "discount_amount": discount_amount,
+        "tax_amount": tax_amount,
+        "line_total": line_total,
+    }
+
+
+def compute_totals(payload: InvoiceCreatePayload) -> tuple[Decimal, Decimal, Decimal, list[dict[str, Decimal]]]:
+    computations = [compute_line_item_totals(item) for item in payload.line_items]
+    subtotal = sum((c["taxable_base"] for c in computations), Decimal("0"))
+    tax_total = sum((c["tax_amount"] for c in computations), Decimal("0")) + sum(
+        (item.other_tax_amount for item in payload.line_items), Decimal("0")
+    )
+    grand_total = subtotal + tax_total
+    return subtotal, tax_total, grand_total, computations
 
 
 def next_invoice_number(db: Session, user: User) -> str:
@@ -42,23 +64,11 @@ def get_own_invoice(db: Session, invoice_id: uuid.UUID, user: User) -> Invoice:
 def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> Invoice:
     _get_visible_template(db, payload.template_id, user)
 
-    if payload.customer_id is not None:
-        customer = db.get(InvoiceCustomer, payload.customer_id)
-        if customer is None or customer.user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Müşteri bulunamadı")
-    else:
-        assert payload.customer is not None
-        customer = InvoiceCustomer(
-            user_id=user.id,
-            name=payload.customer.name,
-            email=payload.customer.email,
-            tax_number=payload.customer.tax_number,
-            address=payload.customer.address,
-        )
-        db.add(customer)
-        db.flush()
+    customer = db.get(InvoiceCustomer, payload.customer_id)
+    if customer is None or customer.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Müşteri bulunamadı")
 
-    subtotal, tax_total, grand_total = compute_totals(payload)
+    subtotal, tax_total, grand_total, line_computations = compute_totals(payload)
 
     field_values = {key: value for key, value in payload.field_values.items() if key not in COMPUTED_FIELD_KEYS}
 
@@ -78,13 +88,19 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
     db.add(invoice)
     db.flush()
 
-    for item in payload.line_items:
+    for item, computed in zip(payload.line_items, line_computations):
         db.add(
             InvoiceLineItem(
                 invoice_id=invoice.id,
+                item_code=item.item_code,
                 description=item.description,
                 quantity=item.quantity,
                 unit_price=item.unit_price,
+                discount_rate=item.discount_rate,
+                discount_amount=computed["discount_amount"],
+                tax_rate=item.tax_rate,
+                tax_amount=computed["tax_amount"],
+                other_tax_amount=item.other_tax_amount,
             )
         )
 

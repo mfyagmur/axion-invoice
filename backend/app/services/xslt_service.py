@@ -57,9 +57,16 @@ def build_invoice_xml(
     line_items_el = etree.SubElement(root, "LineItems")
     for item in line_items:
         item_el = etree.SubElement(line_items_el, "LineItem")
+        etree.SubElement(item_el, "RowNumber").text = str(item["row_number"])
+        etree.SubElement(item_el, "ItemCode").text = str(item["item_code"])
         etree.SubElement(item_el, "Description").text = str(item["description"])
         etree.SubElement(item_el, "Quantity").text = str(item["quantity"])
         etree.SubElement(item_el, "UnitPrice").text = str(item["unit_price"])
+        etree.SubElement(item_el, "DiscountRate").text = str(item["discount_rate"])
+        etree.SubElement(item_el, "DiscountAmount").text = str(item["discount_amount"])
+        etree.SubElement(item_el, "TaxRate").text = str(item["tax_rate"])
+        etree.SubElement(item_el, "TaxAmount").text = str(item["tax_amount"])
+        etree.SubElement(item_el, "OtherTaxAmount").text = str(item["other_tax_amount"])
         etree.SubElement(item_el, "LineTotal").text = str(item["line_total"])
 
     totals_el = etree.SubElement(root, "Totals")

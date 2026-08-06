@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.database import engine, get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
+from app.models.invoice import InvoiceCustomer
 from app.models.user import AccountType, User
 from app.services.subscription_service import ensure_default_subscription
 
@@ -91,3 +92,13 @@ def test_user(db_session) -> User:
 def auth_headers(test_user: User) -> dict[str, str]:
     token = create_access_token(str(test_user.id))
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def test_customer(db_session, test_user: User) -> InvoiceCustomer:
+    customer = InvoiceCustomer(user_id=test_user.id, name="Test Müşteri")
+    db_session.add(customer)
+    db_session.flush()
+    db_session.commit()
+    db_session.refresh(customer)
+    return customer

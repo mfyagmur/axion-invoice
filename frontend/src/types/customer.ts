@@ -46,13 +46,6 @@ export interface CustomerCreatePayload {
 
 export type CustomerUpdatePayload = CustomerCreatePayload
 
-export interface InvoiceCustomerPayload {
-  name: string
-  email?: string
-  tax_number?: string
-  address?: string
-}
-
 export interface CustomerContact {
   id: string
   first_name: string

@@ -13,8 +13,6 @@ interface SidebarProps {
   onNavigate?: () => void
 }
 
-const LOCALES: Locale[] = ['tr', 'en']
-
 export function Sidebar({ onNavigate }: SidebarProps) {
   const { t, i18n } = useTranslation()
   const user = useAuthStore((state) => state.user)

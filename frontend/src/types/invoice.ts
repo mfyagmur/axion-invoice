@@ -1,20 +1,30 @@
-import type { Customer, InvoiceCustomerPayload } from '@/types/customer'
+import type { Customer } from '@/types/customer'
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
 export type InvoicePdfStatus = 'pending' | 'ready' | 'failed'
 
 export interface LineItem {
   id: string
+  item_code: string | null
   description: string
   quantity: string
   unit_price: string
+  discount_rate: string
+  discount_amount: string
+  tax_rate: string
+  tax_amount: string
+  other_tax_amount: string
   line_total: string
 }
 
 export interface LineItemPayload {
+  item_code?: string
   description: string
   quantity: number
   unit_price: number
+  discount_rate: number
+  tax_rate: number
+  other_tax_amount: number
 }
 
 export interface InvoiceSummary {
@@ -42,10 +52,8 @@ export interface InvoiceDetail extends InvoiceSummary {
 
 export interface InvoiceCreatePayload {
   template_id: string
-  customer_id?: string
-  customer?: InvoiceCustomerPayload
+  customer_id: string
   currency: string
-  tax_total: number
   field_values: Record<string, string>
   line_items: LineItemPayload[]
   issued_at?: string

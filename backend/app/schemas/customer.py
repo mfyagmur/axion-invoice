@@ -61,17 +61,6 @@ class CustomerStatusUpdatePayload(BaseModel):
     is_active: bool
 
 
-class InvoiceCustomerPayload(BaseModel):
-    """Lightweight shape for creating a customer inline while creating an invoice —
-    intentionally doesn't carry the compliance fields required on the Customers page,
-    since that's a quick one-off record rather than full customer management."""
-
-    name: str = Field(min_length=1, max_length=255)
-    email: EmailStr | None = None
-    tax_number: str | None = Field(default=None, max_length=50)
-    address: str | None = Field(default=None, max_length=1000)
-
-
 class CustomerContactPayload(BaseModel):
     first_name: str = Field(min_length=1, max_length=255)
     last_name: str = Field(min_length=1, max_length=255)

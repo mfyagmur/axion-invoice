@@ -1,49 +1,57 @@
 import uuid
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
-from pydantic import BaseModel, Field, computed_field, model_validator
+from pydantic import BaseModel, Field, computed_field
 
 from app.models.invoice import InvoicePdfStatus, InvoiceStatus
-from app.schemas.customer import CustomerResponse, InvoiceCustomerPayload
+from app.schemas.customer import CustomerResponse
 
 
 class LineItemPayload(BaseModel):
+    item_code: str | None = Field(default=None, max_length=100)
     description: str = Field(min_length=1, max_length=500)
     quantity: Decimal = Field(gt=0)
     unit_price: Decimal = Field(ge=0)
+    discount_rate: Decimal = Field(default=Decimal("0"), ge=0, le=100)
+    tax_rate: Decimal = Field(default=Decimal("0"), ge=0, le=100)
+    other_tax_amount: Decimal = Field(default=Decimal("0"), ge=0)
 
 
 class InvoiceCreatePayload(BaseModel):
     template_id: uuid.UUID
-    customer_id: uuid.UUID | None = None
-    customer: InvoiceCustomerPayload | None = None
+    customer_id: uuid.UUID
     currency: str = Field(default="TRY", min_length=3, max_length=3)
-    tax_total: Decimal = Field(default=Decimal("0"), ge=0)
     field_values: dict[str, str] = Field(default_factory=dict)
     line_items: list[LineItemPayload] = Field(min_length=1)
     issued_at: date | None = None
     due_at: date | None = None
 
-    @model_validator(mode="after")
-    def _one_customer_source(self) -> "InvoiceCreatePayload":
-        if (self.customer_id is None) == (self.customer is None):
-            raise ValueError("customer_id veya customer alanlarından tam olarak biri gönderilmeli")
-        return self
-
 
 class InvoiceLineItemResponse(BaseModel):
     id: uuid.UUID
+    item_code: str | None
     description: str
     quantity: Decimal
     unit_price: Decimal
+    discount_rate: Decimal
+    discount_amount: Decimal
+    tax_rate: Decimal
+    tax_amount: Decimal
+    other_tax_amount: Decimal
 
     model_config = {"from_attributes": True}
 
     @computed_field
     @property
     def line_total(self) -> Decimal:
-        return self.quantity * self.unit_price
+        total = (
+            self.quantity * self.unit_price
+            - self.discount_amount
+            + self.tax_amount
+            + self.other_tax_amount
+        )
+        return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class InvoiceSummaryResponse(BaseModel):
