@@ -211,7 +211,7 @@ export function InvoiceForm() {
             key={field.id}
             index={index}
             register={register}
-            computed={lineComputations[index]}
+            computed={lineComputations[index] ?? { discountAmount: 0, taxAmount: 0, lineTotal: 0 }}
             expanded={expandedIndexes.has(index)}
             onToggleExpand={() => toggleExpand(index)}
             onRemove={() => remove(index)}

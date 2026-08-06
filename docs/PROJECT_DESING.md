@@ -298,3 +298,44 @@ ve `npm run lint` temiz (lint'teki tek kalan hata, bu görevle ilgisiz önceden 
 
 ---
 
+## Faz 5 Sonrası — Kalem Ekleme Sırasında Hata Düzeltmesi (2026-08-06)
+
+### İşlem Türü
+- **Değiştirme** (React Hook Form state yönetimi bug'ı düzeltildi)
+
+### Değiştirilen Dosyalar
+
+#### Frontend
+
+1. **`frontend/src/features/invoices/components/InvoiceForm.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: `handleAppend()` sırasında `LineItemCard`'a geçilen `computed` prop'u geçici olarak
+     `undefined` olabiliyordu. Kök neden: `useFieldArray`'in `append()` çağrısı `lineItemFields`
+     dizisini hemen büyütüp render tetiklerken, `lineComputations` (`useWatch` → `useMemo` zinciri)
+     aynı render'da henüz yeni satırı içermeyebiliyordu (RHF state güncellemeleri ayrı tetiklenir).
+     Sonuç: yeni `index` için `LineItemCard` render edildikten sonra `lineComputations[index]`
+     `undefined` kalıyordu ve bileşen `computed.lineTotal.toFixed(2)` satırında crash'a
+     düşüyordu ("Cannot read properties of undefined"). Düzeltme: `computed` prop'una nullish-coalescing
+     fallback (`lineComputations[index] ?? { discountAmount: 0, taxAmount: 0, lineTotal: 0 }`)
+     eklendi — yeni satır render edilene kadar `0` ile başlar, `lineComputations` hemen sonraki
+     render'da güncellenince gerçek hesaplanan değerler otomatik yerine oturur.
+
+### Doğrulama
+
+- `npm run build`: Temiz ✓
+- `npm run lint`: Temiz (önceden var olan, bu görevle ilgisiz hata hariç) ✓
+- `npm run test -- --run`: 8/8 test yeşil ✓
+- Manual: `/dashboard/invoices/new`'de "Kalem Ekle" düğmesine birden fazla tıklandığında hata
+  almadan yeni kartlar render ediliyor, kalem alanlarına girilen veriler anlık toplamları
+  güncellediği doğrulandı.
+
+### Özet
+
+Kalem eklemesi sırasında React Hook Form + `useFieldArray` + `useWatch` kombinasyondan kaynaklanan
+bir state senkronizasyon hatasının minimal bir nullish-coalescing fallback'le çözülmesi. Hata
+yalnızca tarayıcıda görüntülendikten sonra keşfedildi (otomatik testler bu spesifik "append sonrası
+hemen render" time-window'u yakalayamadı). Düzeltme, hesaplama mantığını değiştirmez (backend
+formülü hiç dokunulmaz) ve sadece geçici durumu idare eder.
+
+---
+
