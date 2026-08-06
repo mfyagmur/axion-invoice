@@ -2,6 +2,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -21,6 +22,35 @@ from app.schemas.customer import (
 router = APIRouter(prefix="/customers", tags=["customers"])
 
 
+def _ensure_self_contact(db: Session, customer: InvoiceCustomer) -> None:
+    """Create self-contact if it doesn't exist, ensuring customer is always selectable. Removes duplicates."""
+    if not customer.first_name or not customer.last_name:
+        return
+
+    existing = db.query(CustomerContact).filter(
+        and_(
+            CustomerContact.customer_id == customer.id,
+            CustomerContact.first_name == customer.first_name,
+            CustomerContact.last_name == customer.last_name
+        )
+    ).all()
+
+    if not existing:
+        self_contact = CustomerContact(
+            customer_id=customer.id,
+            first_name=customer.first_name,
+            last_name=customer.last_name,
+            email=customer.email,
+            phone=customer.phone
+        )
+        db.add(self_contact)
+        db.flush()
+    elif len(existing) > 1:
+        # Duplicates exist; keep first, delete rest
+        for contact in existing[1:]:
+            db.delete(contact)
+
+
 def _get_own_customer(db: Session, customer_id: uuid.UUID, current_user: User) -> InvoiceCustomer:
     customer = db.get(InvoiceCustomer, customer_id)
     if customer is None or customer.user_id != current_user.id:
@@ -33,9 +63,15 @@ def list_customers(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> list[InvoiceCustomer]:
-    return db.query(InvoiceCustomer).filter(InvoiceCustomer.user_id == current_user.id).order_by(
+    customers = db.query(InvoiceCustomer).filter(InvoiceCustomer.user_id == current_user.id).order_by(
         InvoiceCustomer.name
     ).all()
+    for customer in customers:
+        _ensure_self_contact(db, customer)
+    db.commit()
+    for customer in customers:
+        db.refresh(customer)
+    return customers
 
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
@@ -44,7 +80,11 @@ def get_customer(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> InvoiceCustomer:
-    return _get_own_customer(db, customer_id, current_user)
+    customer = _get_own_customer(db, customer_id, current_user)
+    _ensure_self_contact(db, customer)
+    db.commit()
+    db.refresh(customer)
+    return customer
 
 
 @router.post("", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
@@ -57,6 +97,8 @@ def create_customer(
     name = f"{data['first_name']} {data['last_name']}".strip()
     customer = InvoiceCustomer(user_id=current_user.id, name=name, **data)
     db.add(customer)
+    db.flush()
+    _ensure_self_contact(db, customer)
     db.commit()
     db.refresh(customer)
     return customer
@@ -71,12 +113,30 @@ def update_customer(
 ) -> InvoiceCustomer:
     customer = _get_own_customer(db, customer_id, current_user)
     data = payload.model_dump()
-    if 'first_name' in data or 'last_name' in data:
+    if 'first_name' in data or 'last_name' in data or 'email' in data or 'phone' in data:
         first_name = data.get('first_name', customer.first_name or '')
         last_name = data.get('last_name', customer.last_name or '')
         data['name'] = f"{first_name} {last_name}".strip()
+        # Müşterinin kendi kişi kaydını güncelle
+        self_contact = db.query(CustomerContact).filter(
+            and_(
+                CustomerContact.customer_id == customer.id,
+                CustomerContact.first_name == (customer.first_name or ''),
+                CustomerContact.last_name == (customer.last_name or '')
+            )
+        ).first()
+        if self_contact:
+            if 'first_name' in data:
+                self_contact.first_name = first_name
+            if 'last_name' in data:
+                self_contact.last_name = last_name
+            if 'email' in data:
+                self_contact.email = data.get('email')
+            if 'phone' in data:
+                self_contact.phone = data.get('phone')
     for field, value in data.items():
         setattr(customer, field, value)
+    _ensure_self_contact(db, customer)
     db.commit()
     db.refresh(customer)
     return customer

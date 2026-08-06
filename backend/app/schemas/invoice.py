@@ -26,7 +26,7 @@ class InvoiceCreatePayload(BaseModel):
     invoice_type: InvoiceType = Field(default=InvoiceType.SALE)
     scenario: InvoiceScenario = Field(default=InvoiceScenario.COMMERCIAL)
     commission_payer: CommissionPayer = Field(default=CommissionPayer.SELF)
-    recipient_contact_ids: list[uuid.UUID] = Field(default_factory=list, max_length=2)
+    recipient_contact_ids: list[uuid.UUID] = Field(default_factory=list, max_length=3)
     field_values: dict[str, str] = Field(default_factory=dict)
     line_items: list[LineItemPayload] = Field(min_length=1)
     issued_at: date | None = None

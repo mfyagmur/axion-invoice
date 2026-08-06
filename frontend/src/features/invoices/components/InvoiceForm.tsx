@@ -157,7 +157,7 @@ export function InvoiceForm() {
       invoice_type: values.invoice_type,
       scenario: values.scenario,
       commission_payer: values.commission_payer,
-      recipient_contact_ids: values.recipient_contact_ids,
+      recipient_contact_ids: values.recipient_contact_ids.filter((id) => !!id),
       field_values: values.field_values,
       line_items: values.line_items.map((item) => ({
         item_code: item.item_code || undefined,
@@ -192,46 +192,54 @@ export function InvoiceForm() {
 
         <Card icon={<User size={20} />} title={t('invoices.form.invoiceDetails')}>
           <div className="flex flex-col gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                {t('invoices.form.customer')}
-              </label>
-              <select
-                {...register('customer_id', { required: true })}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              >
-                <option value="">{t('invoices.form.selectCustomer')}</option>
-                {customers?.filter((customer) => customer.is_active).map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  {t('invoices.form.companyName')}
+                </label>
+                <select
+                  {...register('customer_id', { required: true })}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                >
+                  <option value="">{t('invoices.form.selectCustomer')}</option>
+                  {customers?.filter((customer) => customer.is_active).map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.company_name || customer.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {selectedCustomer?.contacts && selectedCustomer.contacts.length > 0 && (
-              <>
+              {selectedCustomer && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">
                     {t('invoices.form.recipientContact')}
                   </label>
-                  <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-500">
-                    <option disabled selected>
-                      {selectedCustomer.contacts[0]
-                        ? `${selectedCustomer.contacts[0].first_name} ${selectedCustomer.contacts[0].last_name}`
-                        : 'Belirtilmemiş'}
-                    </option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-slate-700">{t('invoices.form.additionalContact1')}</label>
                   <select
                     {...register('recipient_contact_ids.0')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
                   >
-                    <option value="">{t('common.optional')}</option>
-                    {selectedCustomer.contacts.map((contact) => (
+                    <option value="">{t('invoices.form.customerInfoOption')}</option>
+                    {selectedCustomer.contacts?.map((contact) => (
+                      <option key={contact.id} value={contact.id}>
+                        {contact.first_name} {contact.last_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {selectedCustomer && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">{t('invoices.form.additionalContact1')}</label>
+                  <select
+                    {...register('recipient_contact_ids.1')}
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">{t('invoices.form.customerInfoOption')}</option>
+                    {selectedCustomer.contacts?.map((contact) => (
                       <option key={contact.id} value={contact.id}>
                         {contact.first_name} {contact.last_name}
                       </option>
@@ -240,20 +248,20 @@ export function InvoiceForm() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-slate-700">{t('invoices.form.additionalContact2')}</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">{t('invoices.form.additionalContact2')}</label>
                   <select
-                    {...register('recipient_contact_ids.1')}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    {...register('recipient_contact_ids.2')}
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
                   >
-                    <option value="">{t('common.optional')}</option>
-                    {selectedCustomer.contacts.map((contact) => (
+                    <option value="">{t('invoices.form.customerInfoOption')}</option>
+                    {selectedCustomer.contacts?.map((contact) => (
                       <option key={contact.id} value={contact.id}>
                         {contact.first_name} {contact.last_name}
                       </option>
                     ))}
                   </select>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </Card>

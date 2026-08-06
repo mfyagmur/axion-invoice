@@ -253,6 +253,7 @@
       "template": "Template",
       "selectTemplate": "Select a template",
       "invoiceDetails": "Invoice Details",
+      "companyName": "Company Name",
       "customer": "Customer",
       "selectCustomer": "Select a customer",
       "recipientContact": "Recipient Contact",
@@ -294,7 +295,8 @@
       "tax": "Tax",
       "grandTotal": "Grand Total",
       "submit": "Create Invoice",
-      "limitReached": "You've reached your monthly invoice limit. Upgrade your plan to continue."
+      "limitReached": "You've reached your monthly invoice limit. Upgrade your plan to continue.",
+      "customerInfoOption": "Customer Info"
     },
     "detail": {
       "download": "Download PDF",

@@ -253,6 +253,7 @@
       "template": "Şablon",
       "selectTemplate": "Şablon seçin",
       "invoiceDetails": "Fatura Ayrıntıları",
+      "companyName": "Şirket Adı",
       "customer": "Müşteri",
       "selectCustomer": "Müşteri seçin",
       "recipientContact": "Faturanın gönderileceği kişi",
@@ -294,7 +295,8 @@
       "tax": "Vergi",
       "grandTotal": "Genel Toplam",
       "submit": "Fatura Oluştur",
-      "limitReached": "Aylık fatura limitinize ulaştınız. Devam etmek için planınızı yükseltin."
+      "limitReached": "Aylık fatura limitinize ulaştınız. Devam etmek için planınızı yükseltin.",
+      "customerInfoOption": "Müşteri Bilgisi"
     },
     "detail": {
       "download": "PDF İndir",
