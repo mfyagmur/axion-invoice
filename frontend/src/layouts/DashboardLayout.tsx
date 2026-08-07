@@ -11,11 +11,29 @@ export function DashboardLayout() {
   const user = useAuthStore((state) => state.user)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
   }, [location.pathname])
+
+  useEffect(() => {
+    const main = mainRef.current
+    const content = contentRef.current
+    if (!main || !content) return
+
+    const clampScroll = () => {
+      const maxScrollTop = Math.max(0, main.scrollHeight - main.clientHeight)
+      if (main.scrollTop > maxScrollTop) {
+        main.scrollTop = maxScrollTop
+      }
+    }
+
+    const observer = new ResizeObserver(clampScroll)
+    observer.observe(content)
+    return () => observer.disconnect()
+  }, [])
 
   useIdleLogout()
 
@@ -50,7 +68,9 @@ export function DashboardLayout() {
         )}
 
         <main ref={mainRef} className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+          <div ref={contentRef}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
