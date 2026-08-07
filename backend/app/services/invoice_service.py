@@ -68,8 +68,7 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
     if customer is None or customer.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Müşteri bulunamadı")
 
-    for contact_id_str in payload.recipient_contact_ids:
-        contact_id = uuid.UUID(contact_id_str)
+    for contact_id in payload.recipient_contact_ids:
         contact = next((c for c in customer.contacts if c.id == contact_id), None)
         if contact is None:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Geçerli olmayan kişi seçimi")
