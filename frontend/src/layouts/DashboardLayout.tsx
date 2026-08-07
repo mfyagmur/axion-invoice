@@ -67,7 +67,7 @@ export function DashboardLayout() {
           <div className="bg-amber-50 px-6 py-2 text-sm text-amber-800">{t('demo.banner')}</div>
         )}
 
-        <main ref={mainRef} className="flex-1 overflow-y-auto p-6">
+        <main ref={mainRef} className="relative flex-1 overflow-y-auto p-6">
           <div ref={contentRef}>
             <Outlet />
           </div>
