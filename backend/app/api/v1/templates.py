@@ -49,7 +49,12 @@ def list_templates(
 ) -> list[InvoiceTemplate]:
     return (
         db.query(InvoiceTemplate)
-        .filter(or_(InvoiceTemplate.user_id.is_(None), InvoiceTemplate.user_id == current_user.id))
+        .filter(
+            or_(
+                (InvoiceTemplate.user_id.is_(None)) & (InvoiceTemplate.is_active == True),
+                InvoiceTemplate.user_id == current_user.id
+            )
+        )
         .order_by(InvoiceTemplate.is_system_template.desc(), InvoiceTemplate.updated_at.desc())
         .all()
     )

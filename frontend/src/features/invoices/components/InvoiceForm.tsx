@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { Banknote, FileStack, FileText, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
-import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
 import { Textarea } from '@/components/Textarea'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
@@ -12,9 +11,7 @@ import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
 import { LineItemCard } from '@/features/invoices/components/LineItemCard'
-import { useTemplate } from '@/features/invoice-editor/hooks/useTemplate'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
-import type { FieldType } from '@/types/template'
 
 export interface InvoiceFormValues {
   template_id: string
@@ -42,12 +39,6 @@ export interface InvoiceFormValues {
 }
 
 const CURRENCY_OPTIONS = ['TRY', 'USD', 'EUR', 'GBP']
-
-function inputTypeFor(fieldType: FieldType): string {
-  if (fieldType === 'date') return 'date'
-  if (fieldType === 'number' || fieldType === 'currency') return 'number'
-  return 'text'
-}
 
 function emptyLineItem() {
   return {
@@ -94,7 +85,6 @@ export function InvoiceForm() {
   const currency = watch('currency')
   const paymentCurrency = watch('payment_currency')
 
-  const { data: template } = useTemplate(templateId || undefined)
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
 
   const lineComputations = useMemo(
@@ -125,12 +115,6 @@ export function InvoiceForm() {
   const grandTotal = subtotal + taxTotal
 
   const isFormValid = !!(templateId && customerId && lineItemFields.length > 0)
-
-  useEffect(() => {
-    if (template) {
-      setValue('field_values', {})
-    }
-  }, [template, setValue])
 
   useEffect(() => {
     setValue('recipient_contact_ids', [])
@@ -179,7 +163,7 @@ export function InvoiceForm() {
               <Select
                 value={field.value}
                 onChange={field.onChange}
-                options={templates?.map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
+                options={templates?.filter((tpl) => tpl.is_active !== false).map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
                 placeholder={t('invoices.form.selectTemplate')}
                 error={errors.template_id ? t('invoices.form.errors.templateRequired') : undefined}
               />
@@ -373,30 +357,6 @@ export function InvoiceForm() {
             {...register('notes')}
           />
         </Card>
-
-        {template && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold text-slate-900">{t('invoices.form.fields')}</h3>
-            {template.fields.map((field) =>
-              field.is_computed ? (
-                <div key={field.id} className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-slate-700">{field.label}</span>
-                  <span className="text-sm text-slate-500">
-                    {field.field_key === 'subtotal' ? subtotal.toFixed(2) : taxTotal.toFixed(2)}{' '}
-                    ({t('invoices.form.computed')})
-                  </span>
-                </div>
-              ) : (
-                <Input
-                  key={field.id}
-                  label={field.label}
-                  type={inputTypeFor(field.field_type)}
-                  {...register(`field_values.${field.field_key}` as const)}
-                />
-              ),
-            )}
-          </div>
-        )}
       </div>
 
       <div className="flex flex-col gap-4 lg:sticky lg:top-6">

@@ -93,7 +93,7 @@ export function TemplatesPage() {
   const pushToast = useToastStore((state) => state.push)
   const canCreateXslt = subscription?.plan.allows_custom_xslt_templates ?? false
 
-  const systemTemplates = templates?.filter((template) => template.is_system_template) ?? []
+  const systemTemplates = templates?.filter((template) => template.is_system_template && template.is_active !== false) ?? []
   const ownTemplates = templates?.filter((template) => !template.is_system_template) ?? []
 
   return (

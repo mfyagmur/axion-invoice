@@ -66,6 +66,46 @@ export const BUILTIN_FIELD_CATALOG: FieldCatalogEntry[] = [
     default_height_mm: 6,
     default_font_size: 10,
   },
+  {
+    field_key: 'company_address',
+    labelKey: 'editor.field.company_address',
+    field_type: 'text',
+    default_width_mm: 80,
+    default_height_mm: 8,
+    default_font_size: 10,
+  },
+  {
+    field_key: 'company_phone',
+    labelKey: 'editor.field.company_phone',
+    field_type: 'text',
+    default_width_mm: 50,
+    default_height_mm: 6,
+    default_font_size: 9,
+  },
+  {
+    field_key: 'company_email',
+    labelKey: 'editor.field.company_email',
+    field_type: 'text',
+    default_width_mm: 60,
+    default_height_mm: 6,
+    default_font_size: 9,
+  },
+  {
+    field_key: 'company_tax_office',
+    labelKey: 'editor.field.company_tax_office',
+    field_type: 'text',
+    default_width_mm: 60,
+    default_height_mm: 6,
+    default_font_size: 9,
+  },
+  {
+    field_key: 'company_tax_number',
+    labelKey: 'editor.field.company_tax_number',
+    field_type: 'text',
+    default_width_mm: 40,
+    default_height_mm: 6,
+    default_font_size: 9,
+  },
 ]
 
 export const CUSTOM_FIELD_PALETTE_KEY = '__custom__'

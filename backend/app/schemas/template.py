@@ -63,6 +63,7 @@ class TemplateSummaryResponse(BaseModel):
     id: uuid.UUID
     name: str
     is_system_template: bool
+    is_active: bool
     page_size: PageSize
     engine: TemplateEngine
     target_format: TemplateFormat

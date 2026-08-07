@@ -42,6 +42,7 @@ class InvoiceTemplate(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     is_system_template: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     page_size: Mapped[PageSize] = mapped_column(
         SAEnum(PageSize, name="page_size"), nullable=False, default=PageSize.A4
     )

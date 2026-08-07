@@ -36,6 +36,7 @@ export interface TemplateSummary {
   id: string
   name: string
   is_system_template: boolean
+  is_active: boolean
   page_size: PageSize
   engine: TemplateEngine
   target_format: TemplateFormat

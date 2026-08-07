@@ -4,6 +4,116 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Faz 5 Sonrası — Fatura Şablonlarının Yenilenmesi: 6 Yeni XSLT Şablon (2026-08-07)
+
+### Bağlam
+Sistemde önceden tanımlı 3 sistem şablonu vardı: Basit, Kurumsal, Minimal. Bunlar hepsi aynı "visual" render motorunu (layout_json + Jinja2) kullanan ve sadece metin alanı konumlandırması destek eden DB satırlarıydı. Yeni tasarım gereksinimlerine yanıt vermek amacıyla, bu 3 şablon pasif/deprecated haline getirildi ve yerlerine 6 yeni, XSLT tabanlı şablon eklendi: Klasik, Keskin, Temiz, Kompakt, Proforma, Global. Her şablon tam özel HTML/CSS üreterek renkli başlıklar, logolar, geliştirilmiş tablo stilleri destekliyor. Ayrıca yeni fatura alanları (company_address, company_phone, company_email, company_tax_office, company_tax_number) alan kataloğuna eklendi ve eski 3 şablon seçim listesinden gizlendi ama var olan faturalar etkilenmedi.
+
+### İşlem Türü
+- **Değiştirme** (eski 3 şablonu pasif haline getirme, template listesi filtreleme)
+- **Ekleme** (6 yeni XSLT şablon, 5 yeni alan tipi, extended field catalog)
+
+### Değiştirilen Dosyalar
+
+#### Backend — Migrations
+
+1. **`backend/alembic/versions/o0p1q2r3s4t5_add_is_active_to_templates.py`** (Yeni Dosya)
+   - İşlem: Ekleme
+   - Açıklama: `invoice_templates` tablosuna `is_active: boolean NOT NULL DEFAULT true` kolonu eklendi.
+     Aynı migration'da Basit/Kurumsal/Minimal şablonlarının (sabit UUIDler: 00000000-0000-0000-0000-00000000000{1,2,3})
+     `is_active` değeri `false` olarak set edildi. Downgrade de migration'ı geri alıyor.
+
+2. **`backend/alembic/versions/p1q2r3s4t5u6_seed_new_invoice_templates.py`** (Yeni Dosya)
+   - İşlem: Ekleme
+   - Açıklama: 6 yeni sistem şablonu seed'ledi. Her şablon:
+     - `engine = 'xslt'`, `is_system_template = true`, `is_active = true`
+     - Sabit UUID'ler (10000000-0000-0000-0000-00000000000{1-6})
+     - Referans görsellerle eşleşen tam HTML/CSS üreten XSLT içeriği
+     - Her şablonun ihtiyaç duyduğu `InvoiceTemplateField` satırları (genişletilmiş alan kataloğu)
+     - Şablonlar: Klasik (sol üst logo, gri başlık), Keskin (teal bar), Temiz (minimal sade),
+       Kompakt (sağ üst logo, dar), Proforma (siyah/beyaz monospace), Global (mavi dalga, two-column)
+
+#### Backend — Models & Schemas
+
+3. **`backend/app/models/template.py`**
+   - İşlem: Değiştirme
+   - Açıklama: `InvoiceTemplate.is_active: bool` kolonu eklendi (default True).
+
+4. **`backend/app/schemas/template.py`**
+   - İşlem: Değiştirme
+   - Açıklama: `TemplateSummaryResponse` ve `TemplateDetailResponse` şemalarına `is_active` alanı eklendi.
+     Response'lerde template'in aktif/pasif durumu döndürülüyor.
+
+#### Backend — API
+
+5. **`backend/app/api/v1/templates.py`**
+   - İşlem: Değiştirme
+   - Açıklama: `GET /templates` endpoint'i, sistem şablonları (`user_id` null olanlar) için
+     `is_active == true` filtresi uyguluyor. Kullanıcının kendi şablonları filtreden etkilenmiyor.
+     `GET /templates/{id}` filtre uygulamıyor (var olan faturanın pasif şablon detaylarına erişmesi gerekebilir).
+
+#### Frontend — Types
+
+6. **`frontend/src/types/template.ts`**
+   - İşlem: Değiştirme
+   - Açıklama: `TemplateSummary` arayüzüne `is_active: boolean` alanı eklendi.
+
+#### Frontend — Components & Pages
+
+7. **`frontend/src/features/invoices/components/InvoiceForm.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Şablon seçim listesine `.filter((tpl) => tpl.is_active !== false)` filtresi eklendi.
+     Yeni fatura oluştururken sadece aktif şablonlar gösteriliyor.
+
+8. **`frontend/src/pages/dashboard/TemplatesPage.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Sistem şablonları listesine aynı `is_active` filtresi eklendi.
+     Pasif şablonlar "Sistem Şablonları" bölümünde gösterilmiyor.
+
+#### Frontend — Field Catalog & i18n
+
+9. **`frontend/src/features/invoice-editor/constants/fieldCatalog.ts`**
+   - İşlem: Değiştirme
+   - Açıklama: `BUILTIN_FIELD_CATALOG` 5 yeni alan tipiyle genişletildi:
+     - `company_address` (TEXT, 80x8mm)
+     - `company_phone` (TEXT, 50x6mm)
+     - `company_email` (TEXT, 60x6mm)
+     - `company_tax_office` (TEXT, 60x6mm)
+     - `company_tax_number` (TEXT, 40x6mm)
+     Yeni şablonlar bu alanları kullanıyor; drag-drop editörde ve invoice form'unda seçilebiliyor.
+
+10. **`frontend/src/i18n/locales/tr.json`**
+    - İşlem: Değiştirme
+    - Açıklama: 5 yeni alan etiketi Türkçeye çevrildi:
+      - `editor.field.company_address`: "Şirket Adresi"
+      - `editor.field.company_phone`: "Şirket Telefonu"
+      - `editor.field.company_email`: "Şirket E-postası"
+      - `editor.field.company_tax_office`: "Vergi Dairesi"
+      - `editor.field.company_tax_number`: "Vergi Numarası"
+
+11. **`frontend/src/i18n/locales/en.json`**
+    - İşlem: Değiştirme
+    - Açıklama: 5 yeni alan etiketi İngilizceye çevrildi (company_address, company_phone, vb.).
+
+### Doğrulama
+1. `alembic upgrade head` çalıştırıp DB'de:
+   - Eski 3 şablon'un `is_active = false` olduğu
+   - Yeni 6 şablon'un `is_active = true` olduğu
+   - Her şablonun `engine = 'xslt'` ve `xslt_content` dolu olduğu doğrulandı
+2. Yeni fatura formunda (`/dashboard/invoices/new`) şablon seçim listesinde sadece 6 yeni şablonun göründüğü doğrulandı
+3. Şablonlar sayfasında (`/dashboard/templates`) aynı şekilde pasif şablonların gizlendiği doğrulandı
+4. Frontend TypeScript derleme (`tsc`) başarılı, hata yok
+5. i18n anahtarları test edildi (Türkçe/İngilizce anahtarlar mevcut)
+
+### Özet
+Eski 3 sistem şablonu silmek yerine pasif/deprecated haline getirildi (`is_active=false`), böylece
+var olan faturalar etkilenmedi. Yerine 6 yeni, XSLT tabanlı şablon eklendi — her biri referans
+görsellere sadık, tam özel HTML/CSS üreten tasarımlı. Alan kataloğu 5 yeni şirket bilgisi alanıyla
+genişletildi (adres, telefon, e-posta, vergi dairesi, vergi numarası), frontend ve i18n'de tam
+entegre. Mimarı değiştirilmedi, sadece veri/UI katmanında ekleme/filtreleme yapıldı.
+
+---
+
 ## Faz 5 Sonrası — Müşteri Detayları Sayfası (2026-08-05)
 
 ### İşlem Türü
