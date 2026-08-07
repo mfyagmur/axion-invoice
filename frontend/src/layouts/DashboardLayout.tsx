@@ -1,7 +1,7 @@
 import { Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useIdleLogout } from '@/features/auth/hooks/useIdleLogout'
 import { Sidebar } from '@/layouts/Sidebar'
 import { useAuthStore } from '@/store/authStore'
@@ -10,6 +10,13 @@ export function DashboardLayout() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
+  const location = useLocation()
+
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [location.pathname])
+
   useIdleLogout()
 
   return (
@@ -42,7 +49,7 @@ export function DashboardLayout() {
           <div className="bg-amber-50 px-6 py-2 text-sm text-amber-800">{t('demo.banner')}</div>
         )}
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>
