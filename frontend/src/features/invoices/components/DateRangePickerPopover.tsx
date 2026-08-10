@@ -59,15 +59,18 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
   }
 
   return (
-    <div className="absolute right-0 top-full mt-2 z-50 w-full max-w-4xl rounded-lg border border-slate-200 bg-white shadow-lg">
-      <div className="flex h-96">
+    <div
+      className="absolute right-0 top-full mt-2 z-50 rounded-lg border border-slate-200 bg-white shadow-lg"
+      style={{ width: 'clamp(20rem, 90vw, 56rem)' }}
+    >
+      <div className="flex h-96 overflow-hidden">
         {/* Left Sidebar - Presets */}
-        <div className="w-48 border-r border-slate-200 p-4 flex flex-col gap-1 bg-slate-50 rounded-l-lg">
+        <div className="w-40 sm:w-48 border-r border-slate-200 p-3 sm:p-4 flex flex-col gap-1 bg-slate-50 rounded-l-lg overflow-y-auto">
           {presets.map((preset) => (
             <button
               key={preset.label}
               onClick={() => handlePresetClick(preset)}
-              className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-200 rounded transition-colors"
+              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-slate-700 hover:bg-slate-200 rounded transition-colors whitespace-nowrap"
             >
               {preset.label}
             </button>
@@ -75,36 +78,36 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
         </div>
 
         {/* Right Side - Dual Calendar */}
-        <div className="flex-1 p-4 flex flex-col">
-          <div className="grid grid-cols-2 gap-6 flex-1">
+        <div className="flex-1 p-2 sm:p-4 flex flex-col overflow-x-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 flex-1 min-w-max sm:min-w-0">
             {[currentMonth, nextMonth].map((month) => (
               <div key={month.toISOString()} className="flex flex-col">
                 {/* Month Header */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-2 sm:mb-4 gap-1">
                   {month.getMonth() === currentMonth.getMonth() && (
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
-                      className="p-1 hover:bg-slate-100 rounded transition-colors"
+                      className="p-0.5 sm:p-1 hover:bg-slate-100 rounded transition-colors shrink-0"
                     >
-                      <ChevronLeft size={16} />
+                      <ChevronLeft size={14} className="sm:w-4 sm:h-4" />
                     </button>
                   )}
                   {month.getMonth() === nextMonth.getMonth() && (
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="ml-auto p-1 hover:bg-slate-100 rounded transition-colors"
+                      className="ml-auto p-0.5 sm:p-1 hover:bg-slate-100 rounded transition-colors shrink-0"
                     >
-                      <ChevronRight size={16} />
+                      <ChevronRight size={14} className="sm:w-4 sm:h-4" />
                     </button>
                   )}
                   {month.getMonth() !== currentMonth.getMonth() && (
-                    <div className="w-6" />
+                    <div className="w-4 sm:w-6 shrink-0" />
                   )}
-                  <h3 className="text-sm font-medium text-slate-900 flex-1 text-center">
+                  <h3 className="text-xs sm:text-sm font-medium text-slate-900 flex-1 text-center">
                     {formatMonthYear(month)}
                   </h3>
                   {month.getMonth() !== nextMonth.getMonth() && (
-                    <div className="w-6" />
+                    <div className="w-4 sm:w-6 shrink-0" />
                   )}
                 </div>
 
