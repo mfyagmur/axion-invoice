@@ -4,6 +4,42 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Bireysel/Kurumsal Etiketinin Rozet (Badge) Olarak Yeniden Tasarlanması (2026-08-10)
+
+### Bağlam
+
+Bir önceki değişiklikte (bkz. aşağıdaki "Yeni Müşteri Formuna Bireysel/Kurumsal Ayrımı") `(Bireysel)` etiketi müşteri listesinde ve müşteri detay sayfasında isimle aynı string içine gömülü düz metin olarak gösteriliyordu (`"Ahmet Yılmaz (Bireysel)"`). Talep: bu etiketin yazı boyutunu biraz küçültmek ve gri, yuvarlak köşeli, çerçeveli bir rozet (chip/badge) görünümüne çevirmek — sadece `/dashboard/customers` (liste) ve `/dashboard/customers/:id` (detay) sayfalarında.
+
+Bunu yapabilmek için önceden tek string olarak birleştirilen isim+etiket ikiye ayrıldı: düz metin isim + ayrı stillenebilir bir rozet bileşeni. `InvoiceForm.tsx`'teki fatura oluşturma dropdown'ı `<option>` etiketleri JSX render edemediği için o çağrı yeri değiştirilmedi, orijinal string-döndüren `formatCustomerDisplayName()` fonksiyonu aynen korundu.
+
+### İşlem Türü
+- **Ekleme** (1 yeni bileşen, 1 yeni yardımcı fonksiyon)
+- **Değiştirme** (2 frontend sayfası)
+
+### Değiştirilen Dosyalar
+
+1. **`frontend/src/features/customers/components/CustomerTypeBadge.tsx`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `customer.customer_type === 'bireysel'` ise `rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-600` sınıflarıyla küçük gri bir rozet render eden bileşen; kurumsal müşterilerde `null` döner.
+2. **`frontend/src/features/customers/utils/formatCustomerDisplayName.ts`**
+   - İşlem: Değiştirme
+   - Açıklama: Mevcut `formatCustomerDisplayName()` (string döndüren, `InvoiceForm.tsx` dropdown'ı için) korunarak, sadece temel ismi (`company_name || name`) döndüren yeni `getCustomerBaseName()` fonksiyonu eklendi.
+3. **`frontend/src/pages/dashboard/CustomersPage.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Liste satırındaki isim gösterimi `formatCustomerDisplayName(customer, t)` (tek string) yerine `getCustomerBaseName(customer)` + ayrı `<CustomerTypeBadge customer={customer} />` bileşenine bölündü.
+4. **`frontend/src/pages/dashboard/CustomerDetailPage.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Başlıktaki (`<h2>`) isim gösterimi aynı şekilde `getCustomerBaseName()` + `<CustomerTypeBadge>` ikilisine bölündü.
+
+### Doğrulama
+- ✅ `npm run build` (tsc + vite) — tip hatası olmadan tamamlandı (sadece mevcut, ilgisiz "chunk size > 500 kB" uyarısı).
+- 🔄 Gerçek tarayıcıda görsel teyit bu oturumda tarayıcı otomasyon aracıyla yapılmadı.
+
+### Özet
+`(Bireysel)` etiketi artık isimle aynı düz metin satırında değil, ayrı, küçük yazı boyutlu, gri dolgulu ve yuvarlak köşeli çerçeveli bir rozet olarak gösteriliyor — hem müşteri listesinde hem de müşteri detay sayfası başlığında. Fatura formu dropdown'ı (JSX render edemediği için) değişmedi, orijinal parantezli string biçimini korumaya devam ediyor.
+
+---
+
 ## Yeni Müşteri Formuna Bireysel/Kurumsal Ayrımı (2026-08-10)
 
 ### Bağlam
