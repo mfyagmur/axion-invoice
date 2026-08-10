@@ -53,8 +53,8 @@ describe('InvoiceForm', () => {
 
     fireEvent.change(screen.getByLabelText('Miktar'), { target: { value: '2' } })
     fireEvent.change(screen.getByLabelText('Birim Fiyat'), { target: { value: '100' } })
-    fireEvent.change(screen.getByLabelText('İskonto Oranı (%)'), { target: { value: '10' } })
-    fireEvent.change(screen.getByLabelText('KDV Oranı (%)'), { target: { value: '20' } })
+    fireEvent.change(screen.getByLabelText('İskonto Oranı'), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText('KDV Oranı'), { target: { value: '20' } })
     fireEvent.change(screen.getByLabelText('Diğer Vergiler'), { target: { value: '5' } })
 
     expect(screen.getAllByText('221.00').length).toBeGreaterThan(0)
