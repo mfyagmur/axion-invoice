@@ -10,3 +10,7 @@ export function formatCustomerDisplayName(
     ? `${base} (${t('customers.individualSuffix')})`
     : base
 }
+
+export function getCustomerBaseName(customer: Pick<Customer, 'company_name' | 'name'>): string {
+  return customer.company_name || customer.name
+}

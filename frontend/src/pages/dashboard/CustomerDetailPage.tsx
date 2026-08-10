@@ -11,7 +11,8 @@ import { Input } from '@/components/Input'
 import { Modal } from '@/components/Modal'
 import { Tabs } from '@/components/Tabs'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
-import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
+import { getCustomerBaseName } from '@/features/customers/utils/formatCustomerDisplayName'
+import { CustomerTypeBadge } from '@/features/customers/components/CustomerTypeBadge'
 import { useInvoices } from '@/features/invoices/hooks/useInvoices'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
@@ -135,7 +136,7 @@ export function CustomerDetailPage() {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
   }
 
-  const displayName = formatCustomerDisplayName(customer, t)
+  const baseName = getCustomerBaseName(customer)
 
   return (
     <div className="flex flex-col gap-4">
@@ -164,7 +165,10 @@ export function CustomerDetailPage() {
       </div>
 
       <div className="rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-slate-900">{displayName}</h2>
+        <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-900">
+          {baseName}
+          <CustomerTypeBadge customer={customer} />
+        </h2>
 
         <div className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
           <div className="flex flex-col gap-3">

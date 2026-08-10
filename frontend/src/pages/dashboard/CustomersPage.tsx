@@ -15,7 +15,8 @@ import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useUpdateCustomerStatus } from '@/features/customers/hooks/useUpdateCustomerStatus'
 import { customerSchema, type CustomerFormValues } from '@/features/customers/schemas/customerSchema'
 import { exportCustomersToExcel } from '@/features/customers/utils/exportCustomersToExcel'
-import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
+import { getCustomerBaseName } from '@/features/customers/utils/formatCustomerDisplayName'
+import { CustomerTypeBadge } from '@/features/customers/components/CustomerTypeBadge'
 import type { Customer } from '@/types/customer'
 
 const EMPTY_VALUES: CustomerFormValues = {
@@ -294,7 +295,10 @@ export function CustomersPage() {
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-medium text-slate-900">{formatCustomerDisplayName(customer, t)}</span>
+                  <span className="flex items-center gap-2 font-medium text-slate-900">
+                    {getCustomerBaseName(customer)}
+                    <CustomerTypeBadge customer={customer} />
+                  </span>
                   {customer.email && <span className="text-sm text-slate-500">{customer.email}</span>}
                 </div>
               </div>
