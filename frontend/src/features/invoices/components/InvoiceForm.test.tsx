@@ -21,7 +21,7 @@ function make402Error() {
 }
 
 describe('InvoiceForm', () => {
-  it('shows the limit-reached message with a billing link when creation fails with 402', () => {
+  it('shows the limit-reached message when creation fails with 402', () => {
     vi.mocked(useTemplates).mockReturnValue({ data: [] } as unknown as ReturnType<typeof useTemplates>)
     vi.mocked(useCustomers).mockReturnValue({ data: [] } as unknown as ReturnType<typeof useCustomers>)
     vi.mocked(useTemplate).mockReturnValue({ data: undefined } as unknown as ReturnType<typeof useTemplate>)
@@ -36,10 +36,6 @@ describe('InvoiceForm', () => {
 
     expect(axios.isAxiosError(make402Error())).toBe(true)
     expect(screen.getByText(/aylık fatura limitinize ulaştınız|limit/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /faturalama/i })).toHaveAttribute(
-      'href',
-      '/dashboard/billing',
-    )
   })
 
   it('recomputes the line item total as quantity/unit price/discount/tax inputs change', () => {

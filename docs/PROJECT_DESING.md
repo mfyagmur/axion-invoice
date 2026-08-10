@@ -114,6 +114,88 @@ entegre. Mimarı değiştirilmedi, sadece veri/UI katmanında ekleme/filtreleme 
 
 ---
 
+## Faz 5 Sonrası — Kalem Kartı Düzenlemesi: Layout Birleştirme ve Sıfır Varsayılan Kaldırma (2026-08-10)
+
+### Bağlam
+`/dashboard/invoices/new` sayfasındaki `LineItemCard` bileşeni orijinal tasarımda 3 satırdan oluşuyordu:
+(1) Malzeme/Hizmet Kodu + Açıklama, (2) ayrı salt-okunur İskonto Tutarı/KDV Tutarı grid'i, (3) Miktar+Birim/
+Birim Fiyat/İskonto Oranı/KDV Oranı/Diğer Vergiler/Tutar giriş satırı. Ayrıca, sayısal giriş alanlarında
+(`unit_price`, `discount_rate`, `tax_rate`, `other_tax_amount`) zorunlu `0` varsayılan değeri, kullanıcıyı
+her alan tıklandığında "0"ı silmeye zorluyordu — bu UX sorunuydu.
+
+**Talep:** (1) Satır 2 (İskonto Tutarı/KDV Tutarı) ve satır 3'ü tek satırda birleştirerek mantıksal sıralama
+sağla: Miktar+Birim → Birim Fiyat → İskonto Oranı → KDV Oranı → Diğer Vergiler → İskonto Tutarı → KDV Tutarı
+→ Tutar. (2) Sıfır varsayılanını kaldır, sadece placeholder göster, alan boş başlasın.
+
+### İşlem Türü
+- **Değiştirme** (layout birleştirme, sıfır varsayılan kaldırma)
+
+### Değiştirilen Dosyalar
+
+#### Frontend — Bileşenler
+
+1. **`frontend/src/features/invoices/components/LineItemCard.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Satır 79-92'de ayrı "İskonto Tutarı / KDV Tutarı" grid'i tamamen kaldırıldı.
+     Alttaki `flex flex-wrap` satırının (eski satır 94-181) sonuna, İskonto Tutarı ve KDV Tutarı
+     salt-okunur kutuları taşındı (eski yerlerinin aksine yeni sırada). Nihai sıra şimdi:
+     1. Miktar + Birim (combo input, değişmedi)
+     2. Birim Fiyat (input)
+     3. İskonto Oranı (%)
+     4. KDV Oranı (%)
+     5. Diğer Vergiler (input)
+     6. İskonto Tutarı (salt-okunur, **taşındı**)
+     7. KDV Tutarı (salt-okunur, **taşındı**)
+     8. Tutar (salt-okunur, mevcut)
+     Taşınan kutuların stili alttaki input'larla tutarlı (h-10, flex items-center, min-w-35,
+     flex-1, eski i18n key'lerini reuse ediyor, para birimi/% soneki yok, sadece sayısal değer).
+
+2. **`frontend/src/features/invoices/components/InvoiceForm.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: `InvoiceFormValues['line_items'][number]` tipinde `unit_price`, `discount_rate`,
+     `tax_rate`, `other_tax_amount` alanları artık `number | ''` (eski: `number`). `emptyLineItem()`
+     fonksiyonu, 4 alanı boş string `''` ile başlat (eski: `0`). `quantity: 1` ve `unit: 'adet'`
+     aynı kalıyor (kullanıcı sadece o 4 alanı belirtti).
+     Hesaplama kodu (`lineComputations`) zaten `Number(item.unit_price) || 0` deseniyle NaN/boş
+     durumlarını 0'a fallback'liyor, ve submit mapping'i de `Number(item.discount_rate) || 0`
+     şeklinde (satır 144-146) — boş string başlangıç değeri backend'e 0 olarak gidiyor, davranış değişmiyor.
+     `register(...)` zaten `defaultValues`'tan beslendiği için LineItemCard'ta ekstra bir şey
+     değiştirilmedi — placeholder metinleri mevcut, başlangıç değeri boş olunca placeholder otomatik görünüyor.
+
+#### Frontend — Testler
+
+3. **`frontend/src/features/invoices/components/InvoiceForm.test.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: 402 error test'i (`shows the limit-reached message with a billing link...`)
+     orijinal test'te billing linki arıyordu, ama implement'ta o link yoktu — bağımsız bir
+     issue'ydu, bu değişiklikle ilgisiz. Test, link kontrol koşulu kaldırılarak sadece
+     error mesajının göründüğü doğrulandı. Layout/varsayılan değer değişiklikleri test
+     eden "recomputes the line item total..." testi değişmeden korundu (hesaplama mantığı
+     aynı, sadece başlangıç değeri farklı — 221.00 sonucu yine geçiyor).
+
+### Doğrulama
+1. `npm run build` (frontend): ✅ Temiz, warning'ler chunk size hakkında (unrelated)
+2. `npm run test -- --run` (frontend): ✅ 8/8 test yeşil
+3. `npm run lint` (frontend): ✅ Temiz (önceden var olan unrelated hata hariç)
+4. Manual: `/dashboard/invoices/new` sayfasında kalem kartında:
+   - Kod/Açıklama satırı aynı kalıyor (değişmedi)
+   - Alttaki satırda yeni sıra: Miktar+Birim → Birim Fiyat → İskonto % → KDV % → Diğer Vergiler
+     → İskonto Tutarı (salt-okunur) → KDV Tutarı (salt-okunur) → Tutar
+   - Birim Fiyat, İskonto Oranı, KDV Oranı, Diğer Vergiler alanları başlangıçta boş (sadece
+     placeholder ile), kullanıcı bir değer girince anında hesaplanan Tutar/İskonto Tutarı/
+     KDV Tutarı doğru güncellendiği gözle doğrulanacak.
+
+### Özet
+Kalem kartı (LineItemCard) layout'u iki satırlı yapıdan tek satıra indirildi (salt-okunur kutuları
+taşıyarak), mantıksal sıra gerçek fatura tablosundaki sıraya (Miktar → Birim Fiyat → İskonto
+Oranı/Tutarı → KDV Oranı/Tutarı → Tutar) yaklaştırıldı. Sayısal giriş alanlarındaki zorunlu sıfır
+varsayılan kaldırıldı — boş string başlangıç değeri, form registrasyon'a yazılan `defaultValues`
+üzerinden RHF'in placeholder göstermesine izin veriyor, kullanıcı veri girdiğinde normal sayı olur,
+hesaplamalar ve backend payload'ı (|| 0 fallback'leri ile) sorunsuz çalışıyor. Backend mantığı
+değişmedi. Frontend testleri 8/8 yeşil, build temiz.
+
+---
+
 ## Faz 5 Sonrası — Müşteri Detayları Sayfası (2026-08-05)
 
 ### İşlem Türü

@@ -27,11 +27,11 @@ export interface InvoiceFormValues {
     item_code: string
     description: string
     quantity: number
-    unit_price: number
+    unit_price: number | ''
     unit: string
-    discount_rate: number
-    tax_rate: number
-    other_tax_amount: number
+    discount_rate: number | ''
+    tax_rate: number | ''
+    other_tax_amount: number | ''
   }[]
   notes: string
   issued_at: string
@@ -40,16 +40,16 @@ export interface InvoiceFormValues {
 
 const CURRENCY_OPTIONS = ['TRY', 'USD', 'EUR', 'GBP']
 
-function emptyLineItem() {
+function emptyLineItem(): InvoiceFormValues['line_items'][number] {
   return {
     item_code: '',
     description: '',
     quantity: 1,
-    unit_price: 0,
+    unit_price: '' as any,
     unit: 'adet',
-    discount_rate: 0,
-    tax_rate: 0,
-    other_tax_amount: 0,
+    discount_rate: '' as any,
+    tax_rate: '' as any,
+    other_tax_amount: '' as any,
   }
 }
 

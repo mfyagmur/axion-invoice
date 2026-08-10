@@ -76,21 +76,6 @@ export function LineItemCard({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-medium text-slate-500">{t('invoices.form.discountAmount')}</label>
-          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">
-            {computed.discountAmount.toFixed(2)}
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-slate-500">{t('invoices.form.taxAmount')}</label>
-          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">
-            {computed.taxAmount.toFixed(2)}
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden">
           <label className="sr-only">{t('invoices.form.quantity')}</label>
@@ -169,6 +154,20 @@ export function LineItemCard({
             {...register(`line_items.${index}.other_tax_amount` as const, { valueAsNumber: true })}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
+        </div>
+
+        <div className="relative flex-1 min-w-35">
+          <label className="sr-only">{t('invoices.form.discountAmount')}</label>
+          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 h-10 flex items-center">
+            {computed.discountAmount.toFixed(2)}
+          </div>
+        </div>
+
+        <div className="relative flex-1 min-w-35">
+          <label className="sr-only">{t('invoices.form.taxAmount')}</label>
+          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 h-10 flex items-center">
+            {computed.taxAmount.toFixed(2)}
+          </div>
         </div>
 
         <div className="relative flex-1 min-w-35">
