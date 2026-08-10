@@ -182,6 +182,8 @@
       "firstName": "First Name",
       "lastName": "Last Name",
       "companyName": "Company Name",
+      "customerTypeBireysel": "Individual",
+      "customerTypeKurumsal": "Corporate",
       "email": "Emaıl",
       "phone": "Phone",
       "address": "Address",
@@ -206,9 +208,11 @@
         "phoneRequired": "Phone is required.",
         "addressRequired": "Address is required.",
         "taxOfficeRequired": "Tax office is required.",
-        "taxNumberRequired": "Tax number is required."
+        "taxNumberRequired": "Tax number is required.",
+        "companyNameRequired": "Company name is required for corporate customers."
       }
     },
+    "individualSuffix": "Individual",
     "list": {
       "empty": "You don't have any customers yet.",
       "edit": "Edit",

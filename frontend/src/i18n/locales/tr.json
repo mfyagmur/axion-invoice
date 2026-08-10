@@ -182,6 +182,8 @@
       "firstName": "Ad",
       "lastName": "Soyad",
       "companyName": "Şirket Adı",
+      "customerTypeBireysel": "Bireysel",
+      "customerTypeKurumsal": "Kurumsal",
       "email": "E-posta",
       "phone": "Telefon",
       "address": "Adres",
@@ -206,9 +208,11 @@
         "phoneRequired": "Telefon zorunludur.",
         "addressRequired": "Adres zorunludur.",
         "taxOfficeRequired": "Vergi dairesi zorunludur.",
-        "taxNumberRequired": "Vergi numarası zorunludur."
+        "taxNumberRequired": "Vergi numarası zorunludur.",
+        "companyNameRequired": "Kurumsal müşteriler için şirket adı zorunludur."
       }
     },
+    "individualSuffix": "Bireysel",
     "list": {
       "empty": "Henüz müşteriniz yok.",
       "edit": "Düzenle",

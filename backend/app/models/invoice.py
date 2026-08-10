@@ -49,6 +49,7 @@ class InvoiceCustomer(Base):
     first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    customer_type: Mapped[str] = mapped_column(String(20), nullable=False, default="kurumsal", server_default="kurumsal")
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     city: Mapped[str | None] = mapped_column(String(100), nullable=True)

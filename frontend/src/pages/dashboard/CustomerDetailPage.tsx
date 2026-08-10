@@ -11,6 +11,7 @@ import { Input } from '@/components/Input'
 import { Modal } from '@/components/Modal'
 import { Tabs } from '@/components/Tabs'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
+import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { useInvoices } from '@/features/invoices/hooks/useInvoices'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
@@ -107,6 +108,7 @@ export function CustomerDetailPage() {
       first_name: customer.first_name ?? '',
       last_name: customer.last_name ?? '',
       company_name: customer.company_name ?? undefined,
+      customer_type: customer.customer_type,
       email: customer.email ?? '',
       phone: customer.phone ?? '',
       address: customer.address ?? '',
@@ -133,7 +135,7 @@ export function CustomerDetailPage() {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
   }
 
-  const displayName = customer.company_name || customer.name
+  const displayName = formatCustomerDisplayName(customer, t)
 
   return (
     <div className="flex flex-col gap-4">

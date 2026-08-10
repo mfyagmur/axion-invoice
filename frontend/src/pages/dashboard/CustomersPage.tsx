@@ -15,12 +15,14 @@ import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useUpdateCustomerStatus } from '@/features/customers/hooks/useUpdateCustomerStatus'
 import { customerSchema, type CustomerFormValues } from '@/features/customers/schemas/customerSchema'
 import { exportCustomersToExcel } from '@/features/customers/utils/exportCustomersToExcel'
+import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import type { Customer } from '@/types/customer'
 
 const EMPTY_VALUES: CustomerFormValues = {
   first_name: '',
   last_name: '',
   company_name: '',
+  customer_type: 'kurumsal',
   email: '',
   phone: '',
   address: '',
@@ -49,11 +51,14 @@ export function CustomersPage() {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: EMPTY_VALUES,
   })
+
+  const customerType = watch('customer_type')
 
   const startEdit = (customer: Customer) => {
     setEditingId(customer.id)
@@ -61,6 +66,7 @@ export function CustomersPage() {
       first_name: customer.first_name ?? '',
       last_name: customer.last_name ?? '',
       company_name: customer.company_name ?? '',
+      customer_type: customer.customer_type ?? 'kurumsal',
       email: customer.email ?? '',
       phone: customer.phone ?? '',
       address: customer.address ?? '',
@@ -85,6 +91,9 @@ export function CustomersPage() {
   const onSubmit = handleSubmit((values) => {
     const payload = {
       ...values,
+      company_name: values.customer_type === 'bireysel'
+        ? `${values.first_name} ${values.last_name}`.trim()
+        : values.company_name,
       fax: values.fax || undefined,
       mersis_no: values.mersis_no || undefined,
     }
@@ -150,11 +159,30 @@ export function CustomersPage() {
             />
           </div>
 
+          {/* Bireysel / Kurumsal */}
+          <div className="flex gap-2">
+            <label className="flex-1">
+              <input type="radio" value="bireysel" className="peer sr-only" {...register('customer_type')} />
+              <span className="block cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-center text-sm peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white">
+                {t('customers.form.customerTypeBireysel')}
+              </span>
+            </label>
+            <label className="flex-1">
+              <input type="radio" value="kurumsal" className="peer sr-only" {...register('customer_type')} />
+              <span className="block cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-center text-sm peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white">
+                {t('customers.form.customerTypeKurumsal')}
+              </span>
+            </label>
+          </div>
+
           {/* Şirket Adı */}
-          <Input
-            label={t('customers.form.companyName')}
-            {...register('company_name')}
-          />
+          {customerType === 'kurumsal' && (
+            <Input
+              label={t('customers.form.companyName')}
+              error={errors.company_name && t(errors.company_name.message ?? '')}
+              {...register('company_name')}
+            />
+          )}
 
           {/* E-posta ve Telefon */}
           <div className="grid grid-cols-2 gap-3">
@@ -266,7 +294,7 @@ export function CustomersPage() {
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-medium text-slate-900">{customer.name}</span>
+                  <span className="font-medium text-slate-900">{formatCustomerDisplayName(customer, t)}</span>
                   {customer.email && <span className="text-sm text-slate-500">{customer.email}</span>}
                 </div>
               </div>

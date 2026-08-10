@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -7,6 +8,7 @@ class CustomerCreatePayload(BaseModel):
     first_name: str = Field(min_length=1, max_length=255)
     last_name: str = Field(min_length=1, max_length=255)
     company_name: str | None = Field(default=None, max_length=255)
+    customer_type: Literal["bireysel", "kurumsal"] = "kurumsal"
     email: EmailStr
     phone: str = Field(min_length=1, max_length=50)
     address: str = Field(min_length=1, max_length=1000)
@@ -40,6 +42,7 @@ class CustomerResponse(BaseModel):
     first_name: str | None
     last_name: str | None
     company_name: str | None
+    customer_type: str
     email: str | None
     phone: str | None
     address: str | None

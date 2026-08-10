@@ -9,6 +9,7 @@ import { Textarea } from '@/components/Textarea'
 import { twMerge } from 'tailwind-merge'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
+import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
 import { LineItemCard } from '@/features/invoices/components/LineItemCard'
@@ -187,7 +188,7 @@ export function InvoiceForm() {
                     onChange={field.onChange}
                     options={customers?.filter((customer) => customer.is_active).map((customer) => ({
                       value: customer.id,
-                      label: customer.company_name || customer.name,
+                      label: formatCustomerDisplayName(customer, t),
                     })) || []}
                     placeholder={t('invoices.form.selectCustomer')}
                     error={errors.customer_id ? t('invoices.form.errors.customerRequired') : undefined}

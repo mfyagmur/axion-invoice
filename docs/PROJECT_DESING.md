@@ -4,6 +4,78 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Yeni Müşteri Formuna Bireysel/Kurumsal Ayrımı (2026-08-10)
+
+### Bağlam
+
+`/dashboard/customers` sayfasındaki "Yeni Müşteri" formunda "Ad Soyad" alanlarının altında koşulsuz, tamamen opsiyonel bir "Şirket Adı" input'u vardı — bireysel/kurumsal ayrımı yoktu. Talep: Ad Soyad altına **Bireysel / Kurumsal** seçimi yapan bir radio grup eklemek. Bireysel seçildiğinde Şirket Adı alanı gizlenir ve arka planda otomatik olarak müşterinin adı-soyadı ile doldurulur; Kurumsal seçildiğinde alan açılır ve zorunlu olur. Uygulama içi ekranlarda (müşteri listesi, müşteri detayı, fatura oluşturma dropdown'ı) bireysel müşterilerin adının yanına `(Bireysel)` / `(Individual)` etiketi eklenir.
+
+Kapsam kararları (kullanıcı ile netleştirildi):
+- **`(Bireysel)` etiketi sadece uygulama içi ekranlarda gösterilir** — veritabanındaki `company_name` her zaman temiz "Ad Soyad" değerini taşır, fatura PDF'i ve Excel export'u etkilenmez (resmi belgeler etiketsiz kalır).
+- **Geriye dönük veri:** Yeni `customer_type` kolonu migration içinde otomatik dolduruldu — `company_name` doluysa `kurumsal`, boşsa `bireysel`.
+
+Uygulanan desen, signup formundaki mevcut `account_type: 'bireysel'|'kurumsal'` radio grubunun (`SignupForm.tsx`/`signupSchema.ts`) birebir taklididir — yeni bir `RadioGroup` bileşeni oluşturulmadı, mevcut `peer sr-only` + `peer-checked:` Tailwind deseni tekrar kullanıldı.
+
+### İşlem Türü
+- **Ekleme** (1 migration, 1 yeni frontend yardımcı fonksiyonu, 6 yeni i18n key'i — TR+EN)
+- **Değiştirme** (2 backend dosyası, 5 frontend dosyası)
+
+### Değiştirilen Dosyalar
+
+#### Backend
+1. **`backend/alembic/versions/p1q2r3s4t5u6_add_customer_type.py`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `invoice_customers` tablosuna `customer_type VARCHAR(20) NOT NULL DEFAULT 'kurumsal'` kolonu eklendi. Aynı migration içinde `UPDATE ... WHERE company_name IS NULL OR company_name = ''` ile mevcut kayıtlar `'bireysel'` olarak backfill edildi. `docker compose exec backend alembic upgrade head` ile uygulanıp DB'den doğrulandı (3 mevcut müşteriden `company_name`'i boş olan tek kayıt doğru şekilde `bireysel` etiketlendi).
+2. **`backend/app/models/invoice.py`**
+   - İşlem: Değiştirme
+   - Açıklama: `InvoiceCustomer` modeline `customer_type: Mapped[str]` alanı eklendi (`default="kurumsal"`, `server_default="kurumsal"`).
+3. **`backend/app/schemas/customer.py`**
+   - İşlem: Değiştirme
+   - Açıklama: `CustomerCreatePayload`e `customer_type: Literal["bireysel", "kurumsal"] = "kurumsal"`, `CustomerResponse`e `customer_type: str` eklendi. `CustomerUpdatePayload` zaten `CustomerCreatePayload`'ı miras aldığından otomatik kapsandı. Backend'de "bireysel ise company_name=name" türetmesi **eklenmedi** — bu mantık bilinçli olarak sadece frontend'de tutuldu (tek doğruluk kaynağı).
+
+#### Frontend
+4. **`frontend/src/types/customer.ts`**
+   - İşlem: Değiştirme
+   - Açıklama: `Customer` ve `CustomerCreatePayload` tiplerine `customer_type: 'bireysel' | 'kurumsal'` eklendi.
+5. **`frontend/src/features/customers/schemas/customerSchema.ts`**
+   - İşlem: Değiştirme
+   - Açıklama: `customer_type: z.enum(['bireysel', 'kurumsal'])` alanı ve `.refine()` ile "kurumsal ise company_name zorunlu" kuralı eklendi (`signupSchema.ts` ile aynı desen).
+6. **`frontend/src/pages/dashboard/CustomersPage.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Ad Soyad grid'inin altına Bireysel/Kurumsal radio grubu eklendi (`SignupForm.tsx`'teki `peer sr-only` deseni). Şirket Adı input'u `customerType === 'kurumsal'` koşuluna bağlandı. `onSubmit`'te `customer_type === 'bireysel'` olduğunda `company_name`, `first_name + last_name` ile otomatik dolduruluyor. Müşteri listesindeki satır etiketi `customer.name` yerine `formatCustomerDisplayName()` kullanacak şekilde değiştirildi (önceden `company_name`'i hiç göstermiyordu — tutarlılık için düzeltildi).
+7. **`frontend/src/features/customers/utils/formatCustomerDisplayName.ts`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `(customer, t) => company_name || name`, `customer_type === 'bireysel'` ise sonuna ` (Bireysel)`/` (Individual)` ekleyen küçük yardımcı fonksiyon. Müşteri listesi, müşteri detay başlığı ve fatura formu müşteri dropdown'ı tarafından ortak kullanılıyor.
+8. **`frontend/src/pages/dashboard/CustomerDetailPage.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: `displayName` hesaplaması `formatCustomerDisplayName()`'a taşındı. `saveCustomerField`'daki inline-edit payload'ına (satır ~110) `customer_type: customer.customer_type` eklendi (tip hatasını gidermek ve alanın PUT'ta kaybolmamasını sağlamak için — daha önce eksikti, artık her tam-payload PUT isteğinde korunuyor).
+9. **`frontend/src/features/invoices/components/InvoiceForm.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Müşteri seçim dropdown'ının `label`'ı `customer.company_name || customer.name` yerine `formatCustomerDisplayName(customer, t)` kullanıyor.
+10. **`frontend/src/i18n/locales/tr.json`** ve **`en.json`**
+    - İşlem: Değiştirme
+    - Açıklama: `customers.form.customerTypeBireysel/Kurumsal`, `customers.form.errors.companyNameRequired`, `customers.individualSuffix` key'leri her iki dilde eklendi.
+
+`frontend/src/features/customers/utils/exportCustomersToExcel.ts` ve `frontend/src/features/invoices/utils/mapInvoiceToRow.ts`'e **dokunulmadı** — bilinçli kapsam kararı, aşağıya bakınız.
+
+### Doğrulama
+- ✅ `docker compose exec backend alembic upgrade head` — migration hatasız çalıştı.
+- ✅ Backfill DB'den doğrulandı: `company_name` boş olan tek mevcut kayıt `customer_type='bireysel'`, diğer ikisi `'kurumsal'`.
+- ✅ `docker compose exec backend pytest -q` — 19/19 test geçti (regresyon yok).
+- ✅ `GET /openapi.json` üzerinden `customer_type` alanının `CustomerCreatePayload`/`CustomerUpdatePayload`/`CustomerResponse` şemalarında göründüğü doğrulandı.
+- ✅ `npm run build` (tsc + vite) — tip hatası olmadan tamamlandı.
+- 🔄 Gerçek tarayıcıda uçtan uca manuel akış (form açma, radio seçimi, kaydetme, listede/detayda/fatura dropdown'ında etiketi görme, Excel export'ta etiketin **olmadığını** doğrulama) bu oturumda tarayıcı otomasyon aracıyla yapılmadı — kod seviyesinde build/test/schema doğrulaması tamamlandı, görsel teyit kullanıcıya kalıyor.
+
+### Özet
+Müşteri kaydı artık Bireysel/Kurumsal ayrımı yapıyor: Bireysel müşterilerde şirket adı alanı gizlenip otomatik ad-soyad ile dolduruluyor, Kurumsal müşterilerde zorunlu hale geliyor. Ayrım DB'de yeni bir `customer_type` kolonuyla saklanıyor ve uygulama içi tüm müşteri-adı gösterim noktalarında (liste, detay, fatura dropdown'ı) ortak bir `formatCustomerDisplayName()` yardımcı fonksiyonuyla `(Bireysel)`/`(Individual)` etiketi ekleniyor — ancak bu etiket bilinçli olarak PDF/Excel export'una sızdırılmıyor.
+
+### Bilinen Kısıtlamalar
+1. `(Bireysel)` etiketi sadece uygulama içi ekranlarda görünür; fatura PDF'inde ve Excel export'unda görünmez (kullanıcı kararıyla bilinçli kapsam dışı bırakıldı — resmi belgelerde parantezli not istenmiyordu).
+2. Backend, "bireysel ise `company_name` = ad-soyad" kuralını zorlamıyor — bu türetme sadece frontend `onSubmit`'te yapılıyor. Doğrudan API'ye (frontend dışından) `customer_type: 'bireysel'` ve boş/farklı bir `company_name` gönderilirse backend bunu olduğu gibi kabul eder.
+3. Gerçek tarayıcıda görsel/etkileşim teyidi bu oturumda yapılamadı (tarayıcı otomasyon aracı yoktu) — sadece build/test/API şema seviyesinde doğrulandı.
+
+---
+
 ## Dashboard Invoices Sayfası — Sekmeli Navigasyon, Araç Çubuğu ve Veri Tablosu Redesign (2026-08-10)
 
 ### Bağlam

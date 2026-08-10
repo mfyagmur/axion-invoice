@@ -12,6 +12,7 @@ export interface Customer {
   first_name: string | null
   last_name: string | null
   company_name: string | null
+  customer_type: 'bireysel' | 'kurumsal'
   email: string | null
   phone: string | null
   address: string | null
@@ -31,6 +32,7 @@ export interface CustomerCreatePayload {
   first_name: string
   last_name: string
   company_name?: string
+  customer_type: 'bireysel' | 'kurumsal'
   email: string
   phone: string
   address: string
