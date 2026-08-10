@@ -4,7 +4,8 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
   {
     id: 'mock-1',
     invoiceNumber: '#78143759',
-    customerName: 'Rainsoft',
+    customerName: 'Rainsoft Contact',
+    customerCompanyName: 'Rainsoft',
     customerEmail: 'billing@rainsoft.com',
     amount: '1,200.00',
     currency: 'USD',
@@ -15,7 +16,8 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
   {
     id: 'mock-2',
     invoiceNumber: '#78143760',
-    customerName: 'Acme Corp',
+    customerName: 'John Smith',
+    customerCompanyName: 'Acme Corp',
     customerEmail: 'ap@acmecorp.com',
     amount: '3,450.00',
     currency: 'EUR',
@@ -26,7 +28,8 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
   {
     id: 'mock-3',
     invoiceNumber: '#78143761',
-    customerName: 'TechStart Ltd',
+    customerName: 'Alice Johnson',
+    customerCompanyName: 'TechStart Ltd',
     customerEmail: 'finance@techstart.com',
     amount: '5,000.00',
     currency: 'GBP',

@@ -4,6 +4,7 @@ export interface InvoiceRow {
   id: string
   invoiceNumber: string
   customerName: string
+  customerCompanyName: string
   customerEmail: string | null
   amount: string
   currency: string

@@ -1,5 +1,5 @@
 import { ExternalLink, FileText } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 import { InvoiceStatusBadge } from './InvoiceStatusBadge'
 import { InvoiceRowActions } from './InvoiceRowActions'
@@ -9,6 +9,7 @@ interface InvoiceTableRowProps {
 }
 
 export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
+  const navigate = useNavigate()
   const formattedDate = new Date(row.createdAt).toLocaleDateString('tr-TR', {
     day: 'numeric',
     month: 'short',
@@ -16,21 +17,21 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
   })
 
   return (
-    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+    <tr
+      onClick={() => navigate(`/dashboard/invoices/${row.id}`)}
+      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer transition-colors"
+    >
       <td className="px-4 py-3 align-top">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-blue-500">
             <FileText size={16} />
           </span>
           <div className="flex flex-col">
-            <Link
-              to={`/dashboard/invoices/${row.id}`}
-              className="flex items-center gap-1 font-medium text-slate-900 hover:underline"
-            >
+            <div className="flex items-center gap-1 font-medium text-slate-900">
               {row.invoiceNumber}
-              <ExternalLink size={12} className="text-slate-400" />
-            </Link>
-            <span className="text-xs text-slate-500">{row.customerName}</span>
+              <ExternalLink size={14} className="text-blue-600" />
+            </div>
+            <span className="text-xs text-slate-500">{row.customerCompanyName} - {row.customerName}</span>
           </div>
         </div>
       </td>
