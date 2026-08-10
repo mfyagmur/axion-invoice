@@ -240,6 +240,30 @@
     }
   },
   "invoices": {
+    "tabs": {
+      "all": "Tümü",
+      "scheduled": "Planlanan Faturalar"
+    },
+    "scheduled": {
+      "empty": "Planlanan fatura özelliği yakında kullanıma sunulacak."
+    },
+    "toolbar": {
+      "searchPlaceholder": "Fatura no veya müşteri ara",
+      "statusAll": "Tümü",
+      "dateFrom": "Başlangıç",
+      "dateTo": "Bitiş"
+    },
+    "table": {
+      "invoiceNo": "Fatura No",
+      "amount": "Tutar",
+      "createdAt": "Oluşturulma tarihi",
+      "status": "Durum"
+    },
+    "actions": {
+      "view": "Görüntüle",
+      "download": "İndir",
+      "delete": "Sil"
+    },
     "list": {
       "newInvoice": "Yeni Fatura",
       "empty": "Henüz faturanız yok.",

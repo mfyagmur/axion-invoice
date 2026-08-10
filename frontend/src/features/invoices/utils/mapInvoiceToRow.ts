@@ -1,0 +1,19 @@
+import type { InvoiceSummary } from '@/types/invoice'
+import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
+
+export function mapInvoiceToRow(invoice: InvoiceSummary): InvoiceRow {
+  return {
+    id: invoice.id,
+    invoiceNumber: invoice.invoice_number,
+    customerName: invoice.customer.name,
+    customerEmail: invoice.customer.email ?? null,
+    amount: Number(invoice.grand_total).toLocaleString('tr-TR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    currency: invoice.currency,
+    secondaryAmount: undefined,
+    createdAt: invoice.created_at,
+    status: invoice.status,
+  }
+}

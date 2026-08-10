@@ -4,6 +4,112 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Dashboard Invoices Sayfası — Sekmeli Navigasyon, Araç Çubuğu ve Veri Tablosu Redesign (2026-08-10)
+
+### Bağlam
+
+`/dashboard/invoices` sayfası şu an basit bir dikey link listesi (her satır bir faturayı temsil eden basit `Link` öğesi). Talep: modern bir fatura listesi ekranına dönüştürmek — sekmeli navigasyon (Tümü / Planlanan Faturalar, ikincisinin yanında saat ikonu), tam genişliğe yayılan filtreleme araç çubuğu (arama + status filtresi + tarih seçici), ve zengin hücreler içeren bir veri tablosu (her satır, fatura numarası/müşteri, tutar/secondary tutar, tarih/email, durum rozetleri, işlem menüsü). Hiçbiri daha mevcut değil — tüm bileşenler sıfırdan yazıldı (mevcut Tabs/Select/Button/Card yeniden kullanıldı).
+
+Kapsam kararları (kullanıcı ile açıklama yapılmış):
+- **Veri:** Mock data ile UI kurulur; gerçek `InvoiceSummary` → tablo satırı mapping fonksiyonu yazılır ileride canlı veriye geçiş kolay olsun diye.
+- **"Planlanan Faturalar" sekmesi:** Backend'de "scheduled invoice" kavramı yok (statüler: draft/sent/paid/overdue/cancelled). Sekme placeholder/boş durum gösterir, filtreleme mantığı yazılmaz.
+- **TRY karşılığı (secondary tutar):** `InvoiceSummary`'de kur alanı yok. Bileşen opsiyonel prop destekler; sadece mock veride gösterilir, gerçek satırlarda `undefined` kalır.
+
+### İşlem Türü
+- **Ekleme** (10 yeni bileşen, 2 yeni tip, 2 mapping/mock dosyası, 1 mevcut bileşen genişletilmesi)
+- **Değiştirme** (1 sayfa tamamen yeniden yazım, 2 i18n dosyası)
+
+### Değiştirilen Dosyalar
+
+#### Frontend
+
+1. **`frontend/src/components/Badge.tsx`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: Generik badge bileşeni, `Button.tsx` ile aynı stil (twMerge, inline-flex, rounded-full). Props: `children`, `color?: 'slate'|'blue'|'green'|'red'|'amber'`, `className`. Renk haritası: `slate: bg-slate-100 text-slate-700`, `blue: bg-blue-50 text-blue-700`, `green: bg-green-50 text-green-700`, `red: bg-red-50 text-red-700`, `amber: bg-amber-50 text-amber-800`.
+
+2. **`frontend/src/components/Tabs.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: `TabItem` interface'ine `icon?: ReactNode` opsiyonel alanı eklendi. Render logic'te, ikon varsa `<span className="flex items-center gap-1.5">{icon}{label}</span>` şeklinde label yanına ikon ekleniyor. Diğer kullanım yerinde (CustomerDetailPage.tsx) ikon gönderilmediğinden geriye dönük uyumlu.
+
+3. **`frontend/src/features/invoices/utils/invoiceStatusBadge.ts`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `InvoiceStatus → Badge color` haritası sabiti. `draft: 'slate', sent: 'blue', paid: 'green', overdue: 'red', cancelled: 'slate'` (cancelled nötr, red sadece overdue için anlamlı olsun diye).
+
+4. **`frontend/src/features/invoices/components/InvoiceStatusBadge.tsx`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `status: InvoiceStatus` alıp i18n çevirisi + renk haritasını birleştirip `<Badge>` render eden wrapper bileşeni.
+
+5. **`frontend/src/features/invoices/types/invoiceRow.ts`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: Tablo bileşeninin çizdiği bağımsız satır tipi (`InvoiceSummary`'den decoupled): `id, invoiceNumber, customerName, customerEmail, amount, currency, secondaryAmount (opsiyonel), createdAt, status`.
+
+6. **`frontend/src/features/invoices/utils/mapInvoiceToRow.ts`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `InvoiceSummary → InvoiceRow` dönüştürücü fonksiyon. `grand_total` string'i `Number(...).toLocaleString('tr-TR', ...)` ile türkçe formatlı `amount` string'ine çevrir. `secondaryAmount` her zaman `undefined` (backend'de yok, uydurulmaz — koşullu render mekanizmasıyla gerçek satırlarda otomatik gizlenir).
+
+7. **`frontend/src/features/invoices/mocks/mockInvoiceRows.ts`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: `InvoiceRow[]` mock veri — 3 örnek satır, farklı statüler/para birimleri. Birincisi `draft` + USD + `secondaryAmount: 'Net 44,644.83 TRY'`, ikincisi `sent` + EUR + secondary tutar, üçüncüsü `paid` + GBP (secondary tutar olmadan, bileşenin bu alan olmadan da çalıştığını test etmek için). Not: "Oluşturuldu" durumu mevcut enum'da yok — en yakın gerçek karşılık `draft` kullanıldı (Taslak olarak render edilir).
+
+8. **`frontend/src/features/invoices/components/InvoiceToolbar.tsx`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: Props: `searchQuery, onSearchChange, statusFilter, onStatusFilterChange, dateFrom, dateTo, onDateChange`. Yapısı: arama input (Search ikonu, geniş, flex-1) + status Select (existing bileşen, "Tümü" seçeneği eklenerek) + takvim ikonlu Button (calendar icon). Button tıklandığında, `Select.tsx` ile aynı click-outside/useRef deseni kullanılarak küçük bir popover açılır, içinde iki `<input type="date">` (from/to) bulunur. Date popover açık/kapalı durumuna göre toggle eder. Yeni npm bağımlılığı eklenmedi (tarih kütüphanesi yok, native HTML5 input yeterli).
+
+9. **`frontend/src/features/invoices/components/InvoiceTable.tsx`** (YENİ)
+   - İşlem: Ekleme
+   - Açıklama: Props: `rows: InvoiceRow[]`. `overflow-x-auto` sarmalayıcı + `<table>`, başlıklar (Fatura No / Tutar / Oluşturulma tarihi / Durum / boş/işlemler). Tbody her satırı `<InvoiceTableRow>` olarak render eder. 0 satır durumunda empty state mesajı (`colSpan={5}`).
+
+10. **`frontend/src/features/invoices/components/InvoiceTableRow.tsx`** (YENİ)
+    - İşlem: Ekleme
+    - Açıklama: `InvoiceRow` prop alır, 5 hücre: (1) yuvarlak FileText ikonu + fatura numarası + ExternalLink ikonu (link satıra gidiyor) + müşteri adı soluk, (2) amount + currency, varsa altında secondaryAmount (koşullu), (3) createdAt (tr-TR formatı) + customerEmail varsa altında, (4) `<InvoiceStatusBadge>`, (5) `<InvoiceRowActions>`.
+
+11. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`** (YENİ)
+    - İşlem: Ekleme
+    - Açıklama: `MoreHorizontal` ikonlu button, `Select.tsx` ile aynı click-outside deseni. Açıldığında 3 seçenek: "Görüntüle" (gerçek `Link` navigation, `/dashboard/invoices/:id`), "İndir" (disabled stub), "Sil" (disabled stub). Stub seçenekler visual olarak var ama devre dışı (kapsam dışı, belirtilen).
+
+12. **`frontend/src/pages/dashboard/InvoicesPage.tsx`**
+    - İşlem: Değiştirme (tam yeniden yazım)
+    - Açıklama:
+      - Eski basit link-list yapısı tamamen kaldırıldı (eski `STATUS_KEYS` map, Link satırları, basit flex-col layout).
+      - State eklendi: `activeTab ('all'|'scheduled')`, `searchQuery`, `statusFilter`, `dateFrom`, `dateTo`.
+      - `rows = useMemo(() => (invoices ?? []).map(mapInvoiceToRow), [invoices])` — gerçek veri mapping.
+      - `displayRows = rows.length > 0 ? rows : MOCK_INVOICE_ROWS` — gerçek veri varsa göster, yoksa mock (visual demo amaçlı).
+      - `filteredRows` — `searchQuery` (invoiceNumber/customerName substring) + `statusFilter` ile client-side filtre.
+      - JSX yeniden yapılandırıldı: başlık + "Yeni Fatura" butonu → `Tabs` (Tümü / Planlanan Faturalar + Clock ikonu) → tab='all' iken `InvoiceToolbar` + loading/error state + `InvoiceTable(filteredRows)` ; tab='scheduled' iken dashed-border empty state (Clock ikonu + "yakında" mesajı).
+
+13. **`frontend/src/i18n/locales/tr.json`**
+    - İşlem: Ekleme
+    - Açıklama: `invoices` nesnesinin altına 7 alt-nesne eklendi:
+      - `tabs.all: "Tümü"`, `tabs.scheduled: "Planlanan Faturalar"`
+      - `scheduled.empty: "Planlanan fatura özelliği yakında kullanıma sunulacak."`
+      - `toolbar.searchPlaceholder, statusAll, dateFrom, dateTo`
+      - `table.invoiceNo, amount, createdAt, status`
+      - `actions.view, download, delete`
+
+14. **`frontend/src/i18n/locales/en.json`**
+    - İşlem: Ekleme
+    - Açıklama: `invoices` altında aynı 7 alt-nesne (İngilizce metinler).
+
+### Doğrulama
+
+- ✅ `npm run build` (frontend) — TypeScript derlemesi hiç hata olmadan başarılı.
+- ✅ `npm run lint` — Yeni eklenen bileşenler linter kurallarına uyuyor. (Mevcut `SignupForm`/`InvoiceForm` hataları Faz 5 öncesinden kalma, yeni kod tarafından değil.)
+- ✅ Dev server başlatıldı (`npm run dev` arka planda çalışıyor).
+- 🔄 Manuel QA yapılacak (dev server hazır): iki sekme arası geçiş, arama/filtre işlevselliği, tarih popover aç/kapa, tablo satır işlem menüsü, responsive scroll, mock veri görünürlüğü.
+
+### Özet
+
+`InvoicesPage` ve ona bağlı tüm bileşen/tipler sıfırdan yazılarak modern bir fatura listesi ekranı oluşturuldu. Sekmeler (mevcut `Tabs` genişletilerek), araç çubuğu (arama + filtre + tarih), tablo (rich cell'ler + rozetler + işlem menüsü) eklenmiş, mock veriye bağlanmış ve derleme/lint'i geçmiştir. Gerçek veriye geçiş trivial — tek bir mapping fonksiyonuyla (`mapInvoiceToRow`) `useInvoices()` hook'u çıktısını tablo beklenen formata dönüştürüyor.
+
+### Bilinen Kısıtlamalar
+
+1. **Secondary tutar (TRY karşılığı)**: `InvoiceSummary` tipi kur/dönüşüm alanı içermiyor. Bileşen bunu opsiyonel prop olarak destekler; sadece mock veride `'Net X TRY'` gösteriliyor. Gerçek satırlarda (mapping sonrası) `secondaryAmount: undefined`, koşullu render sayesinde otomatik gizlenir — asla uydurulmaz.
+2. **"Planlanan Faturalar" sekmesi**: Backend'de scheduled invoice kavramı yok (InvoiceStatus enum'da yok). Sekme placeholder — boş state mesajı gösterir, filtreleme mantığı yazılmamıştır.
+3. **İşlem menüsü**: "Görüntüle" link'i çalışıyor; "İndir" ve "Sil" görsel olarak var ama `disabled` stub haldedir (kapsam dışı).
+4. **Tarih filtresi**: Date picker UI mevcuttur (native HTML5 input, popover); tarih değerleri state'de tutulur ama henüz backend'e gönderilmez (client-side filtreleme kodu `filteredRows`'da hazır değil — sadece UI hazırlandı).
+
+---
+
 ## Faz 5 Sonrası — İşlem Özeti Kartı: Accordion Detay Alanı ve Önizleme Butonu (2026-08-10)
 
 ### Bağlam

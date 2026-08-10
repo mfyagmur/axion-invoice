@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react'
+
 interface TabItem {
   key: string
   label: string
+  icon?: ReactNode
 }
 
 interface TabsProps {
@@ -23,7 +26,14 @@ export function Tabs({ items, activeKey, onChange }: TabsProps) {
               : 'border-b-2 border-transparent pb-3 text-sm font-medium text-slate-500 hover:text-slate-700'
           }
         >
-          {item.label}
+          {item.icon ? (
+            <span className="flex items-center gap-1.5">
+              {item.icon}
+              {item.label}
+            </span>
+          ) : (
+            item.label
+          )}
         </button>
       ))}
     </div>

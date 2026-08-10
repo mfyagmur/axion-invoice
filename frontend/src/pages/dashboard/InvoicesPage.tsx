@@ -1,24 +1,42 @@
-import { Plus } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Clock, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { ErrorState } from '@/components/ErrorState'
+import { Tabs } from '@/components/Tabs'
 import { useInvoices } from '@/features/invoices/hooks/useInvoices'
-
-const STATUS_KEYS: Record<string, string> = {
-  draft: 'invoices.status.draft',
-  sent: 'invoices.status.sent',
-  paid: 'invoices.status.paid',
-  overdue: 'invoices.status.overdue',
-  cancelled: 'invoices.status.cancelled',
-}
+import { InvoiceToolbar } from '@/features/invoices/components/InvoiceToolbar'
+import { InvoiceTable } from '@/features/invoices/components/InvoiceTable'
+import { mapInvoiceToRow } from '@/features/invoices/utils/mapInvoiceToRow'
+import { MOCK_INVOICE_ROWS } from '@/features/invoices/mocks/mockInvoiceRows'
 
 export function InvoicesPage() {
   const { t } = useTranslation()
   const { data: invoices, isLoading, isError, refetch } = useInvoices()
 
+  const [activeTab, setActiveTab] = useState<'all' | 'scheduled'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const rows = useMemo(() => (invoices ?? []).map(mapInvoiceToRow), [invoices])
+  const displayRows = rows.length > 0 ? rows : MOCK_INVOICE_ROWS
+
+  const filteredRows = displayRows.filter((row) => {
+    const matchesSearch =
+      searchQuery === '' ||
+      row.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      row.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesStatus = statusFilter === 'all' || row.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900">{t('nav.invoices')}</h1>
         <Link to="/dashboard/invoices/new">
@@ -29,39 +47,42 @@ export function InvoicesPage() {
         </Link>
       </div>
 
-      {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+      <Tabs
+        items={[
+          { key: 'all', label: t('invoices.tabs.all') },
+          { key: 'scheduled', label: t('invoices.tabs.scheduled'), icon: <Clock size={14} /> },
+        ]}
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as 'all' | 'scheduled')}
+      />
 
-      {isError && <ErrorState onRetry={() => refetch()} />}
+      {activeTab === 'all' && (
+        <>
+          <InvoiceToolbar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateChange={(from, to) => {
+              setDateFrom(from)
+              setDateTo(to)
+            }}
+          />
 
-      {!isLoading && !isError && (invoices?.length ?? 0) === 0 && (
-        <p className="text-sm text-slate-500">{t('invoices.list.empty')}</p>
+          {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+
+          {isError && <ErrorState onRetry={() => refetch()} />}
+
+          {!isLoading && !isError && <InvoiceTable rows={filteredRows} />}
+        </>
       )}
 
-      {!isLoading && !isError && (invoices?.length ?? 0) > 0 && (
-        <div className="flex flex-col gap-2">
-          {invoices?.map((invoice) => (
-            <Link
-              key={invoice.id}
-              to={`/dashboard/invoices/${invoice.id}`}
-              className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3 hover:bg-slate-50"
-            >
-              <div className="flex flex-col">
-                <span className="font-medium text-slate-900">{invoice.invoice_number}</span>
-                <span className="text-sm text-slate-500">{invoice.customer.name}</span>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-slate-500">{t(STATUS_KEYS[invoice.status])}</span>
-                <span className="font-medium text-slate-900">
-                  {Number(invoice.grand_total).toFixed(2)} {invoice.currency}
-                </span>
-                <span className="text-slate-400">
-                  {invoice.pdf_status === 'ready' && t('invoices.list.ready')}
-                  {invoice.pdf_status === 'pending' && t('invoices.list.processing')}
-                  {invoice.pdf_status === 'failed' && t('invoices.list.failed')}
-                </span>
-              </div>
-            </Link>
-          ))}
+      {activeTab === 'scheduled' && (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white py-16 text-center">
+          <Clock size={24} className="text-slate-400" />
+          <p className="text-sm text-slate-500">{t('invoices.scheduled.empty')}</p>
         </div>
       )}
     </div>

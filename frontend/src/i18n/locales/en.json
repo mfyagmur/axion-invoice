@@ -240,6 +240,30 @@
     }
   },
   "invoices": {
+    "tabs": {
+      "all": "All",
+      "scheduled": "Scheduled Invoices"
+    },
+    "scheduled": {
+      "empty": "Scheduled invoices are coming soon."
+    },
+    "toolbar": {
+      "searchPlaceholder": "Search invoice number or customer",
+      "statusAll": "All",
+      "dateFrom": "From",
+      "dateTo": "To"
+    },
+    "table": {
+      "invoiceNo": "Invoice No",
+      "amount": "Amount",
+      "createdAt": "Created at",
+      "status": "Status"
+    },
+    "actions": {
+      "view": "View",
+      "download": "Download",
+      "delete": "Delete"
+    },
     "list": {
       "newInvoice": "New Invoice",
       "empty": "You don't have any invoices yet.",
