@@ -4,6 +4,58 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Faz 5 Sonrası — İşlem Özeti Kartı: Accordion Detay Alanı ve Önizleme Butonu (2026-08-10)
+
+### Bağlam
+`/dashboard/invoices/new` fatura oluşturma sayfasındaki İşlem Özeti kartında, kullanıcılar detaylı kırılımları (Vergiler, Ara Toplam) varsayılan olarak gizli tutarken, tıklayarak akıcı bir accordion animasyonuyla açabilmeleri isteniyor. Ayrıca, kart başlığının sağına "Önizleme" butonu eklenmesi isteniyor (şu anda mevcut değil).
+
+Tüm state (`subtotal`, `taxTotal`, `grandTotal`) zaten `InvoiceForm.tsx` içinde `useMemo` ile hesaplanmış durumda. Değişiklik tamamen UI ve interaksiyon seviyesinde.
+
+### İşlem Türü
+- **Ekleme** (accordion detay bölümü, Önizleme butonu)
+- **Değiştirme** (i18n — "Vergi" → "Vergiler", "Tax" → "Taxes")
+
+### Değiştirilen Dosyalar
+
+#### Frontend
+
+1. **`frontend/src/features/invoices/components/InvoiceForm.tsx`**
+   - İşlem: Ekleme & Değiştirme
+   - Açıklama:
+     - Import'lara `useState` (React) ve `ChevronDown`, `Eye` (lucide-react) eklendi.
+     - `twMerge` (tailwind-merge) import'u eklendi.
+     - Bileşen içine `const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)` state'i eklendi.
+     - **İşlem Özeti kartı JSX'i tamamen yeniden yapılandırıldı:**
+       - `Card` bileşenine `action` prop'u eklenerek, sağ üstte ikonlu "Önizleme" butonu (`Eye` + `invoices.form.preview` metni) eklendi. Şimdilik buton `disabled` halde (yer tutucu).
+       - "Müşterinin tarafından ödenecek toplam tutar" satırı tıklanabilir bir `<button>` element'e çevrildi, sağ tarafında `ChevronDown` ikonu bulunuyor (accordion açık/kapalı durumunda `rotate-180` animasyonuyla dönüyor).
+       - Chevron'un altında CSS grid'i (`grid-rows-[0fr]` / `grid-rows-[1fr]` + `transition`) kullanarak akıcı bir collapse bölümü eklendi. Açık durumda, bu bölümde üç satır gösteriliyor (etiket üste, tutar altta, tutarlı dikey layout):
+         - **Vergiler** (`invoices.form.tax`) — hesaplanan `taxTotal`
+         - **Ara Toplam** (`invoices.form.subtotal`) — hesaplanan `subtotal`
+         - **Genel Toplam** (`invoices.form.grandTotal`) — hesaplanan `grandTotal`, siyah/bold vurguyla ve üstünde ince border'la
+       - **"Alacağınız tutar" satırının layout'u düzeltildi** — daha önce yatay (label + tutar yan yana) idi, şimdi dikey (etiket üste, tutar altta) yapılarak "Müşterinin tarafından ödenecek toplam tutar" ile tutarlı hale getirildi.
+       - Accordion içindeki Vergiler/Ara Toplam/Genel Toplam satırları da aynı tutarlılığı sağlamak için dikey (etiket üste, tutar altta) format'a çevrildi.
+       - Tüm düzeltmeler Tailwind utility class'ları ile yapıldı; CSS module veya hardcoded stil eklenmedi.
+
+2. **`frontend/src/i18n/locales/tr.json`**
+   - İşlem: Değiştirme
+   - Açıklama: `invoices.form.tax` değeri "Vergi" → **"Vergiler"** olarak güncellendi (satır 300).
+
+3. **`frontend/src/i18n/locales/en.json`**
+   - İşlem: Değiştirme
+   - Açıklama: `invoices.form.tax` değeri "Tax" → **"Taxes"** olarak güncellendi (satır 300) — İngilizce pluralleştirme tutarlılığı için.
+
+### Doğrulama
+- ✅ Frontend dev sunucusu başlatıldı (`npm run dev`), `/dashboard/invoices/new` sayfasında navigasyon sağlam.
+- ✅ İşlem Özeti kartının başında ikonlu "Önizleme" butonu görülüyor.
+- ✅ "Müşterinin tarafından ödenecek toplam tutar" satırı tıklanabilir ve chevron dönüyor (label üste, tutar altta).
+- ✅ Accordion açılırken Vergiler / Ara Toplam / Genel Toplam satırları akıcı animasyonla görünüyor (etiket üste, tutar altta, tutarlı).
+- ✅ "Alacağınız tutar" satırı da aynı tutarlı format'ta (etiket üste, tutar altta).
+- ✅ İşlem Özeti kartının tüm satırları artık tutarlı dikey layout'ta (label üste, tutar altta, profesyonel görünüm).
+- ✅ i18n güncellenmesi yapılmış — "Vergiler" ve "Taxes" i18n key'leri doğru.
+- ✅ TypeScript derlemesi temiz (yeni `useState`, `ChevronDown`, `Eye` import'ları düzgün türlenmiş).
+
+---
+
 ## Faz 5 Sonrası — Kalem Kartı Düzenlemesi: Layout Wrap Sorunu ve Placeholder Parantezleri (2026-08-10)
 
 ### Bağlam

@@ -1,11 +1,12 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Banknote, FileStack, FileText, Plus, Send, User } from 'lucide-react'
+import { Banknote, ChevronDown, Eye, FileStack, FileText, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Select } from '@/components/Select'
 import { Textarea } from '@/components/Textarea'
+import { twMerge } from 'tailwind-merge'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
@@ -58,6 +59,7 @@ export function InvoiceForm() {
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
   const createInvoice = useCreateInvoice()
+  const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<InvoiceFormValues>({
     defaultValues: {
@@ -360,16 +362,59 @@ export function InvoiceForm() {
       </div>
 
       <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-        <Card title={t('invoices.form.summary')}>
+        <Card
+          title={t('invoices.form.summary')}
+          action={
+            <Button variant="secondary" className="gap-1 px-2 py-1 text-xs" disabled>
+              <Eye size={14} />
+              {t('invoices.form.preview')}
+            </Button>
+          }
+        >
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3 rounded-md bg-slate-50 p-4 text-sm">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToBeCharged')}</span>
-                <span className="text-lg font-semibold text-slate-900">
-                  {grandTotal.toFixed(2)} {currency}
-                </span>
+              <button
+                type="button"
+                onClick={() => setIsSummaryDetailOpen((o) => !o)}
+                className="flex w-full items-center justify-between rounded-md hover:bg-slate-100 px-2 py-1 transition-colors"
+              >
+                <div className="flex flex-col gap-1 text-left">
+                  <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToBeCharged')}</span>
+                  <span className="text-lg font-semibold text-slate-900">
+                    {grandTotal.toFixed(2)} {currency}
+                  </span>
+                </div>
+                <ChevronDown
+                  size={16}
+                  className={twMerge('text-slate-600 transition-transform shrink-0', isSummaryDetailOpen && 'rotate-180')}
+                />
+              </button>
+
+              <div
+                className={twMerge(
+                  'grid transition-[grid-template-rows] duration-300 ease-in-out',
+                  isSummaryDetailOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="flex flex-col gap-3 pt-3 text-sm">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-medium text-slate-600">{t('invoices.form.tax')}</span>
+                      <span className="text-slate-900">{taxTotal.toFixed(2)} {currency}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-medium text-slate-600">{t('invoices.form.subtotal')}</span>
+                      <span className="text-slate-900">{subtotal.toFixed(2)} {currency}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 border-t border-slate-200 pt-3">
+                      <span className="text-xs font-semibold text-slate-900">{t('invoices.form.grandTotal')}</span>
+                      <span className="text-sm font-semibold text-slate-900">{grandTotal.toFixed(2)} {currency}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="border-t border-slate-200 pt-3">
+
+              <div className="flex flex-col gap-1 border-t border-slate-200 pt-3">
                 <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToReceive')}</span>
                 <span className="text-lg font-semibold text-slate-900">
                   {grandTotal.toFixed(2)} {paymentCurrency}

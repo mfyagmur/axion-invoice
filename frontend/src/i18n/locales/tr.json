@@ -297,7 +297,7 @@
       "continueAction": "Devam Et",
       "save": "Kaydet",
       "subtotal": "Ara Toplam",
-      "tax": "Vergi",
+      "tax": "Vergiler",
       "grandTotal": "Genel Toplam",
       "submit": "Fatura Oluştur",
       "limitReached": "Aylık fatura limitinize ulaştınız. Devam etmek için planınızı yükseltin.",
