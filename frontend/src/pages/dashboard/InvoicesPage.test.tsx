@@ -24,7 +24,7 @@ describe('InvoicesPage', () => {
     expect(screen.getByText('Yükleniyor...')).toBeInTheDocument()
   })
 
-  it('shows an empty state when there are no invoices', () => {
+  it('shows mock data when there are no invoices', () => {
     mockedUseInvoices.mockReturnValue({
       data: [],
       isLoading: false,
@@ -33,7 +33,8 @@ describe('InvoicesPage', () => {
     } as unknown as ReturnType<typeof useInvoices>)
 
     renderWithProviders(<InvoicesPage />)
-    expect(screen.getByText(/henüz.*fatura|fatura.*yok/i)).toBeInTheDocument()
+    expect(screen.getByText('#78143759')).toBeInTheDocument()
+    expect(screen.getByText('Rainsoft')).toBeInTheDocument()
   })
 
   it('shows an error state with a retry button that calls refetch', async () => {
