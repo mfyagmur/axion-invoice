@@ -4,6 +4,48 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Faz 5 Sonrası — Kalem Kartı Düzenlemesi: Layout Wrap Sorunu ve Placeholder Parantezleri (2026-08-10)
+
+### Bağlam
+`/dashboard/invoices/new` fatura oluşturma sayfasındaki LineItemCard bileşeninde iki sorun rapor edildi:
+1. **Layout wrap sorunu**: `flex-wrap` kullanan container'da Tutar (lineTotal) alanı dar ekranlarda alt satıra geçiyor iken, tüm kalem alanlarının tek satırda kalması gerekiyor.
+2. **Placeholder parantezleri**: İskonto Oranı (%) ve KDV Oranı (%) placeholder metinlerindeki parantez ve % işaretleri, yanında zaten görünen % indicator'ıyla redundant hale gelmiş, temizlenmesi isteniyordu.
+
+### İşlem Türü
+- **Düzeltme** (layout overflow kontrolü, i18n placeholder sadeleştirmesi)
+
+### Değiştirilen Dosyalar
+
+#### Frontend
+
+1. **`frontend/src/features/invoices/components/LineItemCard.tsx`**
+   - İşlem: Düzeltme
+   - Açıklama: `flex flex-wrap` → `flex flex-nowrap overflow-x-auto` değiştirildi.
+     Tutar alanı artık dar ekranlarda da alt satıra geçmez; gerekli olursa yatay scroll bar'ı etkinleşir.
+     Bu, kalem giriş satırının her zaman kalem başlığıyla hizalı görünmesini garanti eder.
+
+2. **`frontend/src/i18n/locales/tr.json`**
+   - İşlem: Düzeltme
+   - Açıklama: 
+     - `invoices.form.discountRate`: "İskonto Oranı (%)" → "İskonto Oranı"
+     - `invoices.form.taxRate`: "KDV Oranı (%)" → "KDV Oranı"
+     
+     Placeholder metinleri sadeleştirildi; input alanların sağında zaten `%` işareti CSS ile gösterildiği için metin içindeki parantez gereksiz hale geldi.
+
+3. **`frontend/src/features/invoices/components/InvoiceForm.test.tsx`**
+   - İşlem: Düzeltme
+   - Açıklama: Test'teki `getByLabelText()` aramaları i18n key güncellemelerine uyumlu hale getirildi:
+     - `'İskonto Oranı (%)'` → `'İskonto Oranı'`
+     - `'KDV Oranı (%)'` → `'KDV Oranı'`
+
+### Doğrulama
+- ✅ Frontend tests: 8/8 yeşil (`npm run test -- --run`)
+- ✅ Frontend build: Temiz (`npm run build`; chunk-size uyarıları önceden var olan durum)
+- ✅ Layout: Tutar alanı her zaman 2. satırda kalıyor (flex-nowrap + overflow-x-auto ile)
+- ✅ Placeholder metinleri: Parantez olmadan sadece "İskonto Oranı" / "KDV Oranı" gösteriyor
+
+---
+
 ## Faz 5 Sonrası — Fatura Şablonlarının Yenilenmesi: 6 Yeni XSLT Şablon (2026-08-07)
 
 ### Bağlam
