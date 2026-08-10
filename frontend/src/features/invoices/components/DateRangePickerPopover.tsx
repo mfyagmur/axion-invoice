@@ -61,16 +61,16 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
   return (
     <div
       className="absolute right-0 top-full mt-2 z-50 rounded-lg border border-slate-200 bg-white shadow-lg"
-      style={{ width: 'clamp(20rem, 90vw, 56rem)' }}
+      style={{ width: 'clamp(20rem, 90vw, 56rem)', maxHeight: 'clamp(24rem, 80vh, 32rem)' }}
     >
-      <div className="flex h-96 overflow-hidden">
+      <div className="flex overflow-hidden">
         {/* Left Sidebar - Presets */}
-        <div className="w-40 sm:w-48 border-r border-slate-200 p-3 sm:p-4 flex flex-col gap-1 bg-slate-50 rounded-l-lg overflow-y-auto">
+        <div className="w-36 sm:w-44 border-r border-slate-200 p-2 sm:p-3 flex flex-col gap-0.5 bg-slate-50 rounded-l-lg overflow-y-auto">
           {presets.map((preset) => (
             <button
               key={preset.label}
               onClick={() => handlePresetClick(preset)}
-              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-slate-700 hover:bg-slate-200 rounded transition-colors whitespace-nowrap"
+              className="w-full px-2 py-1 text-left text-xs sm:text-sm text-slate-700 hover:bg-slate-200 rounded transition-colors whitespace-nowrap"
             >
               {preset.label}
             </button>
@@ -78,50 +78,50 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
         </div>
 
         {/* Right Side - Dual Calendar */}
-        <div className="flex-1 p-2 sm:p-4 flex flex-col overflow-x-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 flex-1 min-w-max sm:min-w-0">
+        <div className="flex-1 p-2 sm:p-3 flex flex-col overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 flex-1 min-w-max sm:min-w-0 overflow-y-auto">
             {[currentMonth, nextMonth].map((month) => (
               <div key={month.toISOString()} className="flex flex-col">
                 {/* Month Header */}
-                <div className="flex items-center justify-between mb-2 sm:mb-4 gap-1">
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
                   {month.getMonth() === currentMonth.getMonth() && (
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
-                      className="p-0.5 sm:p-1 hover:bg-slate-100 rounded transition-colors shrink-0"
+                      className="p-0.5 hover:bg-slate-100 rounded transition-colors shrink-0"
                     >
-                      <ChevronLeft size={14} className="sm:w-4 sm:h-4" />
+                      <ChevronLeft size={16} />
                     </button>
                   )}
                   {month.getMonth() === nextMonth.getMonth() && (
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="ml-auto p-0.5 sm:p-1 hover:bg-slate-100 rounded transition-colors shrink-0"
+                      className="ml-auto p-0.5 hover:bg-slate-100 rounded transition-colors shrink-0"
                     >
-                      <ChevronRight size={14} className="sm:w-4 sm:h-4" />
+                      <ChevronRight size={16} />
                     </button>
                   )}
                   {month.getMonth() !== currentMonth.getMonth() && (
-                    <div className="w-4 sm:w-6 shrink-0" />
+                    <div className="w-5 shrink-0" />
                   )}
                   <h3 className="text-xs sm:text-sm font-medium text-slate-900 flex-1 text-center">
                     {formatMonthYear(month)}
                   </h3>
                   {month.getMonth() !== nextMonth.getMonth() && (
-                    <div className="w-4 sm:w-6 shrink-0" />
+                    <div className="w-5 shrink-0" />
                   )}
                 </div>
 
                 {/* Weekday Labels */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
+                <div className="grid grid-cols-7 gap-0.5 mb-1">
                   {WEEKDAY_LABELS.map((label) => (
-                    <div key={label} className="text-center text-xs font-medium text-slate-600 pb-2 border-b border-slate-300">
+                    <div key={label} className="text-center text-xs font-medium text-slate-600 pb-1 border-b border-slate-300">
                       {label}
                     </div>
                   ))}
                 </div>
 
                 {/* Calendar Days */}
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-0.5">
                   {getMonthDays(month.getFullYear(), month.getMonth()).map((day) => {
                     const isCurrentMonth = isSameMonth(day, month)
                     const isStart = tempStart ? isSameDay(day, tempStart) : false
@@ -160,14 +160,14 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 mt-4">
+          <div className="flex justify-end gap-2 pt-2 sm:pt-3 border-t border-slate-200 mt-2 sm:mt-3 shrink-0">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
             >
               {t('common.cancel')}
             </button>
-            <Button onClick={handleApply} variant="primary">
+            <Button onClick={handleApply} variant="primary" className="px-3 py-1.5 text-xs sm:text-sm">
               {t('common.save')}
             </Button>
           </div>
