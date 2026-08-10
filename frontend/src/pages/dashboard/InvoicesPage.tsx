@@ -18,8 +18,8 @@ export function InvoicesPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'scheduled'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [dateFrom, setDateFrom] = useState<Date | null>(null)
+  const [dateTo, setDateTo] = useState<Date | null>(null)
 
   const rows = useMemo(() => (invoices ?? []).map(mapInvoiceToRow), [invoices])
   const displayRows = rows.length > 0 ? rows : MOCK_INVOICE_ROWS
@@ -32,7 +32,12 @@ export function InvoicesPage() {
 
     const matchesStatus = statusFilter === 'all' || row.status === statusFilter
 
-    return matchesSearch && matchesStatus
+    const rowDate = new Date(row.createdAt)
+    const matchesDateRange =
+      (!dateFrom || rowDate >= dateFrom) &&
+      (!dateTo || rowDate <= dateTo)
+
+    return matchesSearch && matchesStatus && matchesDateRange
   })
 
   return (
