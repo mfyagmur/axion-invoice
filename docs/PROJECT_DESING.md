@@ -4,6 +4,40 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura "Tekrar Oluştur" (Duplicate) Özelliği (2026-08-11)
+
+### Bağlam
+
+`InvoiceRowActions` menüsündeki "Tekrar Oluştur" seçeneği pasifti. Talep: kullanıcı bir faturanın kebab menüsünden "Tekrar Oluştur"a bastığında, Yeni Fatura formu (`/dashboard/invoices/new`) o faturanın tüm verileriyle (şablon, müşteri, alıcı kişiler, para birimleri, satır kalemleri, notlar) ön-dolu açılsın; kullanıcı dilediğini değiştirip kaydettiğinde sunucu otomatik yeni bir fatura numarasıyla ayrı bir kayıt oluştursun (orijinal fatura değişmeden kalır — `POST /invoices` zaten `invoice_number`'ı payload'da almıyor, sunucu üretiyor).
+
+Yaklaşım: route state yerine query param (`?duplicateFrom=<id>`) + mevcut `useInvoice` hook'uyla yeniden fetch — sayfa yenilemesinde kaybolmaz, büyük objeyi router state'inde taşımaz.
+
+### İşlem Türü
+
+- **Ekleme** (1 yeni util dosyası) + **Değiştirme** (3 frontend dosyası)
+
+### Değiştirilen/Eklenen Dosyalar
+
+1. **`frontend/src/features/invoices/components/InvoiceForm.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: `emptyLineItem` dışa aktarıldı. Bileşen artık opsiyonel `initialValues?: InvoiceFormValues` prop'u alıyor; verilmişse `useForm`'un `defaultValues`'ı olarak kullanılıyor. Müşteri değişince alıcı kişileri (`recipient_contact_ids`) sıfırlayan `useEffect`, ilk render'da tetiklenmeyecek şekilde bir `isFirstCustomerRender` ref guard'ı ile korundu — aksi halde prefill edilen `customer_id`, mount anında duplicate edilen alıcı kişi id'lerini silerdi. Şablon `Select`'inin aktif-şablon filtresi, seçili `template_id`'yi (kaynak fatura pasif bir şablon kullanıyorsa bile) her zaman listede tutacak şekilde genişletildi.
+2. **`frontend/src/features/invoices/utils/buildDuplicateInitialValues.ts`** (yeni)
+   - İşlem: Ekleme
+   - Açıklama: `InvoiceDetail` (GET yanıtı) → `InvoiceFormValues` dönüştürücü saf fonksiyon. Alan ismi farklarını eşler (`data_json` → `field_values`, nested `customer.id` → düz `customer_id`), satır kalemi `string` alanlarını `Number(...)` ile çevirir, sunucu hesaplı alanları (`id`, `discount_amount`, `tax_amount`, `line_total`) atar. `issued_at` bugünün tarihine, `due_at` boşa set edilir (yeni fatura, orijinal tarihler kopyalanmaz).
+3. **`frontend/src/pages/dashboard/InvoiceCreatePage.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: `useSearchParams` ile `duplicateFrom` query param'ı okunuyor; varsa `useInvoice(duplicateFrom)` ile kaynak fatura fetch ediliyor. Yüklenirken `InvoiceForm` mount edilmiyor (RHF `defaultValues`'ının senkron doğru olması için), hata durumunda mesaj gösterilip boş formla devam ediliyor. Veri gelince `buildDuplicateInitialValues` ile hesaplanan `initialValues`, `InvoiceForm`'a geçiriliyor.
+4. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: "Tekrar Oluştur" butonu artık aktif — tıklanınca menü kapanıp `/dashboard/invoices/new?duplicateFrom={invoiceId}`'a yönlendiriyor. Diğer 5 pasif seçenek (Ödeme Hatırlatıcısı, Önizleme, E-Posta Gönder, İptal Et, Arşivle) ve zaten aktif olan "İndir (PDF)" dokunulmadı.
+
+### Doğrulama
+
+- `npm run build` (tsc + vite) ile tip hatası olmadığından emin olundu.
+- Tarayıcı doğrulaması: kullanıcı tarafından yapılacak — `/dashboard/invoices` listesinden bir faturanın "Tekrar Oluştur"una basılıp formun dolu geldiği, kaydedince yeni fatura numarasıyla ayrı bir kayıt oluştuğu teyit edilmeli.
+
+---
+
 ## Fatura Satırı İşlemleri Menüsü — Hover Çerçevesi ve Genişletilmiş Seçenekler (2026-08-11, Revize: İndir PDF Aktif)
 
 ### Bağlam

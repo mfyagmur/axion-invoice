@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { MoreHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 interface InvoiceRowActionsProps {
   invoiceId: string
@@ -9,6 +9,7 @@ interface InvoiceRowActionsProps {
 
 export function InvoiceRowActions({ invoiceId }: InvoiceRowActionsProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -46,8 +47,11 @@ export function InvoiceRowActions({ invoiceId }: InvoiceRowActionsProps) {
           <div className="border-t border-slate-100" />
           <button
             type="button"
-            disabled
-            className="w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed"
+            onClick={() => {
+              setIsOpen(false)
+              navigate(`/dashboard/invoices/new?duplicateFrom=${invoiceId}`)
+            }}
+            className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
           >
             {t('invoices.actions.duplicate')}
           </button>

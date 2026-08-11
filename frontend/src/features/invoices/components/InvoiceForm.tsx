@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Banknote, ChevronDown, Eye, FileStack, FileText, Plus, Send, User } from 'lucide-react'
@@ -42,7 +42,7 @@ export interface InvoiceFormValues {
 
 const CURRENCY_OPTIONS = ['TRY', 'USD', 'EUR', 'GBP']
 
-function emptyLineItem(): InvoiceFormValues['line_items'][number] {
+export function emptyLineItem(): InvoiceFormValues['line_items'][number] {
   return {
     item_code: '',
     description: '',
@@ -55,7 +55,11 @@ function emptyLineItem(): InvoiceFormValues['line_items'][number] {
   }
 }
 
-export function InvoiceForm() {
+interface InvoiceFormProps {
+  initialValues?: InvoiceFormValues
+}
+
+export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { t } = useTranslation()
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
@@ -63,7 +67,7 @@ export function InvoiceForm() {
   const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<InvoiceFormValues>({
-    defaultValues: {
+    defaultValues: initialValues ?? {
       template_id: '',
       customer_id: '',
       currency: 'TRY',
@@ -119,7 +123,12 @@ export function InvoiceForm() {
 
   const isFormValid = !!(templateId && customerId && lineItemFields.length > 0)
 
+  const isFirstCustomerRender = useRef(true)
   useEffect(() => {
+    if (isFirstCustomerRender.current) {
+      isFirstCustomerRender.current = false
+      return
+    }
     setValue('recipient_contact_ids', [])
   }, [customerId, setValue])
 
@@ -166,7 +175,7 @@ export function InvoiceForm() {
               <Select
                 value={field.value}
                 onChange={field.onChange}
-                options={templates?.filter((tpl) => tpl.is_active !== false).map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
+                options={templates?.filter((tpl) => tpl.is_active !== false || tpl.id === templateId).map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
                 placeholder={t('invoices.form.selectTemplate')}
                 error={errors.template_id ? t('invoices.form.errors.templateRequired') : undefined}
               />
