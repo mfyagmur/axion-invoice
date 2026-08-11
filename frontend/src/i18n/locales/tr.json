@@ -289,6 +289,18 @@
       "overdue": "Gecikmiş",
       "cancelled": "İptal"
     },
+    "paymentChaser": {
+      "title": "Payment Chaser",
+      "infoTitle": "Otomatik hatırlatıcıları başlat",
+      "infoBody": "Axion Invoice, ödeme alınana kadar otomatik olarak 3 adet hatırlatma e-postası gönderecektir. İstediğiniz zaman duraklatabilirsiniz.",
+      "ruleFirst": "7 Gün Sonrasına",
+      "ruleNext": "3 Gün Sonrasına",
+      "emailLabel": "E-posta #{{n}}",
+      "emailBodyPlaceholder": "E-posta içeriği yakında düzenlenebilir olacak.",
+      "close": "Kapat",
+      "activate": "Ödeme hatırlatıcısını etkinleştir",
+      "activatedMessage": "Ödeme hatırlatıcısı etkinleştirildi."
+    },
     "form": {
       "template": "Şablon",
       "selectTemplate": "Şablon seçin",
@@ -302,6 +314,8 @@
       "paymentDetails": "Ödeme Detayları",
       "paymentCurrency": "Ödemeyi alacağın para birimi",
       "invoiceCurrency": "Fatura para birimi",
+      "exchangeRate": "Kur (1 birim = ? TRY)",
+      "exchangeRatePlaceholder": "Örn. 37.22",
       "commissionPayer": "Komisyonu kim ödüyor?",
       "commissionPayerSelf": "Ben",
       "commissionPayerCustomer": "Müşterim",

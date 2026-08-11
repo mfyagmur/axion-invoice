@@ -57,7 +57,7 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
       </td>
 
       <td className="px-4 py-3 align-top">
-        <InvoiceRowActions invoiceId={row.id} />
+        <InvoiceRowActions row={row} />
       </td>
     </tr>
   )

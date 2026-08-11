@@ -86,6 +86,7 @@ class Invoice(Base):
     )
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="TRY")
     payment_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="TRY")
+    exchange_rate: Mapped[Decimal | None] = mapped_column(Numeric(18, 6), nullable=True)
     invoice_type: Mapped[InvoiceType] = mapped_column(
         SAEnum(InvoiceType, name="invoice_type"), nullable=False, default=InvoiceType.SALE
     )

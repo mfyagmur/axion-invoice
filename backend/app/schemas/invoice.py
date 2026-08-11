@@ -24,6 +24,7 @@ class InvoiceCreatePayload(BaseModel):
     customer_id: uuid.UUID
     currency: str = Field(default="TRY", min_length=3, max_length=3)
     payment_currency: str = Field(default="TRY", min_length=3, max_length=3)
+    exchange_rate: Decimal | None = Field(default=None, gt=0)
     invoice_type: InvoiceType = Field(default=InvoiceType.SALE)
     scenario: InvoiceScenario = Field(default=InvoiceScenario.COMMERCIAL)
     commission_payer: CommissionPayer = Field(default=CommissionPayer.SELF)
@@ -68,6 +69,7 @@ class InvoiceSummaryResponse(BaseModel):
     status: InvoiceStatus
     currency: str
     payment_currency: str
+    exchange_rate: Decimal | None
     invoice_type: InvoiceType
     scenario: InvoiceScenario
     commission_payer: CommissionPayer
@@ -79,6 +81,15 @@ class InvoiceSummaryResponse(BaseModel):
     customer: CustomerResponse
 
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def local_amount(self) -> Decimal | None:
+        if self.payment_currency == "TRY":
+            return self.grand_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if self.exchange_rate is None:
+            return None
+        return (self.grand_total * self.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class InvoiceDetailResponse(InvoiceSummaryResponse):

@@ -7,6 +7,7 @@ export function buildDuplicateInitialValues(invoice: InvoiceDetail): InvoiceForm
     customer_id: invoice.customer.id,
     currency: invoice.currency,
     payment_currency: invoice.payment_currency,
+    exchange_rate: invoice.exchange_rate ?? '',
     invoice_type: invoice.invoice_type,
     scenario: invoice.scenario,
     commission_payer: invoice.commission_payer,

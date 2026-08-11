@@ -13,8 +13,11 @@ export function mapInvoiceToRow(invoice: InvoiceSummary): InvoiceRow {
       maximumFractionDigits: 2,
     }),
     currency: invoice.currency,
-    secondaryAmount: undefined,
+    secondaryAmount: invoice.local_amount
+      ? `${Number(invoice.local_amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TRY`
+      : undefined,
     createdAt: invoice.created_at,
+    createdAtRaw: invoice.created_at,
     status: invoice.status,
   }
 }

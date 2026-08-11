@@ -4,6 +4,78 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Ödeme Hatırlatıcısı (Payment Chaser) Slide-in Paneli (2026-08-11)
+
+### Bağlam
+
+`InvoiceRowActions` menüsündeki "Ödeme Hatırlatıcısı" seçeneği pasifti. Talep: tıklandığında
+ekranın sağından kayan (slide-in), arkası kararan (backdrop) bir off-canvas panel açılsın;
+panelde fatura özeti ve fatura oluşturma tarihinden +7/+10/+13 gün sonrasına planlanan 3
+hatırlatma e-postası kartı (accordion) yer alsın; alt kısımda sticky "Kapat" /
+"Ödeme hatırlatıcısını etkinleştir" butonları olsun.
+
+Kullanıcıyla netleştirilen kapsam kararları: (1) TRY karşılığı için backend'e kalıcı
+`exchange_rate` alanı eklendi (harici döviz kuru servisi kapsam dışı); (2) "Etkinleştir" butonu
+bu iterasyonda sadece UI prototipi — paneli kapatıp bir onay mesajı gösteriyor, backend'e kalıcı
+hatırlatma kaydı yazmıyor (mevcut diğer pasif menü öğeleri gibi, gerçek zamanlama/e-posta
+altyapısı ayrı bir görev).
+
+### İşlem Türü
+
+- **Ekleme** (backend migration + 2 yeni frontend dosyası) + **Değiştirme** (backend model/
+  schema/service + 7 frontend dosyası + i18n)
+
+### Değiştirilen/Eklenen Dosyalar
+
+1. **`backend/app/models/invoice.py`** — İşlem: Değiştirme. `Invoice`'a nullable
+   `exchange_rate: Numeric(18,6)` alanı eklendi.
+2. **`backend/alembic/versions/q2r3s4t5u6v7_add_invoice_exchange_rate.py`** — İşlem: Ekleme.
+   `invoices.exchange_rate` sütununu ekleyen migration; `alembic upgrade head` ile uygulandı.
+3. **`backend/app/schemas/invoice.py`** — İşlem: Değiştirme. `InvoiceCreatePayload`'a opsiyonel
+   `exchange_rate`; `InvoiceSummaryResponse`'a `exchange_rate` alanı + `local_amount` computed
+   field eklendi (`payment_currency == 'TRY'` ise `grand_total`, `exchange_rate` doluysa
+   `grand_total * exchange_rate`, yoksa `None`, `ROUND_HALF_UP` ile 2 ondalık).
+4. **`backend/app/services/invoice_service.py`** — İşlem: Değiştirme. Fatura oluşturmada
+   `Invoice(...)`'a `exchange_rate=payload.exchange_rate` eklendi.
+5. **`frontend/src/types/invoice.ts`** — İşlem: Değiştirme. `InvoiceSummary`'e `exchange_rate`/
+   `local_amount`, `InvoiceCreatePayload`'a opsiyonel `exchange_rate` eklendi.
+6. **`frontend/src/features/invoices/components/InvoiceForm.tsx`** — İşlem: Değiştirme.
+   `payment_currency !== 'TRY'` olduğunda görünen opsiyonel "Kur (TRY)" input alanı ve submit
+   payload'ına `exchange_rate` eklendi.
+7. **`frontend/src/features/invoices/utils/buildDuplicateInitialValues.ts`** — İşlem: Değiştirme.
+   Duplicate akışına `exchange_rate` alanı eklendi.
+8. **`frontend/src/features/invoices/types/invoiceRow.ts`** ve
+   **`frontend/src/features/invoices/utils/mapInvoiceToRow.ts`** — İşlem: Değiştirme.
+   `InvoiceRow`'a ham tarih için `createdAtRaw` eklendi; `secondaryAmount` artık backend'in
+   `local_amount`'ından `"<tutar> TRY"` olarak dolduruluyor (önceden hep `undefined`'dı).
+9. **`frontend/src/components/Drawer.tsx`** (yeni) — İşlem: Ekleme. `Modal.tsx`'ten esinlenen,
+   genel amaçlı sağdan-kayan panel: backdrop-click-to-close, ESC ile kapama, saf Tailwind
+   `translate-x` geçişiyle mount/unmount animasyonu (kütüphane bağımlılığı yok).
+10. **`frontend/src/features/invoices/components/PaymentChaserPanel.tsx`** (yeni) — İşlem:
+    Ekleme. `Drawer` üzerine kurulu panel içeriği: bilgi kutusu, fatura özet kartı (mevcut
+    `InvoiceStatusBadge`/`Badge` yeniden kullanıldı), fatura oluşturma tarihinden +7/+10/+13 gün
+    sonrasına hesaplanan 3 accordion hatırlatma kartı (`addDays`/`formatDateDisplay` mevcut
+    `dateHelpers.ts`'ten), sticky footer.
+11. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`** — İşlem: Değiştirme.
+    Prop `invoiceId: string` yerine `row: InvoiceRow` alıyor (panel içeriği için tüm satır verisi
+    gerekiyordu); "Ödeme Hatırlatıcısı" butonu aktif hale getirildi, `PaymentChaserPanel`'i açıp
+    kapatan local state eklendi.
+12. **`frontend/src/features/invoices/components/InvoiceTableRow.tsx`** — İşlem: Değiştirme.
+    `InvoiceRowActions`'a `invoiceId` yerine `row` geçiriliyor.
+13. **`frontend/src/i18n/locales/tr.json`** ve **`en.json`** — İşlem: Değiştirme.
+    `invoices.form.exchangeRate(Placeholder)` ve `invoices.paymentChaser.*` (title, infoTitle,
+    infoBody, ruleFirst, ruleNext, emailLabel, emailBodyPlaceholder, close, activate,
+    activatedMessage) anahtarları eklendi.
+
+### Doğrulama
+
+- `alembic upgrade head` yerel Postgres'e hatasız uygulandı (`p1q2r3s4t5u6 -> q2r3s4t5u6v7`).
+- `npm run build` (tsc + vite) hatasız geçti.
+- Tarayıcıda görsel teyit (panel animasyonu, accordion, sticky footer, tutar/TRY karşılığı
+  gösterimi, "Etkinleştir" akışı) kullanıcı tarafından yapılmalı.
+
+---
+
 ## Fatura "Tekrar Oluştur" (Duplicate) Özelliği (2026-08-11)
 
 ### Bağlam

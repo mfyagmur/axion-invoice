@@ -289,6 +289,18 @@
       "overdue": "Overdue",
       "cancelled": "Cancelled"
     },
+    "paymentChaser": {
+      "title": "Payment Chaser",
+      "infoTitle": "Start automatic reminders",
+      "infoBody": "Axion Invoice will automatically send 3 reminder emails until payment is received. You can pause at any time.",
+      "ruleFirst": "After 7 Days",
+      "ruleNext": "After 3 Days",
+      "emailLabel": "Email #{{n}}",
+      "emailBodyPlaceholder": "Email content editing will be available soon.",
+      "close": "Close",
+      "activate": "Activate payment reminder",
+      "activatedMessage": "Payment reminder activated."
+    },
     "form": {
       "template": "Template",
       "selectTemplate": "Select a template",
@@ -302,6 +314,8 @@
       "paymentDetails": "Payment Details",
       "paymentCurrency": "Payment Currency",
       "invoiceCurrency": "Invoice Currency",
+      "exchangeRate": "Exchange rate (1 unit = ? TRY)",
+      "exchangeRatePlaceholder": "e.g. 37.22",
       "commissionPayer": "Who pays the commission?",
       "commissionPayerSelf": "Me",
       "commissionPayerCustomer": "Customer",

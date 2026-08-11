@@ -84,6 +84,7 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         customer_id=customer.id,
         currency=payload.currency,
         payment_currency=payload.payment_currency,
+        exchange_rate=payload.exchange_rate,
         invoice_type=payload.invoice_type,
         scenario=payload.scenario,
         commission_payer=payload.commission_payer,

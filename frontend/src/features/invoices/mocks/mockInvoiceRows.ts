@@ -11,6 +11,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     currency: 'USD',
     secondaryAmount: 'Net 44,644.83 TRY',
     createdAt: '2026-08-10T00:00:00Z',
+    createdAtRaw: '2026-08-10T00:00:00Z',
     status: 'draft',
   },
   {
@@ -23,6 +24,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     currency: 'EUR',
     secondaryAmount: 'Net 128,910.20 TRY',
     createdAt: '2026-08-09T00:00:00Z',
+    createdAtRaw: '2026-08-09T00:00:00Z',
     status: 'sent',
   },
   {
@@ -34,6 +36,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     amount: '5,000.00',
     currency: 'GBP',
     createdAt: '2026-08-08T00:00:00Z',
+    createdAtRaw: '2026-08-08T00:00:00Z',
     status: 'paid',
   },
 ]

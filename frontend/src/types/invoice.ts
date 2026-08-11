@@ -38,6 +38,8 @@ export interface InvoiceSummary {
   status: InvoiceStatus
   currency: string
   payment_currency: string
+  exchange_rate: string | null
+  local_amount: string | null
   invoice_type: InvoiceType
   scenario: InvoiceScenario
   commission_payer: CommissionPayer
@@ -66,6 +68,7 @@ export interface InvoiceCreatePayload {
   customer_id: string
   currency: string
   payment_currency: string
+  exchange_rate?: string
   invoice_type: InvoiceType
   scenario: InvoiceScenario
   commission_payer: CommissionPayer

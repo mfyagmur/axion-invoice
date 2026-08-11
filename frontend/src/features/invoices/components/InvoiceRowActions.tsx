@@ -2,15 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { MoreHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
+import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
+import { PaymentChaserPanel } from '@/features/invoices/components/PaymentChaserPanel'
 
 interface InvoiceRowActionsProps {
-  invoiceId: string
+  row: InvoiceRow
 }
 
-export function InvoiceRowActions({ invoiceId }: InvoiceRowActionsProps) {
+export function InvoiceRowActions({ row }: InvoiceRowActionsProps) {
+  const invoiceId = row.id
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+  const [isPaymentChaserOpen, setIsPaymentChaserOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -57,8 +61,11 @@ export function InvoiceRowActions({ invoiceId }: InvoiceRowActionsProps) {
           </button>
           <button
             type="button"
-            disabled
-            className="w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed"
+            onClick={() => {
+              setIsOpen(false)
+              setIsPaymentChaserOpen(true)
+            }}
+            className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
           >
             {t('invoices.actions.paymentReminder')}
           </button>
@@ -116,6 +123,8 @@ export function InvoiceRowActions({ invoiceId }: InvoiceRowActionsProps) {
           </button>
         </div>
       )}
+
+      <PaymentChaserPanel row={row} isOpen={isPaymentChaserOpen} onClose={() => setIsPaymentChaserOpen(false)} />
     </div>
   )
 }
