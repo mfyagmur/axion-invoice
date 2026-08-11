@@ -29,6 +29,7 @@ export function InvoiceDetailPage() {
     <div className="flex flex-col gap-6">
       <InvoiceActionHeader
         invoice={invoice}
+        row={row}
         onBack={() => navigate(-1)}
         onOpenPaymentChaser={() => setChaserOpen(true)}
       />

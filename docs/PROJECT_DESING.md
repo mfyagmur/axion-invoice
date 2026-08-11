@@ -4,6 +4,134 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Sayfası — Yeniden Tasarım ve Responsive İyileştirme (2026-08-11)
+
+### Bağlam
+
+`/dashboard/invoices/:id` sayfası (`InvoiceDetailPage.tsx`) çok basitti: tek dar (`max-w-xl`)
+kolon, plain `h1`/`p` başlık (durum rozeti/aksiyon menüsü yok), kaba `.toFixed(2)` ile
+formatlanmış toplamlar kutusu, düz `.map()` listesi halinde kalemler (tablo yok, KDV/iskonto
+gösterilmiyor), notlar, PDF indir/tekrar dene butonları, ayrı bir "E-posta Gönder" butonu ve bir
+iframe içinde HTML önizleme toggle'ı. Talep: sayfayı profesyonel bir fatura detay ekranına
+dönüştürmek — üstte aksiyon başlığı (fatura no + durum + tarih + Ödeme Hatırlatıcısı/İndir/"..."
+menüsü), altta ~65/35 iki kolonlu layout: solda gönderen/alıcı şirket bilgisi + kalem tablosu +
+Ara Toplam/Vergiler/Toplam + açıklama, sağda accordion'lu ödeme özeti kutusu, farklı arkaplanlı
+"alacağın tutar" kutusu ve durum zaman çizelgesi (stepper).
+
+Kullanıcıyla netleştirilen kapsam kararları: (1) mevcut "E-posta Gönder" / iframe önizleme
+affordance'ları ana sayfadan kaldırıldı — `InvoiceRowActions` menüsündeki (şu an pasif)
+karşılıklarına bırakıldı; (2) backend'de `InvoiceStatus` enum'ında ayrı bir "ödeme alındı" durumu
+yok (`draft|sent|paid|overdue|cancelled`), bu yüzden zaman çizelgesindeki "Ödeme Alındı" ve
+"Ödendi" adımları `status === 'paid'` olduğunda birlikte tamamlanmış sayılıyor (kod içinde bu
+varsayım yorumla belgelendi); (3) gönderen şirket ("Axion") bölümü için henüz bir profil veri
+modeli olmadığından sahte adres/vergi no gibi alanlar uydurulmadı — sadece isim + "yakında
+eklenecek" notu gösteriliyor.
+
+İlk geçişten sonra yapılan ikinci bir gözden geçirmede (aynı gün, aynı işin devamı) iki gerçek
+responsive/temizlik sorunu bulunup düzeltildi: `InvoiceActionHeader`'ın mobilde sarmaması
+(taşma riski) ve `LineItemsTable`'ın mobilde gerçek yatay scroll yerine sütunları sıkıştırması —
+detaylar aşağıda ilgili dosya maddelerinde belirtildi.
+
+### İşlem Türü
+
+- **Ekleme** (7 yeni frontend bileşeni + 1 yeni util) + **Değiştirme** (1 sayfa tam yeniden
+  yazım, 2 bileşen üzerinde responsive/temizlik düzeltmesi, i18n 2 dosya).
+
+### Değiştirilen/Eklenen Dosyalar
+
+1. **`frontend/src/utils/formatCurrency.ts`** (yeni) — İşlem: Ekleme. `mapInvoiceToRow.ts`'teki
+   `Number(x).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })`
+   deseninin ortak bir yardımcı fonksiyona çıkarılmış hali — sayfada 10'dan fazla yerde
+   kullanıldığı için eski sayfadaki tutarsız `.toFixed(2)` yerine bu tek kaynak kullanılıyor.
+2. **`frontend/src/features/invoices/components/InvoiceActionHeader.tsx`** (yeni) — İşlem:
+   Ekleme, sonra Değiştirme (responsive düzeltme). Geri butonu + fatura numarası +
+   `InvoiceStatusBadge` + oluşturulma tarihi (solda), "Ödeme Hatırlatıcısı" (`onOpenPaymentChaser`
+   callback'i ile sayfa seviyesindeki `PaymentChaserPanel`'i açar, `status==='cancelled'`'da
+   disabled), "İndir" (`useDownloadInvoicePdf`, sadece `pdf_status==='ready'` iken aktif) ve
+   `InvoiceRowActions` (mevcut "..." menüsü, olduğu gibi reuse edildi) butonları (sağda). İlk
+   sürümde kök `flex items-center justify-between` idi ve mobilde sarma yoktu — ikinci geçişte
+   `flex-col sm:flex-row sm:items-center sm:justify-between` (küçük ekranda dikey stack) ve sağ
+   aksiyon grubuna `flex-wrap` eklendi. Ayrıca ilk sürümde component kendi içinde
+   `mapInvoiceToRow(invoice)` çağırıyordu — sayfa zaten aynı dönüşümü bir kez yapıp `row`'u diğer
+   bileşenlere geçtiği için bu tekrar kaldırıldı, component artık `row: InvoiceRow` prop'unu
+   dışarıdan alıyor.
+3. **`frontend/src/features/invoices/components/CompanyInfoSection.tsx`** (yeni) — İşlem: Ekleme.
+   `Card` içinde `grid grid-cols-1 sm:grid-cols-2`: sol blok sabit "Axion" ismi + "Şirket
+   bilgileri yakında eklenecek." notu (`// TODO` yorumlu), sağ blok `customer`'dan
+   `company_name || name`, `address`, `tax_office`, `tax_number`, `city`, `postal_code`,
+   `country`, `email`, `phone` — sadece dolu olan alanlar filtrelenip gösteriliyor.
+4. **`frontend/src/features/invoices/components/LineItemsTable.tsx`** (yeni) — İşlem: Ekleme,
+   sonra Değiştirme (mobil scroll düzeltmesi). `Card` içinde `<table>`: Mal/Hizmet Kodu,
+   Açıklama, Miktar, Birim Fiyat, KDV Oranı, İskonto Oranı, Tutar sütunları (mevcut
+   `invoices.form.*` i18n anahtarları reuse edildi, yeni anahtar eklenmedi); altında sağa yaslı
+   Ara Toplam/Vergiler/Toplam — **API'den gelen `subtotal`/`tax_total`/`grand_total` doğrudan
+   kullanıldı, client-side yeniden hesaplama yapılmadı** (fatura formundaki `InvoiceForm.tsx`'in
+   aksine, orada henüz kaydedilmemiş taslak veri üzerinden hesaplama zorunlu). İlk sürümde
+   `overflow-x-auto` sarmalayıcı vardı ama `<table>`'a minimum genişlik verilmemişti — tarayıcı
+   7 sütunlu tabloyu scroll yerine sıkıştırıyordu; ikinci geçişte projenin kendi
+   `InvoiceTable.tsx`'indeki (`min-w-180`) desenle tutarlı olacak şekilde `min-w-175` eklenerek
+   mobilde gerçek yatay scroll sağlandı.
+5. **`frontend/src/features/invoices/components/AdditionalDetailsGrid.tsx`** (yeni) — İşlem:
+   Ekleme. `Card` içinde `grid grid-cols-1 gap-4` — şimdilik tek hücre (`invoice.notes`), ileride
+   yeni alanlar eklenebilecek şekilde grid yapısı korunuyor; `notes` boşsa kart hiç render
+   edilmiyor (eski sayfadaki guard aynen taşındı).
+6. **`frontend/src/features/invoices/components/PaymentSummaryBox.tsx`** (yeni) — İşlem: Ekleme.
+   `InvoiceForm.tsx`'teki (satır ~406-455) grid-rows accordion deseninin (`ChevronDown` rotate +
+   `grid-rows-[0fr]/[1fr]` + `overflow-hidden` collapse trick) birebir kopyası — yeni bir
+   Accordion bileşeni yazılmadı, proje zaten bu deseni component olarak soyutlamıyor. Kapalı
+   halde büyük "Toplam Tutar", açılınca Ara Toplam/Vergiler/(ayraç)/Genel Toplam.
+7. **`frontend/src/features/invoices/components/NetReceivableBox.tsx`** (yeni) — İşlem: Ekleme.
+   `Card className="border-blue-100 bg-blue-50"` (görsel olarak `PaymentSummaryBox`'tan ayrışsın
+   diye) — `row.secondaryAmount ?? `${row.amount} ${row.currency}`` (mevcut `mapInvoiceToRow`
+   mantığıyla birebir uyumlu, kod tekrarı yok), altında kur dalgalanması bilgi notu. Komisyon
+   hesaplaması için henüz UI yok — `{/* TODO: komisyon hesaplaması eklenince buraya gelecek */}`
+   yorumuyla yer ayrıldı, işlevsel bir şey eklenmedi.
+8. **`frontend/src/features/invoices/components/StatusTimeline.tsx`** (yeni) — İşlem: Ekleme.
+   Sıfırdan yazılan dikey stepper (repoda hazır Timeline/Stepper primitive'i yoktu). 3 adım:
+   "Oluşturuldu" (her zaman tamamlanmış, tarihli), "Ödeme Alındı" ve "Ödendi" (ikisi de
+   `status==='paid'` olduğunda birlikte tamamlanmış — yukarıdaki Bağlam bölümünde açıklanan
+   backend kısıtı yüzünden, kod içinde `// NOTE` yorumuyla belgelendi).
+9. **`frontend/src/pages/dashboard/InvoiceDetailPage.tsx`** — İşlem: Değiştirme (tam yeniden
+   yazım). Eski `useInvoicePreview`/`useSendInvoiceEmail` kullanımı, iframe önizleme ve standalone
+   e-posta butonu kaldırıldı. Yeni yapı: `InvoiceActionHeader` + `grid-cols-1
+   lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start` iki kolon (sol: `CompanyInfoSection` +
+   `LineItemsTable` + `AdditionalDetailsGrid`; sağ, `lg:sticky lg:top-6`: `PaymentSummaryBox` +
+   `NetReceivableBox` + `StatusTimeline`) + sayfa seviyesinde tek bir `PaymentChaserPanel`
+   instance'ı (`row = mapInvoiceToRow(invoice)` bir kez hesaplanıp hem header'a hem panele
+   geçiliyor).
+10. **`frontend/src/i18n/locales/tr.json`** ve **`en.json`** — İşlem: Değiştirme.
+    `invoices.detail` altına 10 yeni anahtar eklendi: `companyInfoTitle`, `senderTitle`,
+    `recipientTitle`, `senderPlaceholderName`, `senderPlaceholderNote`, `netReceivableLabel`,
+    `exchangeRateNote`, `timelineCreated`, `timelinePaymentReceived`, `timelinePaid`. Mevcut
+    `invoices.form.subtotal/tax/grandTotal/amountToBeCharged/itemCode/description/quantity/
+    unitPrice/discountRate/taxRate/amount/lineItems/notes` ve `invoices.actions.paymentReminder`
+    anahtarları olduğu gibi reuse edildi, tekrar eklenmedi.
+
+### Doğrulama
+
+- ✅ `npx tsc --noEmit` — her iki geçişte de (ilk implementasyon ve responsive/temizlik
+  düzeltmesi sonrası) tip hatası olmadan tamamlandı.
+- ✅ `npm run build` (tsc + vite) — her iki geçişte de hatasız geçti (sadece mevcut, ilgisiz
+  "chunk size > 500 kB" uyarısı).
+- 🔄 Tarayıcıda görsel/responsive teyit bu ortamda headless tarayıcı aracı olmadığı için
+  yapılamadı — kullanıcı tarafından `npm run dev` ile `/dashboard/invoices/:id` üzerinde,
+  özellikle mobil genişlikte `InvoiceActionHeader`'ın dikey sıralanıp taşmaması ve
+  `LineItemsTable`'ın gerçek yatay scroll etmesi kontrol edilmeli; ayrıca farklı fatura
+  durumlarında (`draft`/`sent`/`paid`/`cancelled`) `StatusTimeline`'ın beklenen adımları
+  gösterdiği ve `PaymentSummaryBox` accordion'ının aç/kapa çalıştığı teyit edilmeli.
+
+### Bilinen Kısıtlamalar
+
+1. `StatusTimeline`'da "Ödeme Alındı" ve "Ödendi" backend'de ayrı bir durum olmadığı için
+   `status==='paid'` olduğunda birlikte tamamlanmış gösteriliyor — gerçek bir ara "ödeme alındı"
+   durumu eklenirse bu bileşen güncellenmeli.
+2. Gönderen şirket bilgisi (Axion) sabit placeholder — henüz bir "kendi şirket profili" veri
+   modeli/ayarlar ekranı yok, eklendiğinde `CompanyInfoSection`'daki `TODO` yorumu takip edilmeli.
+3. `NetReceivableBox`'ta komisyon hesaplaması için sadece yer ayrıldı, işlevsel bir hesaplama
+   yok — ayrı bir görev.
+
+---
+
 ## Sidebar — Açılır/Kapanır (Collapse/Expand) Animasyonlu Hale Getirme (2026-08-11)
 
 ### Bağlam

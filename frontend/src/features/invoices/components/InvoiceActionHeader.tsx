@@ -3,26 +3,26 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { InvoiceStatusBadge } from '@/features/invoices/components/InvoiceStatusBadge'
 import { InvoiceRowActions } from '@/features/invoices/components/InvoiceRowActions'
-import { mapInvoiceToRow } from '@/features/invoices/utils/mapInvoiceToRow'
 import { formatDateDisplay } from '@/features/invoices/utils/dateHelpers'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 import type { InvoiceDetail } from '@/types/invoice'
+import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 
 interface InvoiceActionHeaderProps {
   invoice: InvoiceDetail
+  row: InvoiceRow
   onBack: () => void
   onOpenPaymentChaser: () => void
 }
 
-export function InvoiceActionHeader({ invoice, onBack, onOpenPaymentChaser }: InvoiceActionHeaderProps) {
+export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser }: InvoiceActionHeaderProps) {
   const { t } = useTranslation()
   const downloadPdf = useDownloadInvoicePdf()
-  const row = mapInvoiceToRow(invoice)
   const isPdfReady = invoice.pdf_status === 'ready' && !!invoice.pdf_url
   const isCancelled = invoice.status === 'cancelled'
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -41,7 +41,7 @@ export function InvoiceActionHeader({ invoice, onBack, onOpenPaymentChaser }: In
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="secondary"

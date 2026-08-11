@@ -17,7 +17,7 @@ export function LineItemsTable({ lineItems, currency, subtotal, taxTotal, grandT
   return (
     <Card title={t('invoices.form.lineItems')}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-175 text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
               <th className="py-2 pr-3">{t('invoices.form.itemCode')}</th>
