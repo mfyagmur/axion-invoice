@@ -24,7 +24,7 @@ export function InvoiceRowActions({ invoiceId }: InvoiceRowActionsProps) {
   }, [])
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
