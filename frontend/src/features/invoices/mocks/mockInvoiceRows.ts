@@ -13,6 +13,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     createdAt: '2026-08-10T00:00:00Z',
     createdAtRaw: '2026-08-10T00:00:00Z',
     status: 'draft',
+    paymentReminderActive: false,
   },
   {
     id: 'mock-2',
@@ -26,6 +27,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     createdAt: '2026-08-09T00:00:00Z',
     createdAtRaw: '2026-08-09T00:00:00Z',
     status: 'sent',
+    paymentReminderActive: false,
   },
   {
     id: 'mock-3',
@@ -38,5 +40,6 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     createdAt: '2026-08-08T00:00:00Z',
     createdAtRaw: '2026-08-08T00:00:00Z',
     status: 'paid',
+    paymentReminderActive: false,
   },
 ]

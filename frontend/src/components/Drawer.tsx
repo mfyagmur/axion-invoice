@@ -42,9 +42,12 @@ export function Drawer({ isOpen, onClose, children, className }: DrawerProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 cursor-default">
+    <div className="fixed inset-0 z-50 cursor-default" onClick={(e) => e.stopPropagation()}>
       <div
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation()
+          onClose()
+        }}
         className={twMerge(
           'absolute inset-0 bg-black/40 transition-opacity duration-300',
           isVisible ? 'opacity-100' : 'opacity-0',

@@ -290,7 +290,7 @@
       "cancelled": "İptal"
     },
     "paymentChaser": {
-      "title": "Payment Chaser",
+      "title": "Ödeme Hatırlatıcısı",
       "infoTitle": "Otomatik hatırlatıcıları başlat",
       "infoBody": "Axion Invoice, ödeme alınana kadar otomatik olarak 3 adet hatırlatma e-postası gönderecektir. İstediğiniz zaman duraklatabilirsiniz.",
       "ruleFirst": "7 Gün Sonrasına",
@@ -299,7 +299,9 @@
       "emailBodyPlaceholder": "E-posta içeriği yakında düzenlenebilir olacak.",
       "close": "Kapat",
       "activate": "Ödeme hatırlatıcısını etkinleştir",
-      "activatedMessage": "Ödeme hatırlatıcısı etkinleştirildi."
+      "activatedMessage": "Ödeme hatırlatıcısı etkinleştirildi.",
+      "cancel": "Ödeme Hatırlatıcısını İptal Et",
+      "cancelledMessage": "Ödeme hatırlatıcısı iptal edildi."
     },
     "form": {
       "template": "Şablon",

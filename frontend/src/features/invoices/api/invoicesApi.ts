@@ -25,4 +25,10 @@ export const invoicesApi = {
 
   preview: (id: string) =>
     apiClient.get<string>(`/invoices/${id}/preview`, { responseType: 'text' }).then((res) => res.data),
+
+  activatePaymentReminder: (id: string) =>
+    apiClient.post<InvoiceDetail>(`/invoices/${id}/payment-reminder/activate`).then((res) => res.data),
+
+  deactivatePaymentReminder: (id: string) =>
+    apiClient.post<InvoiceDetail>(`/invoices/${id}/payment-reminder/deactivate`).then((res) => res.data),
 }

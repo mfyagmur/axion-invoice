@@ -19,5 +19,6 @@ export function mapInvoiceToRow(invoice: InvoiceSummary): InvoiceRow {
     createdAt: invoice.created_at,
     createdAtRaw: invoice.created_at,
     status: invoice.status,
+    paymentReminderActive: invoice.payment_reminder_active,
   }
 }

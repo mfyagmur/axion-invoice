@@ -290,7 +290,7 @@
       "cancelled": "Cancelled"
     },
     "paymentChaser": {
-      "title": "Payment Chaser",
+      "title": "Payment Reminder",
       "infoTitle": "Start automatic reminders",
       "infoBody": "Axion Invoice will automatically send 3 reminder emails until payment is received. You can pause at any time.",
       "ruleFirst": "After 7 Days",
@@ -299,7 +299,9 @@
       "emailBodyPlaceholder": "Email content editing will be available soon.",
       "close": "Close",
       "activate": "Activate payment reminder",
-      "activatedMessage": "Payment reminder activated."
+      "activatedMessage": "Payment reminder activated.",
+      "cancel": "Cancel Payment Reminder",
+      "cancelledMessage": "Payment reminder cancelled."
     },
     "form": {
       "template": "Template",

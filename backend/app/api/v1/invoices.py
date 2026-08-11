@@ -120,6 +120,32 @@ def send_invoice_email_endpoint(
     send_invoice_email_task.delay(str(invoice.id), invoice.customer.email)
 
 
+@router.post("/{invoice_id}/payment-reminder/activate", response_model=InvoiceDetailResponse)
+def activate_payment_reminder(
+    invoice_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, current_user)
+    invoice.payment_reminder_active = True
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
+@router.post("/{invoice_id}/payment-reminder/deactivate", response_model=InvoiceDetailResponse)
+def deactivate_payment_reminder(
+    invoice_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, current_user)
+    invoice.payment_reminder_active = False
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
 @router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_invoice(
     invoice_id: uuid.UUID,

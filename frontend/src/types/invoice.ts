@@ -46,6 +46,7 @@ export interface InvoiceSummary {
   grand_total: string
   pdf_url: string | null
   pdf_status: InvoicePdfStatus
+  payment_reminder_active: boolean
   issued_at: string | null
   created_at: string
   customer: Customer

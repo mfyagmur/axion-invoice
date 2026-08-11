@@ -7,6 +7,7 @@ import { Button } from '@/components/Button'
 import { InvoiceStatusBadge } from '@/features/invoices/components/InvoiceStatusBadge'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 import { addDays, formatDateDisplay } from '@/features/invoices/utils/dateHelpers'
+import { usePaymentReminder } from '@/features/invoices/hooks/usePaymentReminder'
 
 interface PaymentChaserPanelProps {
   row: InvoiceRow
@@ -24,20 +25,39 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
   const { t } = useTranslation()
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const [activatedMessage, setActivatedMessage] = useState(false)
+  const [cancelledMessage, setCancelledMessage] = useState(false)
+  const { activateMutation, deactivateMutation } = usePaymentReminder()
 
   const createdAt = new Date(row.createdAtRaw)
 
   function handleClose() {
     setActivatedMessage(false)
+    setCancelledMessage(false)
     onClose()
   }
 
   function handleActivate() {
-    setActivatedMessage(true)
-    setTimeout(() => {
-      setActivatedMessage(false)
-      onClose()
-    }, 1200)
+    activateMutation.mutate(row.id, {
+      onSuccess: () => {
+        setActivatedMessage(true)
+        setTimeout(() => {
+          setActivatedMessage(false)
+          onClose()
+        }, 1200)
+      },
+    })
+  }
+
+  function handleCancel() {
+    deactivateMutation.mutate(row.id, {
+      onSuccess: () => {
+        setCancelledMessage(true)
+        setTimeout(() => {
+          setCancelledMessage(false)
+          onClose()
+        }, 1200)
+      },
+    })
   }
 
   return (
@@ -139,34 +159,42 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
           {activatedMessage && (
             <p className="text-sm font-medium text-green-700">{t('invoices.paymentChaser.activatedMessage')}</p>
           )}
+          {cancelledMessage && (
+            <p className="text-sm font-medium text-amber-700">{t('invoices.paymentChaser.cancelledMessage')}</p>
+          )}
         </div>
       </div>
 
-      {/* <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 p-4">
-        <Button type="button" variant="secondary" onClick={handleClose} className="flex-1">
-          {t('invoices.paymentChaser.close')}
-        </Button>
-        <Button type="button" onClick={handleActivate} className="flex-1">
-          {t('invoices.paymentChaser.activate')}
-        </Button>
-      </div> */}
       <div className="flex shrink-0 items-center justify-start gap-3 border-t border-slate-100 p-4">
         <Button
           type="button"
           variant="secondary"
           onClick={handleClose}
           className="px-6 hover:bg-slate-200 text-slate-700"
+          disabled={activateMutation.isPending || deactivateMutation.isPending}
         >
           {t('invoices.paymentChaser.close')}
         </Button>
 
-        <Button
-          type="button"
-          onClick={handleActivate}
-          className="px-6 whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-        >
-          {t('invoices.paymentChaser.activate')}
-        </Button>
+        {row.paymentReminderActive ? (
+          <Button
+            type="button"
+            onClick={handleCancel}
+            className="px-6 whitespace-nowrap bg-rose-800 text-white hover:bg-rose-900 focus:ring-rose-500"
+            disabled={activateMutation.isPending || deactivateMutation.isPending}
+          >
+            {t('invoices.paymentChaser.cancel')}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={handleActivate}
+            className="px-6 whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+            disabled={activateMutation.isPending || deactivateMutation.isPending}
+          >
+            {t('invoices.paymentChaser.activate')}
+          </Button>
+        )}
       </div>
     </Drawer>
   )

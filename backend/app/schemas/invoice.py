@@ -76,6 +76,7 @@ class InvoiceSummaryResponse(BaseModel):
     grand_total: Decimal
     pdf_url: str | None
     pdf_status: InvoicePdfStatus
+    payment_reminder_active: bool
     issued_at: date | None
     created_at: datetime
     customer: CustomerResponse
