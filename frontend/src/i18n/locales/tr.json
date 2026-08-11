@@ -247,7 +247,8 @@
   "invoices": {
     "tabs": {
       "all": "Tümü",
-      "scheduled": "Planlanan Faturalar"
+      "scheduled": "Planlanan Faturalar",
+      "archive": "Arşiv"
     },
     "scheduled": {
       "empty": "Planlanan fatura özelliği yakında kullanıma sunulacak."
@@ -279,7 +280,8 @@
       "restoreInvoice": "Taslağa Geri Al",
       "restoreConfirmTitle": "Faturayı Geri Al",
       "restoreConfirmMessage": "Bu fatura Taslak durumuna geri alınacak. Devam edilsin mi?",
-      "archive": "Arşivle"
+      "archive": "Arşivle",
+      "unarchive": "Arşivden Çıkar"
     },
     "list": {
       "newInvoice": "Yeni Fatura",

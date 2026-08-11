@@ -77,6 +77,7 @@ class InvoiceSummaryResponse(BaseModel):
     pdf_url: str | None
     pdf_status: InvoicePdfStatus
     payment_reminder_active: bool
+    archived: bool
     issued_at: date | None
     created_at: datetime
     customer: CustomerResponse

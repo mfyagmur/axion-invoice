@@ -181,6 +181,32 @@ def restore_invoice(
     return invoice
 
 
+@router.post("/{invoice_id}/archive", response_model=InvoiceDetailResponse)
+def archive_invoice(
+    invoice_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, current_user)
+    invoice.archived = True
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
+@router.post("/{invoice_id}/unarchive", response_model=InvoiceDetailResponse)
+def unarchive_invoice(
+    invoice_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, current_user)
+    invoice.archived = False
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
 @router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_invoice(
     invoice_id: uuid.UUID,

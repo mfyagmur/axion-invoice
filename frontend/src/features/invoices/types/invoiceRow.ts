@@ -13,4 +13,5 @@ export interface InvoiceRow {
   createdAtRaw: string
   status: InvoiceStatus
   paymentReminderActive: boolean
+  archived: boolean
 }

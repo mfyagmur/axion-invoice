@@ -37,4 +37,10 @@ export const invoicesApi = {
 
   restore: (id: string) =>
     apiClient.post<InvoiceDetail>(`/invoices/${id}/restore`).then((res) => res.data),
+
+  archive: (id: string) =>
+    apiClient.post<InvoiceDetail>(`/invoices/${id}/archive`).then((res) => res.data),
+
+  unarchive: (id: string) =>
+    apiClient.post<InvoiceDetail>(`/invoices/${id}/unarchive`).then((res) => res.data),
 }

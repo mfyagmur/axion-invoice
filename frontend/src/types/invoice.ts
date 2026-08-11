@@ -47,6 +47,7 @@ export interface InvoiceSummary {
   pdf_url: string | null
   pdf_status: InvoicePdfStatus
   payment_reminder_active: boolean
+  archived: boolean
   issued_at: string | null
   created_at: string
   customer: Customer

@@ -4,6 +4,79 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Arşivleme (Archive/Unarchive) (2026-08-11)
+
+### Bağlam
+
+Aksiyon menüsünde daha önce pasif duran "Arşivle" butonu (i18n key'i tanımlıydı ama hiçbir
+davranışa bağlı değildi) hayata geçirildi. Arşivleme, faturanın `status` alanını değiştirmez —
+ayrı bir `archived` boolean kolonu set eder (mevcut `payment_reminder_active` kolonuyla aynı
+desende). Ayrıca: (1) Faturalar ekranındaki Tabs'a yeni bir "Arşiv" tab'ı eklendi, arşivlenen
+faturalar "Tümü" listesinden gizlenip sadece bu yeni tab'da listeleniyor; (2) arşivlenen bir
+faturada "..." menüsü sadece Görüntüle, İptal Et ve Arşivden Çıkar gösteriyor, diğer seçenekler
+(Tekrar Oluştur, Ödeme Hatırlatıcısı, Önizleme, E-posta, İndir) hiç render edilmiyor; (3)
+"Arşivden Çıkar" fatura eski (arşivsiz) listeye geri döndürüyor; (4) çakışma kuralı — fatura hem
+`cancelled` hem `archived` ise iptal durumu önceliklidir, menüde Görüntüle + Geri Al (taslağa) +
+Arşivden Çıkar gösterilir, "İptal Et" gösterilmez (zaten iptal edilmiş).
+
+### İşlem Türü
+
+- **Ekleme** (backend 1 migration + 2 endpoint, frontend 2 yeni hook) + **Değiştirme**
+  (backend model/schema, frontend 6 dosya + i18n).
+
+### Değiştirilen/Eklenen Dosyalar
+
+1. **`backend/alembic/versions/s4t5u6v7w8x9_add_invoice_archived.py`** (yeni) — İşlem: Ekleme.
+   `invoices` tablosuna `archived boolean not null default false` kolonu ekleyen migration
+   (`r3s4t5u6v7w8`'in üzerine, `payment_reminder_active` migration'ının aynı deseni).
+2. **`backend/app/models/invoice.py`** — İşlem: Değiştirme. `Invoice` modeline
+   `archived: Mapped[bool]` alanı eklendi (`payment_reminder_active`'in yanına).
+3. **`backend/app/schemas/invoice.py`** — İşlem: Değiştirme. `InvoiceSummaryResponse`'a
+   `archived: bool` alanı eklendi (liste/detay response'larında görünür).
+4. **`backend/app/api/v1/invoices.py`** — İşlem: Ekleme. `POST /{invoice_id}/archive` ve
+   `POST /{invoice_id}/unarchive` endpoint'leri eklendi (`payment-reminder/activate`-`deactivate`
+   deseninin aynısı — sadece `archived` alanını `True`/`False` set edip commit eder).
+5. **`frontend/src/types/invoice.ts`** — İşlem: Değiştirme. `InvoiceSummary` tipine
+   `archived: boolean` eklendi.
+6. **`frontend/src/features/invoices/types/invoiceRow.ts`** — İşlem: Değiştirme. `InvoiceRow`
+   tipine `archived: boolean` eklendi.
+7. **`frontend/src/features/invoices/utils/mapInvoiceToRow.ts`** — İşlem: Değiştirme.
+   `archived: invoice.archived` passthrough eklendi.
+8. **`frontend/src/features/invoices/mocks/mockInvoiceRows.ts`** — İşlem: Değiştirme. Mock
+   satırlara `archived: false` eklendi (tip uyumu için).
+9. **`frontend/src/features/invoices/api/invoicesApi.ts`** — İşlem: Değiştirme. `archive(id)` ve
+   `unarchive(id)` metodları eklendi.
+10. **`frontend/src/features/invoices/hooks/useArchiveInvoice.ts`** (yeni) — İşlem: Ekleme.
+    `useCancelInvoice` deseninin aynısı — mutation + sonner toast + `invalidateQueries(['invoices'])`.
+11. **`frontend/src/features/invoices/hooks/useUnarchiveInvoice.ts`** (yeni) — İşlem: Ekleme.
+    Aynı desen, `unarchive` çağırır.
+12. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`** — İşlem: Değiştirme.
+    Menü render mantığı üçe ayrıldı: `isCancelled` (öncelikli — Görüntüle+Geri Al, `isArchived`
+    ise altına Arşivden Çıkar da eklenir), `isArchived && !isCancelled` (Görüntüle+İptal Et+
+    Arşivden Çıkar, diğer satırlar hiç render edilmez), normal durum (tam menü, artık aktif
+    "Arşivle" butonu doğrudan `useArchiveInvoice` mutation'ını tetikler — payment-reminder
+    toggle'ları gibi onay dialogsuz, hafif bir aksiyon).
+13. **`frontend/src/pages/dashboard/InvoicesPage.tsx`** — İşlem: Değiştirme. `activeTab` union'ına
+    `'archive'` eklendi, `Tabs` listesine üçüncü öğe eklendi. Filtre mantığı `matchesFilters`
+    helper'ına çıkarılıp `filteredRows` (Tümü, artık `!row.archived` şartıyla arşivlenenleri
+    gizliyor) ve `archivedRows` (`row.archived` + aynı search/status/date filtreleri) olarak
+    ikiye ayrıldı. Yeni "archive" tab branch'i, "scheduled" tab'ının aksine gerçek toolbar +
+    `InvoiceTable` ile arşivlenen faturaları listeliyor (statik boş state değil).
+14. **`frontend/src/i18n/locales/en.json`** / **`tr.json`** — İşlem: Değiştirme.
+    `invoices.tabs.archive` ("Archive"/"Arşiv") ve `invoices.actions.unarchive`
+    ("Remove from Archive"/"Arşivden Çıkar") key'leri eklendi.
+
+### Doğrulama
+
+- `npm run build` (tsc+vite) hatasız geçti.
+- Backend: `docker compose exec backend alembic upgrade head` ile migration uygulandı,
+  `\d invoices` çıktısında `archived boolean not null default false` kolonu doğrulandı, ORM
+  üzerinden bir satır okunup `archived` alanının erişilebilir olduğu teyit edildi.
+- Tarayıcıda görsel doğrulama (Arşiv tab'ının dolu görünmesi, menü dallanmasının doğru
+  çalışması, iptal+arşiv kombinasyonunun beklenen menüyü göstermesi) kullanıcı tarafında kalıyor.
+
+---
+
 ## Fatura İptal → Geri Al, Custom Confirm Dialog, Sonner Toast, Portal Dropdown (2026-08-11)
 
 ### Bağlam

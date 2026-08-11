@@ -15,7 +15,7 @@ export function InvoicesPage() {
   const { t } = useTranslation()
   const { data: invoices, isLoading, isError, refetch } = useInvoices()
 
-  const [activeTab, setActiveTab] = useState<'all' | 'scheduled'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'scheduled' | 'archive'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFrom, setDateFrom] = useState<Date | null>(null)
@@ -24,7 +24,7 @@ export function InvoicesPage() {
   const rows = useMemo(() => (invoices ?? []).map(mapInvoiceToRow), [invoices])
   const displayRows = rows.length > 0 ? rows : MOCK_INVOICE_ROWS
 
-  const filteredRows = displayRows.filter((row) => {
+  const matchesFilters = (row: (typeof displayRows)[number]) => {
     const matchesSearch =
       searchQuery === '' ||
       row.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -38,7 +38,10 @@ export function InvoicesPage() {
       (!dateTo || rowDate <= dateTo)
 
     return matchesSearch && matchesStatus && matchesDateRange
-  })
+  }
+
+  const filteredRows = displayRows.filter((row) => !row.archived && matchesFilters(row))
+  const archivedRows = displayRows.filter((row) => row.archived && matchesFilters(row))
 
   return (
     <div className="flex flex-col gap-4">
@@ -56,9 +59,10 @@ export function InvoicesPage() {
         items={[
           { key: 'all', label: t('invoices.tabs.all') },
           { key: 'scheduled', label: t('invoices.tabs.scheduled'), icon: <Clock size={14} /> },
+          { key: 'archive', label: t('invoices.tabs.archive') },
         ]}
         activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'all' | 'scheduled')}
+        onChange={(key) => setActiveTab(key as 'all' | 'scheduled' | 'archive')}
       />
 
       {activeTab === 'all' && (
@@ -89,6 +93,29 @@ export function InvoicesPage() {
           <Clock size={24} className="text-slate-400" />
           <p className="text-sm text-slate-500">{t('invoices.scheduled.empty')}</p>
         </div>
+      )}
+
+      {activeTab === 'archive' && (
+        <>
+          <InvoiceToolbar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateChange={(from, to) => {
+              setDateFrom(from)
+              setDateTo(to)
+            }}
+          />
+
+          {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+
+          {isError && <ErrorState onRetry={() => refetch()} />}
+
+          {!isLoading && !isError && <InvoiceTable rows={archivedRows} />}
+        </>
       )}
     </div>
   )

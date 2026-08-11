@@ -247,7 +247,8 @@
   "invoices": {
     "tabs": {
       "all": "All",
-      "scheduled": "Scheduled Invoices"
+      "scheduled": "Scheduled Invoices",
+      "archive": "Archive"
     },
     "scheduled": {
       "empty": "Scheduled invoices are coming soon."
@@ -279,7 +280,8 @@
       "restoreInvoice": "Restore to Draft",
       "restoreConfirmTitle": "Restore Invoice",
       "restoreConfirmMessage": "This invoice will be moved back to Draft status. Continue?",
-      "archive": "Archive"
+      "archive": "Archive",
+      "unarchive": "Remove from Archive"
     },
     "list": {
       "newInvoice": "New Invoice",
