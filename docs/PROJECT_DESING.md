@@ -4,6 +4,55 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Sidebar — Açılır/Kapanır (Collapse/Expand) Animasyonlu Hale Getirme (2026-08-11)
+
+### Bağlam
+
+Masaüstü sidebar (`Sidebar.tsx`) daha önce sabit `w-60` genişlikte, her zaman tam açık render
+ediliyordu — daraltma/toggle imkânı yoktu (sadece mobilde tam ekran overlay drawer olarak
+açılıp kapanabiliyordu, o da animasyonsuz anlık conditional render). Talep: masaüstü sidebar'ın
+da collapse-to-icons şeklinde açılır/kapanır, animasyonlu ve bir trigger butonuyla kontrol
+edilebilir olması.
+
+Kullanıcıyla netleştirilen kapsam kararı: projede Radix UI/shadcn hiç kullanılmadığı (paket
+bile yok, incelemeyle doğrulandı) tespit edildi; yeni bir bağımlılık eklemek yerine projenin
+zaten kullandığı Tailwind transition + `twMerge` deseniyle (bkz. `Drawer.tsx`'in mount/visible
+iki-state yaklaşımı) devam edilmesine karar verildi. Collapse durumu kalıcı — sayfa yenilemede
+korunuyor — çünkü mevcut `localeStore.ts` ile aynı desende `zustand/persist` kullanıldı.
+
+### İşlem Türü
+
+- **Ekleme** (1 yeni store) + **Değiştirme** (`Sidebar.tsx`).
+
+### Değiştirilen/Eklenen Dosyalar
+
+1. **`frontend/src/store/sidebarStore.ts`** (yeni) — İşlem: Ekleme. `localeStore.ts` ile
+   birebir aynı desende `zustand` + `persist` store'u: `isCollapsed: boolean` ve
+   `toggleCollapsed()`. `localStorage` key'i `axion-sidebar-storage`.
+2. **`frontend/src/layouts/Sidebar.tsx`** — İşlem: Değiştirme.
+   - `useSidebarStore`'dan `isCollapsed`/`toggleCollapsed` okunuyor; `collapsed = isCollapsed &&
+     !onNavigate` — yani collapse sadece masaüstü instance'ında etkili, `onNavigate` prop'u
+     (mobil overlay drawer) geçildiğinde her zaman tam genişlik (`w-60`) korunuyor.
+   - Kök `<nav>` genişliği `twMerge` ile `transition-[width] duration-300 ease-in-out` içinde
+     `collapsed ? 'w-16' : 'w-60'` olarak animasyonlu geçiş yapıyor.
+   - Yeni trigger butonu (`lucide-react`'ten `PanelLeftClose`/`PanelLeftOpen` ikonlarıyla,
+     mevcut mobil hamburger `Menu`/`X` toggle deseninin birebir taklidi) başlık satırına
+     eklendi, `onClick={toggleCollapsed}`, sadece masaüstünde (`!onNavigate`) render ediliyor.
+   - Nav linkleri, admin linki ve alt kullanıcı menüsü (avatar) collapsed durumda label
+     metinlerini gizleyip sadece ikon/avatar gösterecek, ortalanacak şekilde güncellendi;
+     erişilebilirlik için collapsed'ta native `title` attribute'u (tooltip) eklendi.
+   - Kullanıcı menüsü dropdown paneli (`absolute bottom-full left-0 right-0`) collapsed'ta
+     `w-16` üst kapsayıcıya sıkışmaması için sabit `w-60` genişlik verildi.
+
+### Doğrulama
+
+- ✅ `npm run build` (tsc + vite) hatasız geçti.
+- 🔄 Tarayıcıda görsel teyit (trigger butonuna tıklayınca animasyonlu daralma/genişleme, F5
+  sonrası state'in korunması, collapsed'ta tooltip'lerin görünmesi, mobil overlay'in
+  etkilenmediği) kullanıcı tarafından yapılmalı.
+
+---
+
 ## Fatura Arşivleme (Archive/Unarchive) (2026-08-11)
 
 ### Bağlam
