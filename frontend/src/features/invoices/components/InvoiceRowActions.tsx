@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 import { PaymentChaserPanel } from '@/features/invoices/components/PaymentChaserPanel'
+import { useCancelInvoice } from '@/features/invoices/hooks/useCancelInvoice'
 
 interface InvoiceRowActionsProps {
   row: InvoiceRow
@@ -16,6 +17,8 @@ export function InvoiceRowActions({ row }: InvoiceRowActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPaymentChaserOpen, setIsPaymentChaserOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const cancelMutation = useCancelInvoice()
+  const isCancellable = row.status !== 'paid' && row.status !== 'cancelled'
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -109,8 +112,18 @@ export function InvoiceRowActions({ row }: InvoiceRowActionsProps) {
           </button>
           <button
             type="button"
-            disabled
-            className="w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed"
+            disabled={!isCancellable}
+            onClick={() => {
+              setIsOpen(false)
+              if (window.confirm(t('invoices.actions.cancelConfirm'))) {
+                cancelMutation.mutate(invoiceId)
+              }
+            }}
+            className={
+              isCancellable
+                ? 'w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50'
+                : 'w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed'
+            }
           >
             {t('invoices.actions.cancelInvoice')}
           </button>

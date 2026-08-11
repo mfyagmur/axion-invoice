@@ -273,6 +273,7 @@
       "sendEmail": "Send Email",
       "downloadPdf": "Download (PDF)",
       "cancelInvoice": "Cancel",
+      "cancelConfirm": "Are you sure you want to cancel this invoice?",
       "archive": "Archive"
     },
     "list": {

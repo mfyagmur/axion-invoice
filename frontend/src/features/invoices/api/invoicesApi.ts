@@ -31,4 +31,7 @@ export const invoicesApi = {
 
   deactivatePaymentReminder: (id: string) =>
     apiClient.post<InvoiceDetail>(`/invoices/${id}/payment-reminder/deactivate`).then((res) => res.data),
+
+  cancel: (id: string) =>
+    apiClient.post<InvoiceDetail>(`/invoices/${id}/cancel`).then((res) => res.data),
 }

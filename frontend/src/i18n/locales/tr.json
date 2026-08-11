@@ -273,6 +273,7 @@
       "sendEmail": "E-Posta Gönder",
       "downloadPdf": "İndir (PDF)",
       "cancelInvoice": "İptal Et",
+      "cancelConfirm": "Bu faturayı iptal etmek istediğinizden emin misiniz?",
       "archive": "Arşivle"
     },
     "list": {
