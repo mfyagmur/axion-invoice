@@ -266,7 +266,14 @@
     "actions": {
       "view": "View",
       "download": "Download",
-      "delete": "Delete"
+      "delete": "Delete",
+      "duplicate": "Duplicate",
+      "paymentReminder": "Payment Reminder",
+      "preview": "Preview",
+      "sendEmail": "Send Email",
+      "downloadPdf": "Download (PDF)",
+      "cancelInvoice": "Cancel",
+      "archive": "Archive"
     },
     "list": {
       "newInvoice": "New Invoice",

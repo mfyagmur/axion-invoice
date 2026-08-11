@@ -266,7 +266,14 @@
     "actions": {
       "view": "Görüntüle",
       "download": "İndir",
-      "delete": "Sil"
+      "delete": "Sil",
+      "duplicate": "Tekrar Oluştur",
+      "paymentReminder": "Ödeme Hatırlatıcısı",
+      "preview": "Önizleme",
+      "sendEmail": "E-Posta Gönder",
+      "downloadPdf": "İndir (PDF)",
+      "cancelInvoice": "İptal Et",
+      "archive": "Arşivle"
     },
     "list": {
       "newInvoice": "Yeni Fatura",

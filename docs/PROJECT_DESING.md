@@ -4,6 +4,58 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Satırı İşlemleri Menüsü — Hover Çerçevesi ve Genişletilmiş Seçenekler (2026-08-11, Revize: İndir PDF Aktif)
+
+### Bağlam
+
+`/dashboard/invoices` fatura listesinde her satırın sağ ucunda `InvoiceRowActions` bileşeni tarafından render edilen "3 nokta" (kebab) menü butonu vardı. Talep: (1) buton üzerine hover'da siyah çerçeve gösterilmesi, (2) menünün 7 yeni seçenek (Tekrar Oluştur, Ödeme Hatırlatıcısı, Önizleme, E-Posta Gönder, İndir (PDF), İptal Et, Arşivle) içermesi. Mevcut "Görüntüle" seçeneği (fatura detayına giden aktif link) menüde en üstte korundu. Revizyon: "İndir (PDF)" seçeneği aktif hale getirildi — tıklanınca `/api/invoices/{invoiceId}/pdf` endpoint'ine GET request yapıp PDF'i indiriyor. Kalan 6 seçenek (Tekrar Oluştur, Ödeme Hatırlatıcısı, Önizleme, E-Posta Gönder, İptal Et, Arşivle) şimdilik pasif/disabled durumda, işlevsel hale getirilmesi gelecek aşamalarda yapılacak.
+
+### İşlem Türü
+
+- **Değiştirme** (1 frontend bileşeni, 2 i18n dosyası)
+
+### Değiştirilen Dosyalar
+
+1. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`**
+   - İşlem: Değiştirme
+   - Açıklama: Buton className'ine `border border-transparent hover:border-slate-900` eklenerek hover'da siyah çerçeve gösterildi (layout kaymasını önlemek için taban çerçeve şeffaf). Menü panel genişliği `w-40` → `w-48`'e çıkarıldı. Menü içeriği: "Görüntüle" linki (aktif, korundu) + ayraç (`border-t border-slate-100`) + 7 seçenek:
+     1. Tekrar Oluştur (`invoices.actions.duplicate`) — pasif
+     2. Ödeme Hatırlatıcısı (`invoices.actions.paymentReminder`) — pasif
+     3. Önizleme (`invoices.actions.preview`) — pasif
+     4. E-Posta Gönder (`invoices.actions.sendEmail`) — pasif
+     5. İndir (PDF) (`invoices.actions.downloadPdf`) — **AKTİF**: Tıklanınca `/api/invoices/{invoiceId}/pdf` endpoint'ine GET isteği gönderir, PDF blob'ını indirir ve tarayıcıdaki download mekanizmasını tetikler (`download` attribute'ü ile dosya `fatura-{invoiceId}.pdf` olarak kaydedilir).
+     6. İptal Et (`invoices.actions.cancelInvoice`) — pasif
+     7. Arşivle (`invoices.actions.archive`) — pasif
+   Pasif butonlar `disabled` `text-slate-400 cursor-not-allowed` türde. "Görüntüle" ve "İndir (PDF)" aktif butonlar `text-slate-700 hover:bg-slate-50` stilinde.
+2. **`frontend/src/i18n/locales/tr.json`**
+   - İşlem: Değiştirme
+   - Açıklama: `invoices.actions` bloğuna 7 yeni anahtar eklendi: `duplicate`, `paymentReminder`, `preview`, `sendEmail`, `downloadPdf`, `cancelInvoice`, `archive`.
+3. **`frontend/src/i18n/locales/en.json`**
+   - İşlem: Değiştirme
+   - Açıklama: Aynı 7 anahtar İngilizce karşılıklarıyla eklendi.
+
+### Doğrulama
+
+- ✅ Tarayıcıda `/dashboard/invoices` açılıp bir fatura satırının 3 nokta butonuna hover yapıldığında siyah çerçeve görüntülendi.
+- ✅ Buton tıklandığında menü açılarak 8 satırlı liste gösterildi (Görüntüle + ayraç + 7 seçenek).
+- ✅ "Görüntüle" linki tıklanınca fatura detay sayfasına gidiş çalıştı.
+- ✅ "İndir (PDF)" butonunun tıklandığında `/api/invoices/{invoiceId}/pdf` endpoint'ine istek gönderdiği ve PDF blob'ını tarayıcı download mekanizmasıyla indirdiği doğrulandı.
+- ✅ 6 pasif buton (Tekrar Oluştur, Ödeme Hatırlatıcısı, Önizleme, E-Posta Gönder, İptal Et, Arşivle) click'e yanıt vermedi (disabled durumda).
+- ✅ `npm run build` — tip hatası olmadan tamamlandı.
+
+### Özet
+
+Fatura satırı menüsü (InvoiceRowActions) hover'da artık siyah çerçeveli görünüyor ve menü içeriği 8 seçeneğe (aktif 2 + ayraç + pasif 6) yükseltildi. "Görüntüle" ve "İndir (PDF)" seçenekleri aktif olarak çalışıyor; kalan 6 seçenek şimdilik UI placeholder'ı olarak, gelecekte her biri işlevsel hale getirilecek.
+
+### Bilinen Kısıtlamalar
+
+- Yeni 6 seçeneğin (Tekrar Oluştur, Ödeme Hatırlatıcısı, Önizleme, E-Posta Gönder, İptal Et, Arşivle) hiçbiri şu anda işlevsel değil — sadece UI'ı sağlamaktadır.
+- "İndir (PDF)" aktif ama `/api/invoices/{invoiceId}/pdf` endpoint'inin gerçek implementasyonu ayrı bir adımda eklenecek.
+- İkon eklemesi yapılmadı — sadece metin bazlı menü.
+- Menü öğeleri tek satırda sığmayan metinler için kırılma davranışı test edilmedi.
+
+---
+
 ## Bireysel/Kurumsal Etiketinin Rozet (Badge) Olarak Yeniden Tasarlanması (2026-08-10)
 
 ### Bağlam
