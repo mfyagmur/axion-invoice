@@ -11,7 +11,7 @@ export function InvoiceTable({ rows }: InvoiceTableProps) {
 
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-300 bg-white shadow-sm">
-      <table className="w-full min-w-[720px] text-left text-sm">
+      <table className="w-full min-w-180 text-left text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-xs font-medium text-slate-500">
             <th className="px-4 py-3">{t('invoices.table.invoiceNo')}</th>
