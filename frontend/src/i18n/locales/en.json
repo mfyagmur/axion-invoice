@@ -3,6 +3,7 @@
     "appName": "Axion Invoice",
     "save": "Save",
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "loading": "Loading...",
     "comingSoon": "This section will be added in a later phase.",
     "genericError": "Something went wrong, please try again.",
@@ -273,7 +274,11 @@
       "sendEmail": "Send Email",
       "downloadPdf": "Download (PDF)",
       "cancelInvoice": "Cancel",
+      "cancelConfirmTitle": "Cancel Invoice",
       "cancelConfirm": "Are you sure you want to cancel this invoice?",
+      "restoreInvoice": "Restore to Draft",
+      "restoreConfirmTitle": "Restore Invoice",
+      "restoreConfirmMessage": "This invoice will be moved back to Draft status. Continue?",
       "archive": "Archive"
     },
     "list": {

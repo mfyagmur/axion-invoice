@@ -34,4 +34,7 @@ export const invoicesApi = {
 
   cancel: (id: string) =>
     apiClient.post<InvoiceDetail>(`/invoices/${id}/cancel`).then((res) => res.data),
+
+  restore: (id: string) =>
+    apiClient.post<InvoiceDetail>(`/invoices/${id}/restore`).then((res) => res.data),
 }

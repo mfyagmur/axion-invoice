@@ -155,7 +155,27 @@ def cancel_invoice(
     invoice = get_own_invoice(db, invoice_id, current_user)
     if invoice.status == InvoiceStatus.PAID:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ödenmiş fatura iptal edilemez")
+    if invoice.status == InvoiceStatus.DRAFT and invoice.payment_reminder_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ödeme hatırlatıcısı aktif olan taslak fatura iptal edilemez",
+        )
     invoice.status = InvoiceStatus.CANCELLED
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
+@router.post("/{invoice_id}/restore", response_model=InvoiceDetailResponse)
+def restore_invoice(
+    invoice_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, current_user)
+    if invoice.status != InvoiceStatus.CANCELLED:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sadece iptal edilmiş fatura geri alınabilir")
+    invoice.status = InvoiceStatus.DRAFT
     db.commit()
     db.refresh(invoice)
     return invoice

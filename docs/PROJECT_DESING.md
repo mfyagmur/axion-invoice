@@ -4,6 +4,71 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura İptal → Geri Al, Custom Confirm Dialog, Sonner Toast, Portal Dropdown (2026-08-11)
+
+### Bağlam
+
+Önceki oturumda tamamlanan "İptal Et" özelliğinin üzerine beş ek talep geldi: (1) iptal edilen
+fatura tekrar taslağa geri alınabilsin; (2) `cancelled` durumundaki bir faturada aksiyon menüsünde
+sadece "Görüntüle" ve "Geri Al" aktif olsun, diğer tüm seçenekler pasif olsun; (3) yeni iş kuralı —
+durumu `draft` olup Ödeme Hatırlatıcısı aktif olan bir fatura iptal edilemesin; (4) onay akışında
+tarayıcının yerleşik `window.confirm`/`alert`'i yerine custom bir confirmation modal ve sonuç
+bildirimi için Sonner (yeni kütüphane, bundan sonraki işlemlerde de kullanılabilir) kullanılsın;
+(5) satır aksiyon (...) dropdown'ı `InvoiceTable`'ın `overflow-x-auto` kapsayıcısı yüzünden
+kesiliyordu (tablonun alt satırlarında menü görünmüyordu) — React Portal ile `document.body`'ye
+taşınıp buton pozisyonuna göre `fixed` konumlandırıldı.
+
+### İşlem Türü
+
+- **Ekleme** (backend 1 endpoint + frontend 3 yeni dosya + 1 npm bağımlılığı) + **Değiştirme**
+  (backend 1 endpoint + frontend 4 dosya + i18n).
+
+### Değiştirilen/Eklenen Dosyalar
+
+1. **`backend/app/api/v1/invoices.py`** — İşlem: Değiştirme + Ekleme. Mevcut `cancel_invoice`
+   endpoint'ine yeni kontrol eklendi: `status == draft` VE `payment_reminder_active == True` ise
+   400 döner. Hemen altına yeni `POST /{invoice_id}/restore` endpoint'i eklendi — sadece
+   `cancelled` durumundaki bir faturayı `draft`'a döndürür, aksi halde 400 döner.
+2. **`frontend/package.json`** — İşlem: Ekleme. `sonner` bağımlılığı (`npm install sonner`).
+3. **`frontend/src/App.tsx`** — İşlem: Değiştirme. Mevcut store-tabanlı `<ToastContainer />`'a
+   dokunulmadı, yanına sonner'ın `<Toaster position="top-right" richColors closeButton />`'ı
+   eklendi (yeni işlemler sonner kullanıyor, eski toast sistemi hâlâ diğer yerlerde çalışıyor).
+4. **`frontend/src/features/invoices/api/invoicesApi.ts`** — İşlem: Değiştirme. `restore(id)`
+   metodu eklendi (`POST /invoices/{id}/restore`).
+5. **`frontend/src/features/invoices/hooks/useCancelInvoice.ts`** — İşlem: Değiştirme.
+   `useToastStore` yerine `sonner`'ın `toast.success`/`toast.error`'ı kullanılıyor artık.
+6. **`frontend/src/features/invoices/hooks/useRestoreInvoice.ts`** (yeni) — İşlem: Ekleme.
+   `useCancelInvoice` ile aynı pattern — mutation + `invoices` query invalidation + sonner toast.
+7. **`frontend/src/components/ConfirmDialog.tsx`** (yeni) — İşlem: Ekleme. `Modal.tsx`'in
+   backdrop/Escape-kapama desenini takip eden, kendi footer'ında iptal/onay butonları olan genel
+   amaçlı confirmation dialog (`role="alertdialog"`, `variant="danger"` ile kırmızı onay butonu).
+8. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`** — İşlem: Değiştirme
+   (kapsamlı revizyon). Dropdown menüsü artık `createPortal` ile `document.body`'ye render
+   ediliyor, buton `getBoundingClientRect()`'i ile hesaplanan `position: fixed` koordinatına
+   yerleştiriliyor (dış tıklama tespiti hem tetikleyici butonu hem portallanan menüyü kontrol
+   ediyor; sayfa scroll'unda menü kapanıyor). `row.status === 'cancelled'` olduğunda Tekrar
+   Oluştur/Ödeme Hatırlatıcısı/İndir (PDF) butonları pasifleniyor (Önizleme/E-posta zaten
+   pasifti), "İptal Et" butonu yerine "Geri Al" gösteriliyor. `isCancellable` hesaplaması
+   `draft + paymentReminderActive` kombinasyonunu da artık dışlıyor. `window.confirm` çağrıları
+   kaldırılıp yerel `confirmAction: 'cancel' | 'restore' | null` state'i ile `ConfirmDialog`
+   açılıyor.
+9. **`frontend/src/i18n/locales/tr.json`** ve **`en.json`** — İşlem: Değiştirme.
+   `common.confirm`, `invoices.actions.cancelConfirmTitle`, `invoices.actions.restoreInvoice`,
+   `invoices.actions.restoreConfirmTitle`, `invoices.actions.restoreConfirmMessage` anahtarları
+   eklendi.
+
+### Doğrulama
+
+- `npm run build` (tsc + vite) hatasız geçti.
+- Backend container'ında `python -c "from app.api.v1 import invoices"` hatasız import edildi;
+  dev container'ın `WatchFiles` auto-reload'ı yeni `/cancel` ve `/restore` endpoint'lerini
+  otomatik yükledi (log ile doğrulandı).
+- Tarayıcıda görsel teyit (portal dropdown'ın tablo altında kesilmeden görünmesi, durum bazlı
+  menü, custom confirm modal, sonner toast, `draft`+hatırlatıcı-aktif faturada İptal Et'in pasif
+  olması) kullanıcı tarafından yapılmalı.
+
+---
+
 ## Ödeme Hatırlatıcısı (Payment Chaser) Slide-in Paneli (2026-08-11)
 
 ### Bağlam

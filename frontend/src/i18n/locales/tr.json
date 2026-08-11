@@ -3,6 +3,7 @@
     "appName": "Axion Invoice",
     "save": "Kaydet",
     "cancel": "İptal",
+    "confirm": "Onayla",
     "loading": "Yükleniyor...",
     "comingSoon": "Bu bölüm ileriki bir fazda eklenecek.",
     "genericError": "Bir hata oluştu, lütfen tekrar deneyin.",
@@ -273,7 +274,11 @@
       "sendEmail": "E-Posta Gönder",
       "downloadPdf": "İndir (PDF)",
       "cancelInvoice": "İptal Et",
+      "cancelConfirmTitle": "Faturayı İptal Et",
       "cancelConfirm": "Bu faturayı iptal etmek istediğinizden emin misiniz?",
+      "restoreInvoice": "Taslağa Geri Al",
+      "restoreConfirmTitle": "Faturayı Geri Al",
+      "restoreConfirmMessage": "Bu fatura Taslak durumuna geri alınacak. Devam edilsin mi?",
       "archive": "Arşivle"
     },
     "list": {
