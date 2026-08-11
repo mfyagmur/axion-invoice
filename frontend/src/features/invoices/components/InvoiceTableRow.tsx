@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarClock, ExternalLink, FileText } from 'lucide-react'
+import { CalendarClock, ExternalLink, FileText, ClockPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 import { InvoiceStatusBadge } from './InvoiceStatusBadge'
@@ -30,7 +30,7 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
             <FileText size={16} />
             {row.paymentReminderActive && (
               <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 ring-2 ring-white">
-                <CalendarClock size={12} className="text-white" />
+                <ClockPlus size={12} className="text-white" />
               </span>
             )}
           </span>
