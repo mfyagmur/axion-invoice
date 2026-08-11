@@ -233,10 +233,28 @@ export function CustomersPage() {
                 />
               )}
             />
-            <Input
-              label={t('customers.form.website')}
-              type="url"
-              {...register('website')}
+            <Controller //sonradan eklendi sadece input vardı
+              control={control} //sonradan eklendi sadece input vardı
+              name="website" //sonradan eklendi sadece input vardı
+              render={({ field }) => ( //sonradan eklendi sadece input vardı
+                <Input
+                  label={t('customers.form.website')}
+                  type="url"
+                  //{...register('website')}
+                  prefix="https://"
+                  error={errors.website && t(errors.website.message ?? '')} //sonradan eklendi sadece input vardı
+                  placeholder='www.example.com' //sonradan eklendi sadece input vardı
+                  value={field.value} //sonradan eklendi sadece input vardı
+                  onChange={(e) => {  //sonradan eklendi sadece input vardı
+                    let val = e.target.value //sonradan eklendi sadece input vardı
+                    if (val && !val.startsWith('https://') && !val.startsWith('http://')) { //sonradan eklendi sadece input vardı
+                      val = 'https://' + val  //sonradan eklendi sadece input vardı
+                    }
+                    field.onChange(val)  //sonradan eklendi sadece input vardı
+                  }}
+                  onBlur={field.onBlur}  //sonradan eklendi sadece input vardı
+                />
+              )}
             />
           </div>
 
