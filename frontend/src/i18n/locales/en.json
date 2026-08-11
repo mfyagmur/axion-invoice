@@ -378,7 +378,17 @@
       "pdfFailed": "PDF generation failed.",
       "retryPdf": "Retry",
       "preview": "Preview",
-      "hidePreview": "Hide Preview"
+      "hidePreview": "Hide Preview",
+      "companyInfoTitle": "Invoice Information",
+      "senderTitle": "Sender",
+      "recipientTitle": "Recipient",
+      "senderPlaceholderName": "Axion",
+      "senderPlaceholderNote": "Company details coming soon.",
+      "netReceivableLabel": "Amount receivable",
+      "exchangeRateNote": "The final amount may vary based on the exchange rate at the time of payment.",
+      "timelineCreated": "Created",
+      "timelinePaymentReceived": "Payment Received",
+      "timelinePaid": "Paid"
     }
   },
   "billing": {

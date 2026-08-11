@@ -378,7 +378,17 @@
       "pdfFailed": "PDF üretilemedi.",
       "retryPdf": "Tekrar Dene",
       "preview": "Önizle",
-      "hidePreview": "Önizlemeyi Gizle"
+      "hidePreview": "Önizlemeyi Gizle",
+      "companyInfoTitle": "Fatura Bilgileri",
+      "senderTitle": "Gönderen",
+      "recipientTitle": "Alıcı",
+      "senderPlaceholderName": "Axion",
+      "senderPlaceholderNote": "Şirket bilgileri yakında eklenecek.",
+      "netReceivableLabel": "Alacağın tutar",
+      "exchangeRateNote": "Nihai tutar, ödeme anındaki döviz kuruna göre değişiklik gösterebilir.",
+      "timelineCreated": "Oluşturuldu",
+      "timelinePaymentReceived": "Ödeme Alındı",
+      "timelinePaid": "Ödendi"
     }
   },
   "billing": {

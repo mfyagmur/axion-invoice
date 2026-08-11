@@ -1,0 +1,64 @@
+import { useTranslation } from 'react-i18next'
+import { twMerge } from 'tailwind-merge'
+import { Card } from '@/components/Card'
+import { formatDateDisplay } from '@/features/invoices/utils/dateHelpers'
+import type { InvoiceStatus } from '@/types/invoice'
+
+interface StatusTimelineProps {
+  status: InvoiceStatus
+  createdAt: string
+}
+
+export function StatusTimeline({ status, createdAt }: StatusTimelineProps) {
+  const { t } = useTranslation()
+
+  // NOTE: backend'de ayrı bir "ödeme alındı" durumu yok, bu yüzden
+  // "Ödeme Alındı" ve "Ödendi" adımları status === 'paid' olduğunda birlikte tamamlanmış sayılıyor.
+  const isPaid = status === 'paid'
+
+  const steps = [
+    {
+      label: t('invoices.detail.timelineCreated'),
+      date: formatDateDisplay(new Date(createdAt)),
+      done: true,
+    },
+    {
+      label: t('invoices.detail.timelinePaymentReceived'),
+      date: isPaid ? formatDateDisplay(new Date(createdAt)) : null,
+      done: isPaid,
+    },
+    {
+      label: t('invoices.detail.timelinePaid'),
+      date: isPaid ? formatDateDisplay(new Date(createdAt)) : null,
+      done: isPaid,
+    },
+  ]
+
+  return (
+    <Card>
+      <div className="flex flex-col">
+        {steps.map((step, index) => (
+          <div key={step.label} className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <span
+                className={twMerge(
+                  'h-3 w-3 shrink-0 rounded-full border-2',
+                  step.done ? 'border-slate-900 bg-slate-900' : 'border-slate-300 bg-white',
+                )}
+              />
+              {index < steps.length - 1 && (
+                <span className={twMerge('w-px flex-1', step.done ? 'bg-slate-900' : 'bg-slate-200')} />
+              )}
+            </div>
+            <div className={twMerge('flex flex-col pb-6', index === steps.length - 1 && 'pb-0')}>
+              <span className={twMerge('text-sm font-medium', step.done ? 'text-slate-900' : 'text-slate-400')}>
+                {step.label}
+              </span>
+              {step.date && <span className="text-xs text-slate-500">{step.date}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
