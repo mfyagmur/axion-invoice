@@ -40,12 +40,17 @@ export function StatusTimeline({ status, createdAt }: StatusTimelineProps) {
         {steps.map((step, index) => (
           <div key={step.label} className="flex gap-3">
             <div className="flex flex-col items-center">
-              <span
-                className={twMerge(
-                  'h-3 w-3 shrink-0 rounded-full border-2',
-                  step.done ? 'border-slate-900 bg-slate-900' : 'border-slate-300 bg-white',
+              <span className="relative flex h-3 w-3 shrink-0">
+                {step.done && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-500 opacity-75" />
                 )}
-              />
+                <span
+                  className={twMerge(
+                    'relative inline-flex h-3 w-3 rounded-full border-2',
+                    step.done ? 'border-sky-500 bg-sky-500' : 'border-slate-300 bg-white',
+                  )}
+                />
+              </span>
               {index < steps.length - 1 && (
                 <span className={twMerge('w-px flex-1', step.done ? 'bg-slate-900' : 'bg-slate-200')} />
               )}
