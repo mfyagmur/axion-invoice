@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Landmark, ChevronDown, Eye, FileStack, FileText, Plus, Send, User } from 'lucide-react'
+import { Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Select } from '@/components/Select'
@@ -12,6 +12,7 @@ import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
+import { useExchangeRate } from '@/features/invoices/hooks/useExchangeRate'
 import { LineItemCard } from '@/features/invoices/components/LineItemCard'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
 
@@ -66,6 +67,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { data: customers } = useCustomers()
   const createInvoice = useCreateInvoice()
   const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
+  const [isFixedRate, setIsFixedRate] = useState(false)
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<InvoiceFormValues>({
     defaultValues: initialValues ?? {
@@ -95,6 +97,14 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const paymentCurrency = watch('payment_currency')
 
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
+
+  const exchangeRateQuery = useExchangeRate(paymentCurrency, !isFixedRate)
+
+  useEffect(() => {
+    if (!isFixedRate && exchangeRateQuery.data) {
+      setValue('exchange_rate', exchangeRateQuery.data.rate)
+    }
+  }, [exchangeRateQuery.data, isFixedRate, setValue])
 
   const lineComputations = useMemo(
     () =>
@@ -301,19 +311,47 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
             {paymentCurrency !== 'TRY' && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 sm:col-span-2">
                   <label className="text-sm font-medium text-slate-700" htmlFor="exchange_rate">
                     {t('invoices.form.exchangeRate')}
                   </label>
-                  <input
-                    id="exchange_rate"
-                    type="number"
-                    step="0.000001"
-                    min="0"
-                    placeholder={t('invoices.form.exchangeRatePlaceholder')}
-                    className="rounded-md border border-transparent bg-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                    {...register('exchange_rate')}
-                  />
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                    <div className="relative w-full sm:max-w-40">
+                      <input
+                        id="exchange_rate"
+                        type="number"
+                        step="0.000001"
+                        min="0"
+                        readOnly={!isFixedRate}
+                        placeholder={t('invoices.form.exchangeRatePlaceholder')}
+                        className={twMerge(
+                          'w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300',
+                          isFixedRate
+                            ? 'border-slate-300 bg-white'
+                            : 'border-transparent bg-slate-100 text-slate-600',
+                        )}
+                        {...register('exchange_rate')}
+                      />
+                      {!isFixedRate && exchangeRateQuery.isFetching && (
+                        <Loader2
+                          size={14}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
+                        />
+                      )}
+                    </div>
+                    <label className="flex shrink-0 items-center gap-2 text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={isFixedRate}
+                        onChange={(e) => setIsFixedRate(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+                      />
+                      {t('invoices.form.fixedRateToggle')}
+                    </label>
+                  </div>
+                  {!isFixedRate && exchangeRateQuery.isError && (
+                    <p className="text-xs text-red-600">{t('invoices.form.exchangeRateFetchError')}</p>
+                  )}
                 </div>
               </div>
             )}

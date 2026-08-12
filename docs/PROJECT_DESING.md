@@ -4,6 +4,87 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Oluşturma — TCMB Otomatik Kur Entegrasyonu ve Sabit Kur Seçeneği (2026-08-12)
+
+### Bağlam
+
+`/dashboard/invoices/new` formunda, "Ödemeyi alacağın para birimi" TRY dışında seçildiğinde çıkan
+"Kur (1 birim = ? TRY)" alanı tamamen manuel giriş gerektiriyordu — güncel piyasa kurunu kullanıcı
+elle bulup yazıyordu, bu hem hataya açık hem de kurumsal bir SaaS'ta beklenen bir otomasyon
+eksikliğiydi. Etiket "Güncel Döviz Kuru" olarak sadeleştirildi; alan artık TCMB'nin günlük kur
+servisinden otomatik dolduruluyor (Efektif Satış/`ForexSelling` kuru — TL karşılığı daha yüksek
+gösteren, kurumsal faturalamada yaygın tercih) ve varsayılan olarak salt-okunur. Kullanıcı "Sabit
+Kur Uygula" checkbox'ını işaretlerse alan editable olur ve manuel değer girebilir; işaret
+kaldırılınca sistem TCMB kuruna otomatik geri döner. TCMB'nin `kur.xml`/`today.xml` servisi CORS
+desteklemediği için tarayıcıdan doğrudan çekilemiyor, bu yüzden backend'e bir proxy endpoint
+(`GET /api/v1/fx/rate`) eklendi. Geliştirme sırasında `httpx`'in bu ortamda TCMB sunucusuna karşı
+TLS handshake hatası (`SSL: RECORD_LAYER_FAILURE`) verdiği tespit edildi (curl ve stdlib `urllib`
+sorunsuz bağlanabiliyor) — üretimde de tekrarlayabilecek bir uyumsuzluk olduğu için servis, ekstra
+bağımlılık gerektirmeyen stdlib `urllib.request` ile yazıldı.
+
+### İşlem Türü
+
+- **Ekleme** (yeni backend fx servisi/route/şema, yeni frontend fx API/hook, yeni i18n key'leri).
+- **Değiştirme** (`InvoiceForm.tsx`, mevcut `exchangeRate` çevirisi).
+
+### Değişen Dosyalar
+
+**Backend:**
+
+1. **`backend/app/services/fx_service.py`** — İşlem: Ekleme. TCMB `today.xml` servisini
+   `urllib.request` ile çekip `xml.etree.ElementTree` ile parse eden `get_exchange_rate(currency)`
+   fonksiyonu. `TRY` için `Decimal("1")` sabit döner; her kur için 15 dakikalık in-memory TTL cache
+   (gereksiz TCMB trafiğini önler); `ForexSelling` esas alınır, boşsa `ForexBuying`'e fallback;
+   desteklenmeyen kod için `ValueError`.
+2. **`backend/app/schemas/fx.py`** — İşlem: Ekleme. `FxRateResponse(currency, rate, source)`
+   Pydantic şeması.
+3. **`backend/app/api/v1/fx.py`** — İşlem: Ekleme. `GET /fx/rate?currency=USD` endpoint'i —
+   `get_current_user` ile yetkilendirme (salt-okunur, `require_not_demo` gerekmiyor);
+   desteklenmeyen para birimi için 400, TCMB'ye ulaşılamazsa (`urllib.error.URLError`/
+   `TimeoutError`) 502 döner.
+4. **`backend/app/main.py`** — İşlem: Değiştirme. `fx_router` import edilip diğer 8 router'ın
+   deseniyle `app.include_router(fx_router, prefix="/api/v1")` eklendi.
+
+**Frontend:**
+
+5. **`frontend/src/features/invoices/api/fxApi.ts`** — İşlem: Ekleme. `fxApi.getRate(currency)` —
+   `GET /fx/rate` çağrısı, `invoicesApi.ts` ile aynı desen.
+6. **`frontend/src/features/invoices/hooks/useExchangeRate.ts`** — İşlem: Ekleme. TanStack Query
+   `useQuery` sarmalayıcısı — `enabled: enabled && currency !== 'TRY'`, `staleTime: 5dk`.
+7. **`frontend/src/features/invoices/components/InvoiceForm.tsx`** — İşlem: Değiştirme.
+   - Yeni `isFixedRate` state (`useState`, varsayılan `false`).
+   - `useExchangeRate(paymentCurrency, !isFixedRate)` ile TCMB kuru çekiliyor; gelen veri ve
+     `isFixedRate` değiştiğinde çalışan bir `useEffect`, `isFixedRate === false` iken
+     `setValue('exchange_rate', data.rate)` ile alanı otomatik dolduruyor.
+   - Kur `<input>`'u artık `readOnly={!isFixedRate}` — sabit kur kapalıyken düzenlenemez
+     (`bg-slate-100`), checkbox işaretlenince editable olur (`bg-white border-slate-300`).
+   - Sorgu `isFetching` iken input içinde `Loader2` (lucide-react, `animate-spin`) göstergesi;
+     `isError` iken input altında kırmızı uyarı metni (`invoices.form.exchangeRateFetchError`).
+   - Kur input'unun hemen yanına (aynı satırda, `sm:` ve üstünde `flex-row`, altında `flex-col`
+     ile mobilde alt alta) "Sabit Kur Uygula" native checkbox'ı eklendi
+     (`invoices.form.fixedRateToggle`); işaret kaldırıldığında react-query `enabled` bağımlılığı
+     üzerinden otomatik yeniden TCMB sorgusu tetikleniyor, ayrı bir refetch çağrısına gerek yok.
+   - `exchange_rate` alanı ve react-hook-form state yönetimi (var olan `exchange_rate` field'ı,
+     `register`) değişmedi — sadece `readOnly`/görsel durum ve otomatik doldurma eklendi.
+8. **`frontend/src/i18n/locales/tr.json` / `en.json`** — İşlem: Değiştirme/Ekleme.
+   `invoices.form.exchangeRate`: "Kur (1 birim = ? TRY)" → **"Güncel Döviz Kuru"** (en: "Current
+   Exchange Rate"); yeni key'ler: `fixedRateToggle` ("Sabit Kur Uygula"/"Apply Fixed Rate"),
+   `exchangeRateFetchError`, `exchangeRateLoading`.
+
+### Doğrulama
+
+- Backend: `fx_service.get_exchange_rate('USD'/'EUR'/'GBP'/'TRY')` gerçek TCMB `today.xml`'ine
+  karşı manuel çalıştırılıp doğru `Decimal` değerler döndüğü doğrulandı (örn. USD 47.7537);
+  desteklenmeyen kod için `ValueError` doğrulandı. `app.api.v1.fx` import edilip `GET /fx/rate`
+  route'unun kayıtlı olduğu statik olarak doğrulandı.
+- Frontend: `npx tsc --noEmit` ve `npm run build` hatasız geçti.
+- **Bilinen sınırlık:** Canlı `GET /api/v1/fx/rate` HTTP isteği (auth token ile uçtan uca) ve
+  tarayıcıda `/dashboard/invoices/new` üzerinde manuel/mobil-responsive teyit bu ortamda
+  yapılamadı (çalışan bir dev sunucusu/tarayıcı aracı yoktu) — kullanıcının kendi ortamında
+  test etmesi önerilir.
+
+---
+
 ## Fatura Detay Ekranı — Kart Bazlı Düzenleme (Edit) Özelliği (2026-08-12)
 
 ### Bağlam
