@@ -4,6 +4,37 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Ekranı — StatusTimeline Durum Mesajları (2026-08-12)
+
+### Bağlam
+
+`StatusTimeline` bileşeninde, tamamlanan adım sayısına göre farklı durum mesajları gösterilmesi 
+ihtiyacı ortaya çıktı. Fatura oluşturulmuşsa alıcıya gönderildiğine dair mesaj zaten vardı; ödeme 
+sürecindeki adımlar (ödeme alındı / ödendi) için de bilgilendirici metinler eklenecekti.
+
+### İşlem Türü
+
+- **Değiştirme** (1 mevcut bileşen).
+
+### Değişen Dosyalar
+
+1. **`frontend/src/features/invoices/components/StatusTimeline.tsx`** — İşlem: Değiştirme.
+   `completedStepsCount` hesaplaması eklendi (tamamlanan adım sayısı). Buna göre `statusMessage` 
+   değeri belirleniyor:
+   - 1 adım tamamlanmış (Oluşturuldu): "Fatura **[email]** adresine gönderilmiştir. Alıcının 
+     ödemeyi yapması bekleniyor." (mevcut, `recipientEmail` varsa).
+   - 2 adım tamamlanmış (Ödeme Alındı): "Ödeme sistem tarafından doğrulaması bekleniyor."
+   - 3 adım tamamlanmış (Ödendi): "Alıcı tarafından ödeme gerçekleştirmiştir."
+   
+   Her mesaj koşullu render edilir (`statusMessage` değerine göre), border-top ile ayrılmış 
+   bölümde `text-xs text-slate-600` stiliyle gösterilir.
+
+### Doğrulama
+
+`npm run build` hatasız geçti (prod build başarılı, aynı pre-existing chunk-size uyarısı).
+
+---
+
 ## Fatura Detay Ekranı — StatusTimeline Alıcı Bilgisi (2026-08-12)
 
 ### Bağlam
