@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Banknote, ChevronDown, Eye, FileStack, FileText, Plus, Send, User } from 'lucide-react'
+import { Landmark, ChevronDown, Eye, FileStack, FileText, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Select } from '@/components/Select'
@@ -270,7 +270,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
           </div>
         </Card>
 
-        <Card icon={<Banknote size={20} />} title={t('invoices.form.paymentDetails')}>
+        <Card icon={<Landmark size={20} />} title={t('invoices.form.paymentDetails')}>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Controller
