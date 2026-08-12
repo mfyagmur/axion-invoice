@@ -4,6 +4,51 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Sayfası — Gönderen/Alıcı Kartı Yeniden Tasarımı (2026-08-12)
+
+### Bağlam
+
+`InvoiceDetailPage`'deki "Fatura Bilgileri" kartını render eden `CompanyInfoSection.tsx`
+bileşeninde, Alıcı tarafı düz metin halinde (etiket + değer) alt alta dizilen sade bir liste
+olarak duruyordu (bkz. bir önceki maddede, 2026-08-11, ilk oluşturulduğu hali). Kullanıcı, ekran
+görüntüsü referans alınarak Alıcı bloğunun modern, ikonlu, kendi içinde ayrı bir kart gibi duran
+bir panele dönüştürülmesini istedi. Gönderen tarafı (Axion) değişmedi — hâlâ gerçek bir gönderen
+şirket profili veri modeli yok, bu kısıtlama önceki maddede zaten belgelenmişti.
+
+### İşlem Türü
+
+- **Değiştirme** (1 mevcut bileşen, 2 i18n dosyası).
+
+### Değiştirilen Dosyalar
+
+1. **`frontend/src/features/invoices/components/CompanyInfoSection.tsx`** — İşlem: Değiştirme.
+   Alıcı bloğu, ince `border-slate-300` + `shadow-sm` ile kendi kartı gibi duran bir panele
+   sarmalandı; içi `grid grid-cols-1 sm:grid-cols-2` (mobilde 1, masaüstünde 2 kolon) 4 hücreli
+   bir yapıya çevrildi: (1) Şirket Adı — `Building2` ikonu + "Alıcı" etiketi + isim, (2) Adres
+   Bilgisi — `MapPin` ikonu + adres + `şehir / posta kodu / ülke` birleştirilmiş satırı, (3) Vergi
+   Bilgisi — `Receipt` ikonu + "Vergi Dairesi:" / "Vergi Numarası:" satırları, (4) İletişim
+   Bilgisi — yan yana `Mail`+`Phone` ikonları + "E-posta:" / "Telefon:" satırları. Üst satır
+   (1 ve 2) ile alt satır arasına `border-b border-slate-100` ile ince bir ayırıcı eklendi. Her
+   hücre kendi verisi `null`/boş olduğunda tamamen gizleniyor (mevcut `.filter(Boolean)`
+   deseniyle tutarlı bir yaklaşım). İkonlar `lucide-react`'tan (proje zaten bağımlılık olarak
+   kullanıyor), navy (`text-blue-900`) tonunda. Yeni bir tip/API/backend değişikliği gerekmedi —
+   tüm veriler zaten `Customer` tipinde mevcuttu.
+2. **`frontend/src/i18n/locales/tr.json`** ve **`en.json`** — İşlem: Değiştirme. `invoices.detail`
+   altına 3 yeni key eklendi: `recipientAddressLabel` ("Adres Bilgileri"/"Address Details"),
+   `recipientTaxLabel` ("Vergi Bilgileri"/"Tax Details"), `recipientContactLabel` ("İletişim
+   Bilgileri"/"Contact Details"). Mevcut `recipientTitle`/`companyInfoTitle` ve
+   `customers.form.taxOffice`/`taxNumber`/`email`/`phone` key'leri reuse edildi — ayrı bir "ALICI"
+   string'i eklenmedi, mevcut CSS zaten `uppercase` gösteriyordu.
+
+### Doğrulama
+
+`npx tsc --noEmit` ve `npm run build` hatasız geçti. Bu ortamda tarayıcı otomasyon aracı
+bulunmadığından görsel/responsive doğrulama (masaüstü 2x2 grid, mobilde tek kolona düşme, boş
+alan senaryoları) yapılamadı — kullanıcının kendi tarayıcısında `/dashboard/invoices/{id}`
+üzerinden teyit etmesi gerekiyor.
+
+---
+
 ## Fatura Detay Sayfası — Yeniden Tasarım ve Responsive İyileştirme (2026-08-11)
 
 ### Bağlam

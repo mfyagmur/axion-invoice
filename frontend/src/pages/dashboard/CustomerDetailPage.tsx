@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -264,29 +264,25 @@ export function CustomerDetailPage() {
               {customer.contacts
                 ?.filter((contact) => !(contact.first_name === customer.first_name && contact.last_name === customer.last_name))
                 .map((contact) => (
-                <>
-                  <div key={`avatar-${contact.id}`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                <Fragment key={contact.id}>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
                     <span className="text-sm font-semibold text-slate-600">
                       {((contact.first_name?.[0] || '') + (contact.last_name?.[0] || '')).toUpperCase()}
                     </span>
                   </div>
                   <EditableField
-                    key={`name-${contact.id}`}
                     value={`${contact.first_name} ${contact.last_name}`}
                     onSave={(newValue) => updateContactField(contact.id, 'name', newValue)}
                   />
                   <EditableField
-                    key={`email-${contact.id}`}
                     value={contact.email || ''}
                     onSave={(newValue) => updateContactField(contact.id, 'email', newValue)}
                   />
                   <EditableField
-                    key={`phone-${contact.id}`}
                     value={contact.phone || ''}
                     onSave={(newValue) => updateContactField(contact.id, 'phone', newValue)}
                   />
                   <button
-                    key={`delete-${contact.id}`}
                     type="button"
                     onClick={() => {
                       if (!id) return
@@ -297,7 +293,7 @@ export function CustomerDetailPage() {
                   >
                     <Trash2 size={16} />
                   </button>
-                </>
+                </Fragment>
               ))}
             </div>
           </div>
