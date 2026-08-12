@@ -261,7 +261,9 @@ export function CustomerDetailPage() {
               />
               <div />
 
-              {customer.contacts?.map((contact) => (
+              {customer.contacts
+                ?.filter((contact) => !(contact.first_name === customer.first_name && contact.last_name === customer.last_name))
+                .map((contact) => (
                 <>
                   <div key={`avatar-${contact.id}`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
                     <span className="text-sm font-semibold text-slate-600">
