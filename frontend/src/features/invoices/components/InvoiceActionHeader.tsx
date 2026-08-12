@@ -57,7 +57,7 @@ export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser 
         >
           {t('invoices.detail.download')}
         </Button>
-        <InvoiceRowActions row={row} />
+        <InvoiceRowActions row={row} disableView />
       </div>
     </div>
   )

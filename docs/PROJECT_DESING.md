@@ -4,6 +4,40 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Ekranı — InvoiceRowActions "Görüntüle" Seçeneğinin Pasifleştirilmesi (2026-08-12)
+
+### Bağlam
+
+`InvoiceRowActions` bileşeni (`frontend/src/features/invoices/components/InvoiceRowActions.tsx`)
+menüdeki "Görüntüle" seçeneği, fatura listesi tablosunda ise aktif olarak `/dashboard/invoices/{id}`
+adresine yönlendiriliyor, fatura detay ekranında ise aynı seçenek anlamsız hale gelmekte (zaten
+detay sayfasındayken "Görüntüle"ye tıklamak mantıksız). Kullanıcı, aynı bileşenin detay ekranında
+kullanıldığında bu seçeneği pasif/disabled gösterilmesini istedi. Fatura listesindeki davranış
+korunacak.
+
+### İşlem Türü
+
+- **Değiştirme** (2 mevcut bileşen, i18n değişikliği yok).
+
+### Değiştirilen Dosyalar
+
+1. **`frontend/src/features/invoices/components/InvoiceRowActions.tsx`** — İşlem: Değiştirme.
+   Interface'e `disableView?: boolean` (default `false`) opsiyonel prop'u eklendi. `viewItem`
+   tanımı koşullu hale getirildi: `disableView` `true` olduğunda `<span className={disabledItemClass}>`
+   ile pasif render edilir (tıklanamaz, gri renk); `false` veya verilmediğinde mevcut `Link`
+   davranışı korunur. Mevcut `disabledItemClass` stili reuse edildi.
+2. **`frontend/src/features/invoices/components/InvoiceActionHeader.tsx`** — İşlem: Değiştirme.
+   `<InvoiceRowActions row={row} />` çağrısı `<InvoiceRowActions row={row} disableView />`
+   olarak güncellendi — bu bileşen sadece fatura detay ekranında (`InvoiceDetailPage`) kullanılıyor.
+
+### Doğrulama
+
+`npx tsc --noEmit` ve `npm run build` hatasız geçti. (Kullanıcı tarafında manuel) Fatura listesindeki
+satır aksiyonlarında "Görüntüle" hâlâ tıklanabilir; fatura detay ekranının sağ üst menüsünde
+"Görüntüle" gri/pasif görünüyor ve tıklanamıyor.
+
+---
+
 ## Fatura Detay Sayfası — Gönderen/Alıcı Kartı Yeniden Tasarımı (2026-08-12)
 
 ### Bağlam

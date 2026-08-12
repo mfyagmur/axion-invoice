@@ -13,12 +13,13 @@ import { useUnarchiveInvoice } from '@/features/invoices/hooks/useUnarchiveInvoi
 
 interface InvoiceRowActionsProps {
   row: InvoiceRow
+  disableView?: boolean
 }
 
 const activeItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50'
 const disabledItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed'
 
-export function InvoiceRowActions({ row }: InvoiceRowActionsProps) {
+export function InvoiceRowActions({ row, disableView = false }: InvoiceRowActionsProps) {
   const invoiceId = row.id
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -85,7 +86,9 @@ export function InvoiceRowActions({ row }: InvoiceRowActionsProps) {
     setConfirmAction(null)
   }
 
-  const viewItem = (
+  const viewItem = disableView ? (
+    <span className={disabledItemClass}>{t('invoices.actions.view')}</span>
+  ) : (
     <Link
       to={`/dashboard/invoices/${invoiceId}`}
       onClick={() => setIsOpen(false)}
