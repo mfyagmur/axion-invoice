@@ -4,6 +4,39 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Ekranı — StatusTimeline Nokta Animasyonu (animate-ping) (2026-08-12)
+
+### Bağlam
+
+`StatusTimeline` bileşeni (`frontend/src/features/invoices/components/StatusTimeline.tsx`),
+fatura detay ekranında (`/dashboard/invoices/{id}`) "Oluşturuldu / Ödeme Alındı / Ödendi" adımlarını
+dikey bir zaman çizelgesi olarak gösteriyor. Tamamlanmış adımların noktası (`step.done`) düz siyah
+(`bg-slate-900`) dolu bir daire. Kullanıcı, bu noktaların modern/canlı bir görünüme sahip olması
+için `animate-ping` efekti eklenmesini ve rengin `bg-sky-500` olarak değiştirilmesini istedi.
+
+### İşlem Türü
+
+- **Değiştirme** (1 mevcut bileşen, i18n değişikliği yok).
+
+### Değiştirilen Dosyalar
+
+1. **`frontend/src/features/invoices/components/StatusTimeline.tsx`** — İşlem: Değiştirme.
+   Mevcut tek `<span>` nokta, sarmalayıcı bir `<span className="relative flex">` içine alındı.
+   `step.done === true` olduğunda arkada `<span className="absolute inline-flex h-full w-full
+   animate-ping rounded-full bg-sky-500 opacity-75" />` ping katmanı render edilir. Asıl nokta
+   (`relative inline-flex`) rengi `bg-slate-900` yerine `bg-sky-500`/`border-sky-500` olacak
+   şekilde güncellenmiş. Tamamlanmamış adımlar (`step.done === false`) mevcut `border-slate-300
+   bg-white` stili korundu — animasyon yalnızca tamamlanmış adımlarda görünüyor. Dikey bağlayıcı
+   çizgi (`bg-slate-900`/`bg-slate-200`) değişmedi.
+
+### Doğrulama
+
+`npx tsc --noEmit` (no output — success) ve `npm run build` hatasız geçti. (Kullanıcı tarafında
+manuel kontrol gerekli) Fatura detay ekranında tamamlanmış adımların noktası sky-500 renginde
+ping animasyonuyla titreşiyor; tamamlanmamış adımlar değişmeden durması gerekmektedir.
+
+---
+
 ## Fatura Detay Ekranı — InvoiceRowActions "Görüntüle" Seçeneğinin Pasifleştirilmesi (2026-08-12)
 
 ### Bağlam
