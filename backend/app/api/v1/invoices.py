@@ -12,9 +12,9 @@ from app.core.deps import get_current_user, require_not_demo
 from app.models.invoice import Invoice, InvoicePdfStatus, InvoiceStatus
 from app.models.template import InvoiceTemplate
 from app.models.user import User
-from app.schemas.invoice import InvoiceCreatePayload, InvoiceDetailResponse, InvoiceSummaryResponse
+from app.schemas.invoice import InvoiceCreatePayload, InvoiceDetailResponse, InvoiceSummaryResponse, InvoiceUpdatePayload
 from app.services import pdf_service
-from app.services.invoice_service import create_invoice, get_own_invoice
+from app.services.invoice_service import create_invoice, get_own_invoice, update_invoice
 from app.services.subscription_service import check_invoice_limit, get_active_plan
 from app.tasks.email_tasks import send_invoice_email_task
 from app.tasks.pdf_tasks import generate_invoice_pdf_task
@@ -53,6 +53,19 @@ def get_invoice(
     db: Annotated[Session, Depends(get_db)],
 ) -> Invoice:
     return get_own_invoice(db, invoice_id, current_user)
+
+
+@router.patch("/{invoice_id}", response_model=InvoiceDetailResponse)
+def update_invoice_endpoint(
+    invoice_id: uuid.UUID,
+    payload: InvoiceUpdatePayload,
+    current_user: Annotated[User, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Invoice:
+    invoice = update_invoice(db, current_user, invoice_id, payload)
+    if invoice.pdf_status == InvoicePdfStatus.PENDING:
+        generate_invoice_pdf_task.delay(str(invoice.id))
+    return invoice
 
 
 @router.get("/{invoice_id}/download")

@@ -10,7 +10,10 @@
     "retry": "Tekrar Dene",
     "language": "Dil",
     "optional": "Opsiyonel",
-    "back": "Geri"
+    "back": "Geri",
+    "edit": "Düzenle",
+    "add": "Ekle",
+    "remove": "Kaldır"
   },
   "landing": {
     "nav": {
@@ -391,7 +394,12 @@
       "exchangeRateNote": "Nihai tutar, ödeme anındaki döviz kuruna göre değişiklik gösterebilir.",
       "timelineCreated": "Oluşturuldu",
       "timelinePaymentReceived": "Ödeme Alındı",
-      "timelinePaid": "Ödendi"
+      "timelinePaid": "Ödendi",
+      "recipientNameLabel": "Alıcı Adı",
+      "notesEmpty": "Not eklemek için düzenle'ye tıklayın.",
+      "editNotOnDraft": "Sadece taslak faturalar düzenlenebilir.",
+      "addLineItem": "Kalem Ekle",
+      "removeLineItem": "Kalemi Sil"
     }
   },
   "billing": {

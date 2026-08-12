@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient'
-import type { InvoiceCreatePayload, InvoiceDetail, InvoiceSummary } from '@/types/invoice'
+import type { InvoiceCreatePayload, InvoiceDetail, InvoiceSummary, InvoiceUpdatePayload } from '@/types/invoice'
 
 export const invoicesApi = {
   list: (params?: { customerId?: string }) =>
@@ -13,6 +13,9 @@ export const invoicesApi = {
 
   create: (payload: InvoiceCreatePayload) =>
     apiClient.post<InvoiceDetail>('/invoices', payload).then((res) => res.data),
+
+  update: (id: string, payload: InvoiceUpdatePayload) =>
+    apiClient.patch<InvoiceDetail>(`/invoices/${id}`, payload).then((res) => res.data),
 
   remove: (id: string) => apiClient.delete<void>(`/invoices/${id}`).then((res) => res.data),
 

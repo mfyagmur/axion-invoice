@@ -53,6 +53,18 @@ export interface InvoiceSummary {
   customer: Customer
 }
 
+export interface CustomerSnapshot {
+  name: string | null
+  address: string | null
+  city: string | null
+  postal_code: string | null
+  country: string | null
+  tax_office: string | null
+  tax_number: string | null
+  email: string | null
+  phone: string | null
+}
+
 export interface InvoiceDetail extends InvoiceSummary {
   template_id: string
   data_json: Record<string, string>
@@ -63,6 +75,7 @@ export interface InvoiceDetail extends InvoiceSummary {
   due_at: string | null
   recipient_contact_ids: string[]
   line_items: LineItem[]
+  customer_snapshot: CustomerSnapshot | null
 }
 
 export interface InvoiceCreatePayload {
@@ -80,4 +93,10 @@ export interface InvoiceCreatePayload {
   notes?: string
   issued_at?: string
   due_at?: string
+}
+
+export interface InvoiceUpdatePayload {
+  customer_snapshot?: Partial<CustomerSnapshot>
+  notes?: string | null
+  line_items?: LineItemPayload[]
 }

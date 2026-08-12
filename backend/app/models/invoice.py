@@ -113,6 +113,7 @@ class Invoice(Base):
         Boolean, nullable=False, default=False, server_default="false"
     )
     archived: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    customer_snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     issued_at: Mapped[date | None] = mapped_column(nullable=True)
     due_at: Mapped[date | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

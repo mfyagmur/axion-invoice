@@ -4,6 +4,102 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Ekranı — Kart Bazlı Düzenleme (Edit) Özelliği (2026-08-12)
+
+### Bağlam
+
+`/dashboard/invoices/{id}` ekranındaki üç kart (Fatura Bilgileri, Fatura Detayları, Fatura
+Açıklaması) salt-okunurdu; taslak bir faturada hata düzeltmek veya eksik bilgi eklemek için
+faturayı silip yeniden oluşturmak gerekiyordu. Her kartın sağ üst köşesine bir düzenle butonu
+eklenerek, kart üzerinde doğrudan düzenleme ve kaydetme imkânı sağlandı. Backend'de faturaya
+özel bir güncelleme endpoint'i hiç yoktu (sadece oluşturma), bu yüzden hem backend hem frontend
+tarafında yeni altyapı eklendi. "Fatura Bilgileri" kartındaki alıcı bilgisi, paylaşılan `Customer`
+kaydını değil, faturaya özel bir anlık görüntüyü (snapshot) düzenler — böylece bir faturadaki
+değişiklik, aynı müşteriye ait diğer faturaları etkilemez. Düzenleme yalnızca taslak (draft)
+durumundaki faturalarda mümkündür; kalemler veya notlar değiştiğinde mevcut PDF otomatik olarak
+yeniden oluşturulur.
+
+### İşlem Türü
+
+- **Ekleme** (yeni DB kolonu + migration, yeni backend endpoint'i, yeni frontend hook/bileşenler).
+- **Değiştirme** (3 mevcut kart bileşeni, `InvoiceDetailPage`, `invoice_service.py`, i18n dosyaları).
+
+### Değişen Dosyalar
+
+**Backend:**
+
+1. **`backend/app/models/invoice.py`** — İşlem: Ekleme. `Invoice` modeline `customer_snapshot`
+   (nullable `JSONB`) kolonu eklendi.
+2. **`backend/alembic/versions/t6u7v8w9x0y1_add_invoice_customer_snapshot.py`** — İşlem: Ekleme.
+   `invoices` tablosuna `customer_snapshot` kolonunu ekleyen migration (`s4t5u6v7w8x9`'un devamı).
+3. **`backend/app/schemas/invoice.py`** — İşlem: Ekleme/Değiştirme. `CustomerSnapshotPayload`
+   (alıcı adı, adres, şehir/posta/ülke, vergi dairesi/no, e-posta/telefon — hepsi opsiyonel) ve
+   `InvoiceUpdatePayload` (`customer_snapshot` / `notes` / `line_items`, üçü de opsiyonel) şemaları
+   eklendi; `InvoiceDetailResponse`'a `customer_snapshot` alanı eklendi.
+4. **`backend/app/services/invoice_service.py`** — İşlem: Ekleme/Değiştirme.
+   - `compute_totals` artık doğrudan `line_items` listesi alıyor (önceden `InvoiceCreatePayload`
+     alıyordu) — hem `create_invoice` hem yeni `update_invoice` tarafından ortak kullanılabilsin
+     diye.
+   - `create_invoice`, fatura oluşturulurken seçilen müşterinin görüntülenen alanlarından bir
+     `customer_snapshot` kopyası oluşturup faturaya kaydediyor.
+   - Yeni `update_invoice(db, user, invoice_id, payload)` fonksiyonu: fatura taslak değilse 400
+     hatası döner; `exclude_unset` ile sadece gönderilen alanları günceller (`customer_snapshot`
+     mevcut snapshot'la merge edilir, `notes` doğrudan atanır, `line_items` gönderildiyse mevcut
+     kalemler silinip yeniden hesaplanarak (`subtotal`/`tax_total`/`grand_total`) yeniden eklenir);
+     kalem veya not değiştiyse ve fatura daha önce PDF üretmişse `pdf_status` `PENDING`'e çekilir.
+5. **`backend/app/api/v1/invoices.py`** — İşlem: Ekleme. `PATCH /invoices/{invoice_id}` endpoint'i
+   eklendi (`require_not_demo` korumalı); `update_invoice` çağrılıp PDF durumu `PENDING` ise
+   `generate_invoice_pdf_task.delay(...)` tetikleniyor (create akışıyla aynı desen).
+
+**Frontend:**
+
+6. **`frontend/src/types/invoice.ts`** — İşlem: Ekleme. `CustomerSnapshot` interface'i,
+   `InvoiceDetail.customer_snapshot` alanı, `InvoiceUpdatePayload` tipi eklendi.
+7. **`frontend/src/features/invoices/api/invoicesApi.ts`** — İşlem: Ekleme. `update(id, payload)`
+   metodu (`PATCH /invoices/{id}`) eklendi.
+8. **`frontend/src/features/invoices/hooks/useUpdateInvoice.ts`** — İşlem: Ekleme (yeni dosya).
+   `useCancelInvoice` deseniyle aynı — `useMutation`, başarıda cache'i günceller + `toast.success`,
+   hatada `toast.error`.
+9. **`frontend/src/features/invoices/components/EditIconButton.tsx`** — İşlem: Ekleme (yeni
+   dosya). `Card`'ın `action` slotuna verilen, kalem ikonlu (`lucide-react` `Pencil`), yuvarlak
+   köşeli kare buton.
+10. **`frontend/src/features/invoices/components/CompanyInfoSection.tsx`** — İşlem: Değiştirme.
+    `invoiceId`/`status`/`customerSnapshot` props'ları eklendi; `status === 'draft'` iken kalem
+    butonu görünür, düzenleme modunda alıcı adı/adres/şehir/posta/ülke/vergi dairesi/vergi
+    no/e-posta/telefon için `Input` alanları render edilir, kaydet `customer_snapshot`'ı günceller.
+11. **`frontend/src/features/invoices/components/LineItemsTable.tsx`** — İşlem: Değiştirme.
+    `invoiceId`/`status` props'ları eklendi; düzenleme modunda tablo satırları düzenlenebilir
+    input hücrelerine dönüşüyor, satır silme (min. 1 kalem) ve "Kalem Ekle" butonu eklendi, kaydet
+    `line_items`'ı günceller (en az 1 açıklama + pozitif miktar/fiyat ön-doğrulaması ile).
+12. **`frontend/src/features/invoices/components/AdditionalDetailsGrid.tsx`** — İşlem:
+    Değiştirme. `invoiceId`/`status` props'ları eklendi; notlar boşken de taslak faturalarda kart
+    artık gizlenmiyor (boş-durum metni gösteriliyor), düzenleme modunda `Textarea`, kaydet
+    `notes`'u günceller.
+13. **`frontend/src/pages/dashboard/InvoiceDetailPage.tsx`** — İşlem: Değiştirme. Üç kart
+    bileşenine `invoiceId`/`status` (ve `CompanyInfoSection`'a `customerSnapshot`) props'ları
+    geçirildi.
+14. **`frontend/src/i18n/locales/tr.json`, `frontend/src/i18n/locales/en.json`** — İşlem: Ekleme.
+    `common.edit`/`common.add`/`common.remove` ve `invoices.detail.recipientNameLabel`/
+    `notesEmpty`/`editNotOnDraft`/`addLineItem`/`removeLineItem` key'leri eklendi.
+
+### Doğrulama
+
+- `alembic upgrade head` yerel PostgreSQL'e karşı hatasız uygulandı (`s4t5u6v7w8x9` →
+  `t6u7v8w9x0y1`).
+- Değişen backend modülleri (`invoices.py`, `invoice_service.py`, `schemas/invoice.py`,
+  `models/invoice.py`) tek tek import edilip yeni `PATCH /invoices/{invoice_id}` route'unun
+  doğru kayıtlı olduğu doğrulandı. **Not:** bu oturumda backend'i tam ayağa kaldırıp canlı bir
+  `curl` testi yapılamadı (ortamda Docker/proje venv'i kurulu değildi, sistem Python'u 3.14 ile
+  projenin pinlenmiş bağımlılıkları derlenemedi) — bu önceden var olan bir ortam sınırlaması,
+  kod değişikliğiyle ilgisi yok.
+- Frontend: `npx tsc --noEmit` ve `npm run build` hatasız geçti (aynı pre-existing chunk-size
+  uyarısı dışında).
+- Tarayıcıda uçtan uca manuel doğrulama (taslak faturada üç kartın düzenlenip kaydedilmesi,
+  taslak olmayan faturada butonların gizli olduğunun görülmesi, mobil genişlikte taşma
+  olmadığının teyidi) bu oturumda yapılamadı — tarayıcı aracı/dev sunucusu mevcut değildi.
+
+---
+
 ## Fatura Detay Ekranı — StatusTimeline Durum Mesajları (2026-08-12)
 
 ### Bağlam

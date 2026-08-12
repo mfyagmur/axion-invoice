@@ -36,15 +36,22 @@ export function InvoiceDetailPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
         <div className="flex flex-col gap-6">
-          <CompanyInfoSection customer={invoice.customer} />
+          <CompanyInfoSection
+            customer={invoice.customer}
+            invoiceId={invoice.id}
+            status={invoice.status}
+            customerSnapshot={invoice.customer_snapshot}
+          />
           <LineItemsTable
+            invoiceId={invoice.id}
+            status={invoice.status}
             lineItems={invoice.line_items}
             currency={invoice.currency}
             subtotal={invoice.subtotal}
             taxTotal={invoice.tax_total}
             grandTotal={invoice.grand_total}
           />
-          <AdditionalDetailsGrid notes={invoice.notes} />
+          <AdditionalDetailsGrid invoiceId={invoice.id} status={invoice.status} notes={invoice.notes} />
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-6">

@@ -19,6 +19,24 @@ class LineItemPayload(BaseModel):
     other_tax_amount: Decimal = Field(default=Decimal("0"), ge=0)
 
 
+class CustomerSnapshotPayload(BaseModel):
+    name: str | None = Field(default=None, max_length=255)
+    address: str | None = Field(default=None, max_length=1000)
+    city: str | None = Field(default=None, max_length=100)
+    postal_code: str | None = Field(default=None, max_length=20)
+    country: str | None = Field(default=None, max_length=100)
+    tax_office: str | None = Field(default=None, max_length=255)
+    tax_number: str | None = Field(default=None, max_length=50)
+    email: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+
+
+class InvoiceUpdatePayload(BaseModel):
+    customer_snapshot: CustomerSnapshotPayload | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+    line_items: list[LineItemPayload] | None = Field(default=None, min_length=1)
+
+
 class InvoiceCreatePayload(BaseModel):
     template_id: uuid.UUID
     customer_id: uuid.UUID
@@ -104,3 +122,4 @@ class InvoiceDetailResponse(InvoiceSummaryResponse):
     due_at: date | None
     recipient_contact_ids: list[str]
     line_items: list[InvoiceLineItemResponse]
+    customer_snapshot: dict[str, str | None] | None

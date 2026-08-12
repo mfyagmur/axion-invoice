@@ -10,7 +10,10 @@
     "retry": "Retry",
     "language": "Language",
     "optional": "Optional",
-    "back": "Back"
+    "back": "Back",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove"
   },
   "landing": {
     "nav": {
@@ -391,7 +394,12 @@
       "exchangeRateNote": "The final amount may vary based on the exchange rate at the time of payment.",
       "timelineCreated": "Created",
       "timelinePaymentReceived": "Payment Received",
-      "timelinePaid": "Paid"
+      "timelinePaid": "Paid",
+      "recipientNameLabel": "Recipient Name",
+      "notesEmpty": "Click edit to add notes.",
+      "editNotOnDraft": "Only draft invoices can be edited.",
+      "addLineItem": "Add Item",
+      "removeLineItem": "Remove Item"
     }
   },
   "billing": {

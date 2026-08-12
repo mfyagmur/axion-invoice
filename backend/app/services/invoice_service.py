@@ -5,10 +5,10 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.constants import COMPUTED_FIELD_KEYS
-from app.models.invoice import Invoice, InvoiceCustomer, InvoiceLineItem
+from app.models.invoice import Invoice, InvoiceCustomer, InvoiceLineItem, InvoicePdfStatus, InvoiceStatus
 from app.models.template import InvoiceTemplate
 from app.models.user import User
-from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+from app.schemas.invoice import InvoiceCreatePayload, InvoiceUpdatePayload, LineItemPayload
 
 
 def _round_money(value: Decimal) -> Decimal:
@@ -29,11 +29,13 @@ def compute_line_item_totals(item: LineItemPayload) -> dict[str, Decimal]:
     }
 
 
-def compute_totals(payload: InvoiceCreatePayload) -> tuple[Decimal, Decimal, Decimal, list[dict[str, Decimal]]]:
-    computations = [compute_line_item_totals(item) for item in payload.line_items]
+def compute_totals(
+    line_items: list[LineItemPayload],
+) -> tuple[Decimal, Decimal, Decimal, list[dict[str, Decimal]]]:
+    computations = [compute_line_item_totals(item) for item in line_items]
     subtotal = sum((c["taxable_base"] for c in computations), Decimal("0"))
     tax_total = sum((c["tax_amount"] for c in computations), Decimal("0")) + sum(
-        (item.other_tax_amount for item in payload.line_items), Decimal("0")
+        (item.other_tax_amount for item in line_items), Decimal("0")
     )
     grand_total = subtotal + tax_total
     return subtotal, tax_total, grand_total, computations
@@ -73,9 +75,21 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         if contact is None:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Geçerli olmayan kişi seçimi")
 
-    subtotal, tax_total, grand_total, line_computations = compute_totals(payload)
+    subtotal, tax_total, grand_total, line_computations = compute_totals(payload.line_items)
 
     field_values = {key: value for key, value in payload.field_values.items() if key not in COMPUTED_FIELD_KEYS}
+
+    customer_snapshot = {
+        "name": customer.company_name or customer.name,
+        "address": customer.address,
+        "city": customer.city,
+        "postal_code": customer.postal_code,
+        "country": customer.country,
+        "tax_office": customer.tax_office,
+        "tax_number": customer.tax_number,
+        "email": customer.email,
+        "phone": customer.phone,
+    }
 
     invoice = Invoice(
         user_id=user.id,
@@ -96,6 +110,7 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         notes=payload.notes,
         issued_at=payload.issued_at,
         due_at=payload.due_at,
+        customer_snapshot=customer_snapshot,
     )
     db.add(invoice)
     db.flush()
@@ -116,6 +131,62 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
                 other_tax_amount=item.other_tax_amount,
             )
         )
+
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
+def update_invoice(db: Session, user: User, invoice_id: uuid.UUID, payload: InvoiceUpdatePayload) -> Invoice:
+    invoice = get_own_invoice(db, invoice_id, user)
+    if invoice.status != InvoiceStatus.DRAFT:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sadece taslak faturalar düzenlenebilir")
+
+    update_fields = payload.model_dump(exclude_unset=True)
+    content_changed = False
+
+    if "customer_snapshot" in update_fields:
+        snapshot = dict(invoice.customer_snapshot or {})
+        snapshot.update(update_fields["customer_snapshot"])
+        invoice.customer_snapshot = snapshot
+
+    if "notes" in update_fields:
+        invoice.notes = update_fields["notes"]
+        content_changed = True
+
+    if "line_items" in update_fields:
+        line_items_payload = [LineItemPayload(**item) for item in update_fields["line_items"]]
+        subtotal, tax_total, grand_total, line_computations = compute_totals(line_items_payload)
+
+        for existing_item in list(invoice.line_items):
+            db.delete(existing_item)
+        db.flush()
+
+        invoice.subtotal = subtotal
+        invoice.tax_total = tax_total
+        invoice.grand_total = grand_total
+
+        for item, computed in zip(line_items_payload, line_computations):
+            db.add(
+                InvoiceLineItem(
+                    invoice_id=invoice.id,
+                    item_code=item.item_code,
+                    description=item.description,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                    unit=item.unit,
+                    discount_rate=item.discount_rate,
+                    discount_amount=computed["discount_amount"],
+                    tax_rate=item.tax_rate,
+                    tax_amount=computed["tax_amount"],
+                    other_tax_amount=item.other_tax_amount,
+                )
+            )
+        content_changed = True
+
+    if content_changed and invoice.pdf_url is not None:
+        invoice.pdf_status = InvoicePdfStatus.PENDING
+        invoice.pdf_error = None
 
     db.commit()
     db.refresh(invoice)
