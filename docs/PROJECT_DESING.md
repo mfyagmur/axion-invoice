@@ -4,6 +4,40 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Detay Ekranı — StatusTimeline Alıcı Bilgisi (2026-08-12)
+
+### Bağlam
+
+`StatusTimeline` bileşeni (`frontend/src/features/invoices/components/StatusTimeline.tsx`), fatura 
+detay ekranında (`/dashboard/invoices/{id}`) sağ üst tarafta "Oluşturuldu / Ödeme Alındı / Ödendi" 
+adımlarını dikey zaman çizelgesi olarak gösteriyor. Kartın alt kısmında, oluşturma tarihinin altına 
+alıcının e-posta adresine gönderildiğini ve ödeme beklentisini belirten bilgilendirici bir metinle 
+destekleme ihtiyacı ortaya çıktı.
+
+### İşlem Türü
+
+- **Değiştirme** (2 mevcut bileşen, i18n değişikliği yok).
+
+### Değişen Dosyalar
+
+1. **`frontend/src/features/invoices/components/StatusTimeline.tsx`** — İşlem: Değiştirme.
+   Props interface'ine `recipientEmail?: string | null` opsiyonel alan eklendi. Kartın dikey 
+   `<div>` kısmının altına, `recipientEmail` değeri mevcut ise yatay bir `border-t` ile ayrılmış 
+   şekilde "Fatura <strong>[email]</strong> adresine gönderilmiştir." (satır 1) ve "Alıcının 
+   ödemeyi yapması bekleniyor." (satır 2) metni koşullu render edilir. Her iki satır da 
+   `text-sm text-slate-600` stiliyle gösterilir.
+
+2. **`frontend/src/pages/dashboard/InvoiceDetailPage.tsx`** — İşlem: Değiştirme.
+   `<StatusTimeline>` bileşenine `recipientEmail={invoice.customer.email}` prop'u geçildi; bu 
+   sayede müşteri verilerinden alınan e-posta bilgisi kartın alt bölümünde dinamik olarak gösterilir.
+
+### Doğrulama
+
+`npm run build` hatasız geçti (prod build başarılı, aynı pre-existing chunk-size uyarısı). 
+TypeScript type kontrolü temiz, hiçbir hata yok.
+
+---
+
 ## Fatura Detay Ekranı — StatusTimeline Nokta Animasyonu (animate-ping) (2026-08-12)
 
 ### Bağlam
