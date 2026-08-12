@@ -30,7 +30,7 @@ export function InvoiceDetailPage() {
       <InvoiceActionHeader
         invoice={invoice}
         row={row}
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/dashboard/invoices')}
         onOpenPaymentChaser={() => setChaserOpen(true)}
       />
 
