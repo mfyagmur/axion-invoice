@@ -35,6 +35,21 @@ export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTime
     },
   ]
 
+  const completedStepsCount = steps.filter(s => s.done).length
+
+  // Tamamlanan adım sayısına göre mesaj belirle
+  let statusMessage: string | null = null
+  if (completedStepsCount === 1 && recipientEmail) {
+    // Sadece ilk adım: Fatura gönderildi
+    statusMessage = 'sent'
+  } else if (completedStepsCount === 2) {
+    // İkinci adım: Ödeme alındı (sistem doğrulaması bekleniyor)
+    statusMessage = 'payment-received'
+  } else if (completedStepsCount === 3) {
+    // Üçüncü adım: Ödendi (alıcı tarafından ödeme yapıldı)
+    statusMessage = 'paid'
+  }
+
   return (
     <Card>
       <div className="flex flex-col">
@@ -65,14 +80,28 @@ export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTime
           </div>
         ))}
       </div>
-      {recipientEmail && (
+      {statusMessage && (
         <div className="border-t border-slate-200 pt-4 mt-4">
-          <p className="text-xs text-slate-600">
-            Fatura <strong>{recipientEmail}</strong> adresine gönderilmiştir.
-          </p>
-          <p className="text-xs text-slate-600">
-            Alıcının ödemeyi yapması bekleniyor.
-          </p>
+          {statusMessage === 'sent' && (
+            <>
+              <p className="text-xs text-slate-600">
+                Fatura <strong>{recipientEmail}</strong> adresine gönderilmiştir.
+              </p>
+              <p className="text-xs text-slate-600">
+                Alıcının ödemeyi yapması bekleniyor.
+              </p>
+            </>
+          )}
+          {statusMessage === 'payment-received' && (
+            <p className="text-xs text-slate-600">
+              Ödeme sistem tarafından doğrulaması bekleniyor.
+            </p>
+          )}
+          {statusMessage === 'paid' && (
+            <p className="text-xs text-slate-600">
+              Alıcı tarafından ödeme gerçekleştirmiştir.
+            </p>
+          )}
         </div>
       )}
     </Card>
