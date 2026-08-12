@@ -55,7 +55,7 @@ export function InvoiceDetailPage() {
             currency={invoice.currency}
           />
           <NetReceivableBox row={row} />
-          <StatusTimeline status={invoice.status} createdAt={invoice.created_at} />
+          <StatusTimeline status={invoice.status} createdAt={invoice.created_at} recipientEmail={invoice.customer.email} />
         </div>
       </div>
 

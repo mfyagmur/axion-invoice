@@ -7,9 +7,10 @@ import type { InvoiceStatus } from '@/types/invoice'
 interface StatusTimelineProps {
   status: InvoiceStatus
   createdAt: string
+  recipientEmail?: string | null
 }
 
-export function StatusTimeline({ status, createdAt }: StatusTimelineProps) {
+export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTimelineProps) {
   const { t } = useTranslation()
 
   // NOTE: backend'de ayrı bir "ödeme alındı" durumu yok, bu yüzden
@@ -64,6 +65,16 @@ export function StatusTimeline({ status, createdAt }: StatusTimelineProps) {
           </div>
         ))}
       </div>
+      {recipientEmail && (
+        <div className="border-t border-slate-200 pt-4 mt-4">
+          <p className="text-sm text-slate-600">
+            Fatura <strong>{recipientEmail}</strong> adresine gönderilmiştir.
+          </p>
+          <p className="text-sm text-slate-600">
+            Alıcının ödemeyi yapması bekleniyor.
+          </p>
+        </div>
+      )}
     </Card>
   )
 }
