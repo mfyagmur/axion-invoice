@@ -67,10 +67,10 @@ export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTime
       </div>
       {recipientEmail && (
         <div className="border-t border-slate-200 pt-4 mt-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-xs text-slate-600">
             Fatura <strong>{recipientEmail}</strong> adresine gönderilmiştir.
           </p>
-          <p className="text-sm text-slate-600">
+          <p className="text-xs text-slate-600">
             Alıcının ödemeyi yapması bekleniyor.
           </p>
         </div>
