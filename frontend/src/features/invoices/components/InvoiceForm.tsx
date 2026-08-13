@@ -140,6 +140,21 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   )
   const grandTotal = subtotal + taxTotal
 
+  const exchangeRateValue = watch('exchange_rate')
+
+  const receivableAmount = useMemo(() => {
+    if (currency === paymentCurrency) return grandTotal
+    const rate = Number(exchangeRateValue)
+    if (!rate || Number.isNaN(rate) || rate <= 0) return null
+    return grandTotal / rate
+  }, [grandTotal, currency, paymentCurrency, exchangeRateValue])
+
+  const inverseExchangeRate = useMemo(() => {
+    const rate = Number(exchangeRateValue)
+    if (!rate || Number.isNaN(rate) || rate <= 0) return null
+    return 1 / rate
+  }, [exchangeRateValue])
+
   const isFormValid = !!(templateId && customerId && lineItemFields.length > 0)
 
   const isFirstCustomerRender = useRef(true)
@@ -322,6 +337,13 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                   <label className="text-sm font-medium text-slate-700" htmlFor="exchange_rate">
                     {t('invoices.form.exchangeRate')}
                   </label>
+                  {inverseExchangeRate !== null && (
+                    <span className="text-xs text-slate-500">
+                      {i18n.language === 'tr'
+                        ? `Güncel ${currency} Kuru (${currency}/${paymentCurrency}): ${inverseExchangeRate.toFixed(4)} ${paymentCurrency}`
+                        : `Current ${currency} Rate (${currency}/${paymentCurrency}): ${inverseExchangeRate.toFixed(4)} ${paymentCurrency}`}
+                    </span>
+                  )}
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                     <div className="relative w-full sm:max-w-40">
                       <input
@@ -512,8 +534,14 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
               <div className="flex flex-col gap-1 border-t border-slate-200 pt-3">
                 <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToReceive')}</span>
                 <span className="text-lg font-semibold text-slate-900">
-                  {grandTotal.toFixed(2)} {paymentCurrency}
+                  {receivableAmount === null ? '—' : `${receivableAmount.toFixed(2)} ${paymentCurrency}`}
                 </span>
+                {receivableAmount !== null && inverseExchangeRate !== null && paymentCurrency !== currency && (
+                  <span className="text-xs text-slate-500">
+                    {`*1 ${currency} = ${inverseExchangeRate.toFixed(4)} ${paymentCurrency}. `}
+                    {t('invoices.form.exchangeRateVariesNote')}
+                  </span>
+                )}
               </div>
             </div>
 
