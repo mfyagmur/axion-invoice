@@ -13,6 +13,7 @@ import { Tabs } from '@/components/Tabs'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { getCustomerBaseName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { CustomerTypeBadge } from '@/features/customers/components/CustomerTypeBadge'
+import { CustomerFormModal } from '@/features/customers/components/CustomerFormModal'
 import { useInvoices } from '@/features/invoices/hooks/useInvoices'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
@@ -48,6 +49,7 @@ export function CustomerDetailPage() {
   const updateContact = useUpdateCustomerContact()
   const deleteContact = useDeleteCustomerContact()
   const [activeTab, setActiveTab] = useState<'invoices' | 'contact'>('invoices')
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
   const {
@@ -152,16 +154,25 @@ export function CustomerDetailPage() {
           </button>
           <h1 className="text-xl font-semibold text-slate-900">{t('customers.detail.title')}</h1>
         </div>
-        {activeTab === 'contact' && (
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setIsContactModalOpen(true)}
+            onClick={() => setIsEditModalOpen(true)}
           >
-            <Plus size={16} className="mr-2" />
-            {t('customers.detail.contact.addButton')}
+            {t('customers.list.edit')}
           </Button>
-        )}
+          {activeTab === 'contact' && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsContactModalOpen(true)}
+            >
+              <Plus size={16} className="mr-2" />
+              {t('customers.detail.contact.addButton')}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -299,6 +310,12 @@ export function CustomerDetailPage() {
           </div>
         )}
       </div>
+
+      <CustomerFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        customer={customer}
+      />
 
       <Modal
         isOpen={isContactModalOpen}
