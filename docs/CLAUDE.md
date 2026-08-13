@@ -130,6 +130,9 @@ karar/ilerleme sonrası bu dosya güncellenmelidir. Detaylı mimari için `PROJE
 | Frontend hata durumu | Ortak `components/ErrorState.tsx` (mesaj + "Tekrar Dene") | `InvoicesPage`/`CustomersPage`/`TemplatesPage` aynı deseni 3 kez tekrarlamasın diye küçük bir paylaşılan bileşen |
 | Prod backend process modeli | `gunicorn` + `uvicorn.workers.UvicornWorker`, non-root `appuser` | Dev'deki tek-process `uvicorn --reload`'ın aksine prod'da çoklu worker + reload kapalı; Chromium sandbox'ı zaten non-root altında daha güvenli çalışıyor |
 | Prod frontend serve | Multi-stage Docker build → statik dosyalar `nginx`'te, `VITE_*` değişkenleri build-arg | Vite `VITE_*` değişkenlerini derleme anında JS bundle'a gömüyor, runtime container env'i işe yaramıyor — bu yüzden prod URL'i build-time'da bilinmeli |
+| Kur alanı görünürlüğü (`InvoiceForm`) | `currency !== payment_currency` (TRY'ye özel değil) | Fatura ve ödeme para birimi aynıysa kur gereksiz; farklıysa TRY içermese bile (örn. EUR→USD) gösterilip TCMB'den doldurulmalı |
+| `exchange_rate` alanının yönü | 1 birim `payment_currency` = X birim `currency` | Kullanıcıyla netleştirildi; `fx_service.get_conversion_rate(from, to)` bu yönde TRY köprüsüyle hesaplıyor, `local_amount` formülü de bu yöne göre yazıldı |
+| `local_amount` (Net TRY) — her iki taraf da TRY değilse | `None` döner, canlı ek TCMB sorgusu yapılmaz | Response serileştirme yolunda ağ çağrısına girmemek için bilinçli sınırlama; frontend `NetReceivableBox` bunu `secondaryAmount ?? "${amount} ${currency}"` ile karşılıyor |
 
 **Bu tablo yeni bir mimari karar alındığında güncellenmeli, silinmemelidir.**
 

@@ -105,11 +105,16 @@ class InvoiceSummaryResponse(BaseModel):
     @computed_field
     @property
     def local_amount(self) -> Decimal | None:
-        if self.payment_currency == "TRY":
+        if self.currency == "TRY":
             return self.grand_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        if self.exchange_rate is None:
+        if self.exchange_rate is None or self.exchange_rate == 0:
             return None
-        return (self.grand_total * self.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if self.payment_currency == "TRY":
+            # exchange_rate: 1 TRY(payment) = X currency  ->  grand_total(currency) / rate = TRY
+            return (self.grand_total / self.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        # Ne currency ne payment_currency TRY ise (örn. EUR->USD), TRY karşılığı için ek bir
+        # TCMB sorgusu gerekir - response serileştirmede canlı ağ çağrısı yapmamak için None dönülür.
+        return None
 
 
 class InvoiceDetailResponse(InvoiceSummaryResponse):

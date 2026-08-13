@@ -7,6 +7,6 @@ export interface FxRate {
 }
 
 export const fxApi = {
-  getRate: (currency: string) =>
-    apiClient.get<FxRate>('/fx/rate', { params: { currency } }).then((res) => res.data),
+  getRate: (currency: string, base?: string) =>
+    apiClient.get<FxRate>('/fx/rate', { params: { currency, base } }).then((res) => res.data),
 }

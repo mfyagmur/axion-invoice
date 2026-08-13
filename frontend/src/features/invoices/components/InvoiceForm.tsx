@@ -98,13 +98,19 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
 
-  const exchangeRateQuery = useExchangeRate(paymentCurrency, !isFixedRate)
+  const exchangeRateQuery = useExchangeRate(paymentCurrency, currency, !isFixedRate)
 
   useEffect(() => {
     if (!isFixedRate && exchangeRateQuery.data) {
       setValue('exchange_rate', exchangeRateQuery.data.rate)
     }
   }, [exchangeRateQuery.data, isFixedRate, setValue])
+
+  useEffect(() => {
+    if (currency === paymentCurrency) {
+      setValue('exchange_rate', '')
+    }
+  }, [currency, paymentCurrency, setValue])
 
   const lineComputations = useMemo(
     () =>
@@ -309,7 +315,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
               />
             </div>
 
-            {paymentCurrency !== 'TRY' && (
+            {paymentCurrency !== currency && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1 sm:col-span-2">
                   <label className="text-sm font-medium text-slate-700" htmlFor="exchange_rate">

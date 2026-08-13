@@ -1,6 +1,6 @@
 import urllib.request
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from xml.etree import ElementTree
 
 TCMB_URL = "https://www.tcmb.gov.tr/kurlar/today.xml"
@@ -47,3 +47,11 @@ def get_exchange_rate(currency_code: str) -> Decimal:
 
     _cache[currency_code] = (datetime.now(timezone.utc), rate)
     return rate
+
+
+def get_conversion_rate(from_code: str, to_code: str) -> Decimal:
+    """1 birim from_code kaç birim to_code eder (TCMB'nin TRY tabanlı kurları üzerinden köprü)."""
+    if from_code == to_code:
+        return Decimal("1")
+    rate = get_exchange_rate(from_code) / get_exchange_rate(to_code)
+    return rate.quantize(Decimal("0.00001"), rounding=ROUND_HALF_UP)

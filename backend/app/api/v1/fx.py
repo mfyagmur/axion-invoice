@@ -15,10 +15,12 @@ router = APIRouter(prefix="/fx", tags=["fx"])
 def get_rate(
     current_user: Annotated[User, Depends(get_current_user)],
     currency: str = Query(..., min_length=3, max_length=3),
+    base: str = Query("TRY", min_length=3, max_length=3),
 ) -> FxRateResponse:
     code = currency.upper()
+    base_code = base.upper()
     try:
-        rate = fx_service.get_exchange_rate(code)
+        rate = fx_service.get_conversion_rate(code, base_code)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Desteklenmeyen para birimi") from exc
     except (urllib.error.URLError, TimeoutError) as exc:

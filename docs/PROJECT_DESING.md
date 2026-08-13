@@ -4,6 +4,117 @@ Bu dosya, MVP'nin 1-5. fazlarından sonra gerçekleştirilen özellik eklemeleri
 
 ---
 
+## Fatura Oluşturma — Çapraz Kur Değerinin 5 Ondalık Haneye Yuvarlanması (2026-08-13)
+
+### Bağlam
+
+`get_conversion_rate` (TRY köprüsüyle hesaplanan çapraz kur, örn. TRY→USD) iki `Decimal`
+bölme işleminin ham sonucunu döndürüyordu; bu da TRY→USD gibi çiftlerde 25+ ondalık haneli
+değerler üretiyordu (`0,02094078574016254237891514165`). Kullanıcı geri bildirimiyle 5 ondalık
+hanenin (`0,12345` formatı) yeterli olduğu netleşti.
+
+### İşlem Türü
+
+Düzeltme (hassasiyet/görüntüleme).
+
+### Değişen Dosyalar
+
+1. `backend/app/services/fx_service.py` — `get_conversion_rate`, sonucu
+   `Decimal("0.00001")` hassasiyetinde `ROUND_HALF_UP` ile yuvarlıyor artık.
+   `get_exchange_rate` (TCMB'den doğrudan gelen TRY tabanlı kur, cache'lenen ham değer)
+   değiştirilmedi — yuvarlama yalnızca çapraz kur hesaplamasının çıktısına uygulanıyor.
+
+### Doğrulama
+
+Docker container içinde `fx_service.get_conversion_rate` çağrıları: `TRY→USD` → `0.02094`,
+`USD→TRY` → `47.75370`, `EUR→USD` → `1.15379`, `USD→USD` → `1`. Backend container yeniden
+başlatıldı, `/health` `{"status":"ok"}` döndü.
+
+---
+
+## Fatura Oluşturma — Güncel Döviz Kuru Alanının Fatura/Ödeme Para Birimi Eşleşmesine Göre Çalışması (2026-08-13)
+
+### Bağlam
+
+Bir önceki maddede (2026-08-12) eklenen TCMB otomatik kur entegrasyonu, "Güncel Döviz Kuru"
+alanını yalnızca `payment_currency !== 'TRY'` koşuluna bakarak gösteriyor ve kuru her zaman
+`payment_currency`'nin TRY karşılığı olarak çekiyordu — "Fatura para birimi" (`currency`) alanı
+hesaba katılmıyordu. Bu, kullanıcı aynı para birimini hem fatura hem ödeme için seçse bile
+(örn. ikisi de USD) kur alanının gereksiz yere görünmesine, `currency`/`payment_currency` TRY
+içermeyen bir çift olduğunda (örn. EUR→USD) ise yanlış (TRY tabanlı) bir kur gösterilmesine
+neden oluyordu. İstenen davranış: (1) fatura ve ödeme para birimi aynıysa alan gösterilmez,
+(2) farklıysa (TRY↔USD, TRY↔EUR, EUR↔USD gibi tüm kombinasyonlar) alan gösterilir ve TCMB
+verisiyle otomatik doldurulur. Kullanıcıyla netleştirilen kur yönü: `exchange_rate` = "1 birim
+Ödeme Para Birimi = X birim Fatura Para Birimi". Ayrıca, faturanın kendi para birimi TRY dışında
+olduğunda yanlış sonuç üreten `InvoiceSummaryResponse.local_amount` ("Net ... TRY") hesaplaması
+da bu kapsamda düzeltildi.
+
+### İşlem Türü
+
+- **Değiştirme** (2 backend servis/route dosyası, 1 backend schema, 2 frontend hook/api dosyası,
+  1 frontend form bileşeni; yeni dosya veya i18n key'i yok).
+
+### Değişen Dosyalar
+
+**Backend:**
+
+1. **`backend/app/services/fx_service.py`** — İşlem: Değiştirme. Mevcut TRY tabanlı
+   `get_exchange_rate(currency_code)` korunarak, üzerine köprü kuran yeni
+   `get_conversion_rate(from_code, to_code)` fonksiyonu eklendi — `from_code == to_code` ise
+   `Decimal("1")`, aksi halde `get_exchange_rate(from_code) / get_exchange_rate(to_code)` (TCMB
+   her iki kuru da TRY tabanlı verdiği için bölme işlemi çapraz kuru verir; `get_exchange_rate
+   ("TRY")` zaten `Decimal("1")` döndüğünden TRY içeren çiftlerde ek dallanma gerekmedi). Canlı
+   TCMB verisine karşı `USD→TRY`, `TRY→USD`, `EUR→USD`, `USD→EUR` senaryoları elle doğrulandı
+   (örn. `EUR→USD` ≈ 1.1538, `USD→EUR` ≈ 0.8667 — birbirinin tersi, tutarlı).
+2. **`backend/app/api/v1/fx.py`** — İşlem: Değiştirme. `GET /fx/rate`'e opsiyonel `base` query
+   param'ı eklendi (varsayılan `"TRY"` — mevcut çağıranlarla geriye dönük birebir uyumlu),
+   `fx_service.get_exchange_rate(code)` çağrısı `fx_service.get_conversion_rate(code, base_code)`
+   ile değiştirildi.
+3. **`backend/app/schemas/invoice.py`** — İşlem: Değiştirme.
+   `InvoiceSummaryResponse.local_amount` computed field'ı yeniden yazıldı: `grand_total` her
+   zaman `currency` biriminde olduğu için artık önce `self.currency == "TRY"` kontrol ediliyor
+   (o zaman `grand_total` zaten TRY, doğrudan döner); değilse ve `payment_currency == "TRY"` ise
+   `grand_total / exchange_rate` (yeni kur yönüyle tutarlı: `exchange_rate` = 1 TRY(ödeme) = X
+   `currency`, bölünce TRY çıkar); ne `currency` ne `payment_currency` TRY ise (örn. EUR→USD)
+   TRY karşılığı için ek bir canlı TCMB sorgusu gerekeceğinden — response serileştirme yolunda
+   ağ çağrısı yapmamak amacıyla bilinçli olarak `None` dönülüyor (frontend zaten
+   `NetReceivableBox.tsx`'te `secondaryAmount ?? "${amount} ${currency}"` ile bunu karşılıyor).
+
+**Frontend:**
+
+4. **`frontend/src/features/invoices/api/fxApi.ts`** — İşlem: Değiştirme. `getRate(currency,
+   base?)` — opsiyonel `base` param'ı backend'e iletiliyor.
+5. **`frontend/src/features/invoices/hooks/useExchangeRate.ts`** — İşlem: Değiştirme. İmza
+   `useExchangeRate(currency, enabled)` → `useExchangeRate(from, to, enabled)`; `queryKey` artık
+   `['fx-rate', from, to]`, `enabled: enabled && from !== to` (önceki `currency !== 'TRY'`
+   yerine).
+6. **`frontend/src/features/invoices/components/InvoiceForm.tsx`** — İşlem: Değiştirme.
+   - `useExchangeRate(paymentCurrency, !isFixedRate)` → `useExchangeRate(paymentCurrency,
+     currency, !isFixedRate)`.
+   - Kur alanının görünürlük koşulu `paymentCurrency !== 'TRY'` → `paymentCurrency !== currency`.
+   - Yeni bir `useEffect`: `currency === paymentCurrency` olduğunda (alan gizlendiğinde)
+     `exchange_rate` form alanı `setValue('exchange_rate', '')` ile temizleniyor — stale/yanlış
+     bir değerin sessizce submit edilmesi önlendi.
+   - Kalan JSX (readOnly/checkbox/spinner/hata mesajı davranışı, i18n key'leri) değişmedi —
+     mevcut key'ler zaten jenerik ("Güncel Döviz Kuru" vb.), TRY'ye özel bir ifade içermiyordu.
+
+### Doğrulama
+
+- Backend: değişen 3 modül (`fx_service`, `fx` route, `invoice` schema) çalışan `backend`
+  container'ında import edilip hatasız yüklendiği doğrulandı; `get_conversion_rate` canlı TCMB
+  verisine karşı yukarıdaki 4 senaryoyla manuel test edildi, sonuçlar matematiksel olarak tutarlı
+  (çapraz kurlar birbirinin tersi).
+- Frontend: `npx tsc --noEmit` ve `npm run build` hatasız geçti (mevcut, ilgisiz chunk-size
+  uyarısı dışında).
+- **Bilinen sınırlık:** Bu oturumda gerçek bir kullanıcı oturumu ile uçtan uca `curl` (auth
+  token'lı `GET /api/v1/fx/rate?currency=...&base=...`) testi ve tarayıcıda
+  `/dashboard/invoices/new` üzerinde görsel/manuel teyit (aynı para biriminde alanın kaybolması,
+  farklı çiftlerde doğru kurla dolması, "Sabit Kur Uygula" ile manuel giriş) yapılamadı — kullanıcı
+  tarafından teyit edilmeli. `local_amount` için de yeni bir pytest senaryosu eklenmedi
+  (`backend/tests/test_invoices.py`'e önerilir).
+
+---
+
 ## Fatura Oluşturma — TCMB Otomatik Kur Entegrasyonu ve Sabit Kur Seçeneği (2026-08-12)
 
 ### Bağlam
