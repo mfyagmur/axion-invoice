@@ -9,6 +9,8 @@ export interface InvoiceRow {
   amount: string
   currency: string
   secondaryAmount?: string
+  paymentCurrency?: string
+  exchangeRate?: string | null
   createdAt: string
   createdAtRaw: string
   status: InvoiceStatus

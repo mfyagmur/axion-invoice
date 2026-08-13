@@ -16,6 +16,8 @@ export function mapInvoiceToRow(invoice: InvoiceSummary): InvoiceRow {
     secondaryAmount: invoice.local_amount
       ? `${Number(invoice.local_amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TRY`
       : undefined,
+    paymentCurrency: invoice.payment_currency,
+    exchangeRate: invoice.exchange_rate,
     createdAt: invoice.created_at,
     createdAtRaw: invoice.created_at,
     status: invoice.status,
