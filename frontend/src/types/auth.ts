@@ -7,9 +7,20 @@ export interface User {
   full_name: string
   account_type: AccountType
   company_name: string | null
+  address: string | null
+  city: string | null
+  postal_code: string | null
+  country: string | null
+  phone: string | null
+  tax_office: string | null
+  tax_number: string | null
   locale: Locale
+  notify_invoice_reminders: boolean
+  notify_product_updates: boolean
+  notify_billing_emails: boolean
   is_demo: boolean
   is_admin: boolean
+  has_password: boolean
 }
 
 export interface SignupPayload {
@@ -33,4 +44,32 @@ export interface GoogleLoginPayload {
 export interface TokenResponse {
   access_token: string
   token_type: string
+}
+
+export interface ProfileUpdatePayload {
+  full_name: string
+}
+
+export interface AccountUpdatePayload {
+  company_name?: string | null
+  address?: string | null
+  city?: string | null
+  postal_code?: string | null
+  country?: string | null
+  phone?: string | null
+  tax_office?: string | null
+  tax_number?: string | null
+}
+
+export interface PreferencesUpdatePayload {
+  locale?: Locale
+  notify_invoice_reminders?: boolean
+  notify_product_updates?: boolean
+  notify_billing_emails?: boolean
+}
+
+export interface PasswordChangePayload {
+  current_password?: string
+  new_password: string
+  confirm_password: string
 }

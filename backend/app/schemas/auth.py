@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.user import AccountType
 
@@ -34,8 +34,54 @@ class UserResponse(BaseModel):
     full_name: str
     account_type: AccountType
     company_name: str | None
+    address: str | None
+    city: str | None
+    postal_code: str | None
+    country: str | None
+    phone: str | None
+    tax_office: str | None
+    tax_number: str | None
     locale: str
+    notify_invoice_reminders: bool
+    notify_product_updates: bool
+    notify_billing_emails: bool
     is_demo: bool
     is_admin: bool
+    has_password: bool
 
     model_config = {"from_attributes": True}
+
+
+class ProfileUpdatePayload(BaseModel):
+    full_name: str = Field(min_length=1, max_length=255)
+
+
+class AccountUpdatePayload(BaseModel):
+    company_name: str | None = Field(default=None, max_length=255)
+    address: str | None = Field(default=None, max_length=1000)
+    city: str | None = Field(default=None, max_length=100)
+    postal_code: str | None = Field(default=None, max_length=20)
+    country: str | None = Field(default=None, max_length=100)
+    phone: str | None = Field(default=None, max_length=50)
+    tax_office: str | None = Field(default=None, max_length=255)
+    tax_number: str | None = Field(default=None, max_length=50)
+
+
+class PreferencesUpdatePayload(BaseModel):
+    locale: str | None = Field(default=None, pattern=r"^(tr|en)$")
+    notify_invoice_reminders: bool | None = None
+    notify_product_updates: bool | None = None
+    notify_billing_emails: bool | None = None
+
+
+class PasswordChangePayload(BaseModel):
+    current_password: str | None = Field(default=None, min_length=1)
+    new_password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)
+
+    @field_validator("confirm_password")
+    @classmethod
+    def password_match(cls, v, info):
+        if "new_password" in info.data and v != info.data["new_password"]:
+            raise ValueError("Passwords do not match")
+        return v

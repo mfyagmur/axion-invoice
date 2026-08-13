@@ -5,29 +5,27 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  ShieldCheck,
   Settings,
+  ShieldCheck,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 import { twMerge } from 'tailwind-merge'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { dashboardNavItems } from '@/config/navigation'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { useAuthStore } from '@/store/authStore'
-import { useLocaleStore } from '@/store/localeStore'
 import { useSidebarStore } from '@/store/sidebarStore'
-import type { Locale } from '@/types/auth'
 
 interface SidebarProps {
   onNavigate?: () => void
 }
 
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const logout = useLogout()
-  const { locale, setLocale } = useLocaleStore()
   const { isCollapsed, toggleCollapsed } = useSidebarStore()
   const collapsed = isCollapsed && !onNavigate
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -49,11 +47,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const handleLogout = () => {
     logout.mutate()
     setIsMenuOpen(false)
-  }
-
-  const handleLanguageChange = (newLocale: Locale) => {
-    setLocale(newLocale)
-    i18n.changeLanguage(newLocale)
   }
 
   return (
@@ -161,7 +154,20 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 <p className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">{user.email}</p>
               </div>
 
+              <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+                <span className="text-sm text-slate-600">{t('common.language')}</span>
+                <LanguageSwitcher compact />
+              </div>
+
               <div className="border-t border-slate-200">
+                <NavLink
+                  to="/dashboard/settings"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                >
+                  <Settings size={16} />
+                  {t('nav.settings')}
+                </NavLink>
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -177,51 +183,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                   <HelpCircle size={16} />
                   {t('nav.support') || 'Support'}
                 </button>
-              </div>
-
-              <div className="border-t border-slate-200">
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
-                >
-                  <Settings size={16} />
-                  {t('nav.settings')}
-                </button>
-                <div className="px-3 py-2">
-                  <div className="mb-2 text-xs font-medium text-slate-600">{t('common.language')}</div>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleLanguageChange('tr')
-                        setIsMenuOpen(false)
-                      }}
-                      className={twMerge(
-                        'flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-slate-200',
-                        locale === 'tr' && 'bg-slate-800',
-                      )}
-                      title="Türkçe"
-                    >
-                      <span className="fi fi-tr h-4 w-6 rounded-sm" />
-                      <span className={locale === 'tr' ? 'text-white' : 'text-slate-600'}>TR</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleLanguageChange('en')
-                        setIsMenuOpen(false)
-                      }}
-                      className={twMerge(
-                        'flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-slate-200',
-                        locale === 'en' && 'bg-slate-800',
-                      )}
-                      title="English"
-                    >
-                      <span className="fi fi-gb h-4 w-6 rounded-sm" />
-                      <span className={locale === 'en' ? 'text-white' : 'text-slate-600'}>EN</span>
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           )}

@@ -2,24 +2,38 @@ import { twMerge } from 'tailwind-merge'
 import { useLocaleStore } from '@/store/localeStore'
 import type { Locale } from '@/types/auth'
 
-const LOCALES: Locale[] = ['tr', 'en']
+const LOCALES: { value: Locale; flag: string }[] = [
+  { value: 'tr', flag: 'fi-tr' },
+  { value: 'en', flag: 'fi-gb' },
+]
 
-export function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  compact?: boolean
+}
+
+export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
   const { locale, setLocale } = useLocaleStore()
 
   return (
-    <div className="flex items-center gap-1 rounded-md border border-slate-300 p-0.5 text-xs font-medium">
+    <div
+      className={twMerge(
+        'flex items-center gap-1 rounded-md border border-slate-300 p-0.5 text-xs font-medium',
+        compact && 'border-none p-0',
+      )}
+    >
       {LOCALES.map((option) => (
         <button
-          key={option}
+          key={option.value}
           type="button"
-          onClick={() => setLocale(option)}
+          onClick={() => setLocale(option.value)}
+          aria-label={option.value}
           className={twMerge(
-            'rounded px-2 py-1 uppercase text-slate-600',
-            option === locale && 'bg-slate-900 text-white',
+            'flex items-center gap-1.5 rounded px-2 py-1 uppercase text-slate-600',
+            option.value === locale && 'bg-slate-900 text-white',
           )}
         >
-          {option}
+          <span className={twMerge('fi', option.flag, 'rounded-sm')} />
+          {option.value}
         </button>
       ))}
     </div>

@@ -421,5 +421,65 @@
     "perYear": "/yr",
     "checkoutSuccess": "Your subscription was started successfully.",
     "checkoutCancel": "Checkout was cancelled."
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account",
+      "preferences": "Preferences",
+      "security": "Security",
+      "definitions": "Definitions",
+      "billing": "Billing"
+    },
+    "profile": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "accountType": "Account Type",
+      "saveSuccess": "Profile updated",
+      "saveError": "Error updating profile"
+    },
+    "account": {
+      "companyName": "Company Name",
+      "address": "Address",
+      "city": "City",
+      "postalCode": "Postal Code",
+      "country": "Country",
+      "taxOffice": "Tax Office",
+      "taxNumber": "Tax Number",
+      "phone": "Phone",
+      "saveSuccess": "Account information updated",
+      "saveError": "Error updating account information"
+    },
+    "preferences": {
+      "notifications": "Notification Preferences",
+      "invoiceReminders": "Invoice reminder notifications",
+      "productUpdates": "Product updates",
+      "billingEmails": "Billing emails"
+    },
+    "security": {
+      "changePassword": "Change Password",
+      "setPassword": "Set Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "sessions": "Active Sessions",
+      "thisBrowser": "This Browser",
+      "lastUsed": "Last used",
+      "revoke": "Sign out",
+      "revokeOthers": "Sign out all others",
+      "noSessions": "No sessions"
+    },
+    "definitions": {
+      "units": "Units",
+      "unitName": "Unit Name",
+      "taxRates": "Tax Rates",
+      "taxRate": "Tax Rate",
+      "taxRateLabel": "Tax Rate Label",
+      "paymentTerms": "Payment Terms",
+      "paymentTermLabel": "Term Label",
+      "days": "Days",
+      "categories": "Categories",
+      "categoryName": "Category Name"
+    }
   }
 }

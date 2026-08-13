@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
@@ -6,7 +6,6 @@ import { PublicLayout } from '@/layouts/PublicLayout'
 import { AdminTemplatesPage } from '@/pages/admin/AdminTemplatesPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
-import { BillingPage } from '@/pages/dashboard/BillingPage'
 import { CustomerDetailPage } from '@/pages/dashboard/CustomerDetailPage'
 import { CustomersPage } from '@/pages/dashboard/CustomersPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
@@ -51,7 +50,7 @@ export const router = createBrowserRouter([
           { path: '/dashboard/customers', element: <CustomersPage /> },
           { path: '/dashboard/customers/:id', element: <CustomerDetailPage /> },
           { path: '/dashboard/settings', element: <SettingsPage /> },
-          { path: '/dashboard/billing', element: <BillingPage /> },
+          { path: '/dashboard/billing', element: <Navigate to="/dashboard/settings?tab=billing" replace /> },
           { path: '/dashboard/admin/templates', element: <AdminTemplatesPage /> },
         ],
       },

@@ -421,5 +421,65 @@
     "perYear": "/yıl",
     "checkoutSuccess": "Aboneliğiniz başarıyla başlatıldı.",
     "checkoutCancel": "Ödeme işlemi iptal edildi."
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profil",
+      "account": "Hesap",
+      "preferences": "Tercihler",
+      "security": "Güvenlik",
+      "definitions": "Sabit Tanımlar",
+      "billing": "Faturalandırma"
+    },
+    "profile": {
+      "fullName": "Ad Soyad",
+      "email": "E-posta",
+      "accountType": "Hesap Türü",
+      "saveSuccess": "Profil güncellendi",
+      "saveError": "Profil güncellenirken hata oluştu"
+    },
+    "account": {
+      "companyName": "Firma Adı",
+      "address": "Adres",
+      "city": "Şehir",
+      "postalCode": "Posta Kodu",
+      "country": "Ülke",
+      "taxOffice": "Vergi Dairesi",
+      "taxNumber": "Vergi Numarası",
+      "phone": "Telefon",
+      "saveSuccess": "Hesap bilgileri güncellendi",
+      "saveError": "Hesap bilgileri güncellenirken hata oluştu"
+    },
+    "preferences": {
+      "notifications": "Bildirim Tercihleri",
+      "invoiceReminders": "Fatura hatırlatıcı bildirimleri",
+      "productUpdates": "Ürün güncellemeleri",
+      "billingEmails": "Faturalandırma e-postaları"
+    },
+    "security": {
+      "changePassword": "Şifreyi Değiştir",
+      "setPassword": "Şifre Belirle",
+      "currentPassword": "Mevcut Şifre",
+      "newPassword": "Yeni Şifre",
+      "confirmPassword": "Şifreyi Onayla",
+      "sessions": "Aktif Oturumlar",
+      "thisBrowser": "Bu Tarayıcı",
+      "lastUsed": "Son Kullanılma",
+      "revoke": "Kapat",
+      "revokeOthers": "Diğerlerini Kapat",
+      "noSessions": "Hiç oturum yok"
+    },
+    "definitions": {
+      "units": "Birimler",
+      "unitName": "Birim Adı",
+      "taxRates": "KDV Oranları",
+      "taxRate": "KDV Oranı",
+      "taxRateLabel": "KDV Etiketi",
+      "paymentTerms": "Ödeme Vadeleri",
+      "paymentTermLabel": "Vade Etiketi",
+      "days": "Gün",
+      "categories": "Kategoriler",
+      "categoryName": "Kategori Adı"
+    }
   }
 }

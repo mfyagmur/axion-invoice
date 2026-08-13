@@ -17,6 +17,11 @@ export const useLocaleStore = create<LocaleState>()(
         set({ locale })
       },
     }),
-    { name: 'axion-locale-storage' },
+    {
+      name: 'axion-locale-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) void i18n.changeLanguage(state.locale)
+      },
+    },
   ),
 )

@@ -4,7 +4,7 @@ from enum import Enum
 
 from sqlalchemy import Boolean, DateTime, Enum as SAEnum, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -26,8 +26,19 @@ class User(Base):
         SAEnum(AccountType, name="account_type"), nullable=False, default=AccountType.BIREYSEL
     )
     company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    tax_office: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    tax_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     locale: Mapped[str] = mapped_column(String(5), nullable=False, default="tr")
+    notify_invoice_reminders: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    notify_product_updates: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    notify_billing_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     invoice_sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    sessions: Mapped[list["UserSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")

@@ -29,8 +29,6 @@ export function BillingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold text-slate-900">{t('nav.billing')}</h1>
-
       {checkoutResult === 'success' && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">
           {t('billing.checkoutSuccess')}
