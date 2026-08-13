@@ -330,6 +330,7 @@
       "exchangeRate": "Güncel Döviz Kuru",
       "exchangeRatePlaceholder": "Örn. 37.22",
       "fixedRateToggle": "Sabit Kur Uygula",
+      "fixedRateTooltip": "Aktif edildiğinde, güncel döviz kuru yerine aşağıda belirtilen sabit kur kullanılır. Dövizli tutarların hesaplanmasında bu kur esas alınır.",
       "exchangeRateFetchError": "Güncel kur alınamadı, lütfen Sabit Kur ile manuel giriniz",
       "exchangeRateLoading": "Kur yükleniyor...",
       "commissionPayer": "Komisyonu kim ödüyor?",

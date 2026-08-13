@@ -330,6 +330,7 @@
       "exchangeRate": "Current Exchange Rate",
       "exchangeRatePlaceholder": "e.g. 37.22",
       "fixedRateToggle": "Apply Fixed Rate",
+      "fixedRateTooltip": "When enabled, a fixed rate you specify below is used instead of the current exchange rate. Foreign currency amounts are calculated based on this rate.",
       "exchangeRateFetchError": "Could not fetch current rate, please enter manually with Fixed Rate",
       "exchangeRateLoading": "Loading rate...",
       "commissionPayer": "Who pays the commission?",

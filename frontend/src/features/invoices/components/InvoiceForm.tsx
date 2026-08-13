@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User } from 'lucide-react'
+import { List, Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Select } from '@/components/Select'
 import { Textarea } from '@/components/Textarea'
+import { InfoTooltip } from '@/components/InfoTooltip'
 import { twMerge } from 'tailwind-merge'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { useCustomers } from '@/features/customers/hooks/useCustomers'
@@ -62,7 +63,7 @@ interface InvoiceFormProps {
 }
 
 export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
   const createInvoice = useCreateInvoice()
@@ -353,6 +354,24 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                         className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
                       />
                       {t('invoices.form.fixedRateToggle')}
+                      <InfoTooltip
+                        title={t('invoices.form.fixedRateToggle')}
+                        description={
+                          i18n.language === 'tr' ? (
+                            <>
+                              Aktif edildiğinde, güncel döviz kuru yerine aşağıda belirtilen{' '}
+                              <strong className="text-slate-900">sabit kur</strong> kullanılır.
+                              Dövizli tutarların hesaplanmasında bu kur esas alınır.
+                            </>
+                          ) : (
+                            <>
+                              When enabled, a fixed rate you specify below is used instead of
+                              the current exchange rate. Foreign currency amounts are calculated
+                              based on this <strong className="text-slate-900">rate</strong>.
+                            </>
+                          )
+                        }
+                      />
                     </label>
                   </div>
                   {!isFixedRate && exchangeRateQuery.isError && (
@@ -394,7 +413,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
           </div>
         </Card>
 
-        <Card title={t('invoices.form.lineItems')}>
+        <Card icon={<List size={20} />} title={t('invoices.form.lineItems')}>
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Button type="button" variant="secondary" onClick={handleAppend}>
