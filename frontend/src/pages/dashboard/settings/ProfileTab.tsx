@@ -39,39 +39,29 @@ export function ProfileTab() {
             {user.account_type === 'bireysel' ? 'Bireysel' : 'Kurumsal'}
           </div>
 
+          {/* TODO: Konum/telefon salt-okunur placeholder; register akışına eklenecek */}
           <div className="space-y-3 border-t border-slate-200 pt-4">
             <div className="flex items-center gap-3">
               <Mail size={18} className="shrink-0 text-slate-500" />
               <span className="text-sm text-slate-700">{user.email}</span>
             </div>
 
-            {user.country && (
-              <div className="flex items-center gap-3">
-                <MapPin size={18} className="shrink-0 text-slate-500" />
-                <span className="text-sm text-slate-700">{user.country}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              <MapPin size={18} className="shrink-0 text-slate-500" />
+              <span className="text-sm text-slate-700">{user.country || '-'}</span>
+            </div>
 
-            {user.phone && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Phone size={18} className="shrink-0 text-slate-500" />
-                  <span className="text-sm text-slate-700">{user.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block rounded bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700">
-                    Not Verified
-                  </span>
-                  <button
-                    type="button"
-                    className="rounded p-1 hover:bg-slate-100"
-                    title={t('common.edit')}
-                  >
-                    <Pencil size={16} className="text-slate-500" />
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              <Phone size={18} className="shrink-0 text-slate-500" />
+              <span className="text-sm text-slate-700">{user.phone || '_ _ ( _ _ _ ) _ _ _ _ _ _ _'}</span>
+              <button
+                type="button"
+                className="shrink-0 rounded p-1 hover:bg-slate-100"
+                title={t('common.edit')}
+              >
+                <Pencil size={16} className="text-slate-500" />
+              </button>
+            </div>
           </div>
 
           <p className="border-t border-slate-200 pt-4 text-xs text-slate-600">

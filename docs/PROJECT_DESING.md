@@ -85,3 +85,28 @@ testiyle şimdi kesin olarak doğrulandı ve düzeltildi.
   3. Ayarlar → Sabit Tanımlar'da KDV Oranı ve Ödeme Vadesi ekleme/düzenlemenin artık 422 hatası
      vermeden çalıştığı,
   4. Dropdown'daki yeni "Ayarlar" linkinin `/dashboard/settings`'e yönlendirdiği.
+
+---
+
+## 2026-08-14 — ProfileTab Konum/Telefon Placeholder Alanları
+
+**Bağlam:** Profil sayfası (`/dashboard/settings?tab=profile`) ilk kartında konum ve telefon
+satırları şu an kullanıcı verisinin varlığına bağlı olarak koşullu render ediliyordu — alanlar
+boşsa tamamen kayboluyor, doluysa gösteriliyordu. Kullanıcı bu iki satırın **her zaman** görünsün
+istedi: konum boşsa "-" badge'i, telefon boşsa placeholder maskesi `_ _ ( _ _ _ ) _ _ _ _ _ _ _`
+ile kalem (Edit) ikonu — tüm bileşenler `items-center` dikeyde ortalanmış olacak. Bu alanlar
+register ekranında doldurulacak; şimdilik salt-okunur placeholder. Ayrıca bu turdan itibaren
+yapılan değişikliklerin `PROJECT_DESING.md`'ye tarih/dosya/işlem/özet şeklinde kaydedilmesi ve
+kalan işlerin `docs/todo.md`'ye yazılması istendi — bu dokümantasyon sistemi başlatıldı.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `frontend/src/pages/dashboard/settings/ProfileTab.tsx` | Değiştirme | Konum satırı: `{user.country && (...)}` koşulu kaldırıldı, her zaman `<MapPin>` ikonu + `user.country \|\| '-'` metin gösterilecek. Telefon satırı: koşul kaldırıldı, "Not Verified" sarı badge'i de kaldırıldı (kullanıcı sadece telefon ikon+metin+kalem istedi), her zaman `<Phone>` ikonu + `user.phone \|\| '_ _ ( _ _ _ ) _ _ _ _ _ _ _'` placeholder metin + `<Pencil>` kalem ikonu gösterilecek — üçü de tek `flex items-center gap-3` satırında. Blok başına TODO yorumu eklendi ("Konum/telefon salt-okunur placeholder; register akışına eklenecek"). |
+| `docs/todo.md` | Ekleme | Yeni dosya oluşturuldu. Projede ertelenmiş işlerin kaydını tutar: (1) Konum/telefon alanlarını register ekranına taşıma, (2) Stripe test hesabıyla Faz 4 doğrulaması (docs/CLAUDE.md referansı), (3) Prod deploy (docs/CLAUDE.md referansı). Haftalık bütçe ve tamamlama tarih sistemi öngörüldü. |
+
+**Doğrulama:**
+- `cd frontend && npx tsc --noEmit` → temiz derleme.
+- Tarayıcıda `/dashboard/settings?tab=profile`, `country`/`phone` alanı boş olan kullanıcı ile:
+  Konum satırında "-" gösterildiğini, telefon satırında placeholder maskesi gösterildiğini,
+  telefon kalem ikonunun dikeyde ortalandığını teyit etmek gerekiyor (kullanıcı tarafından
+  `npm run dev` ile yapılacak).
