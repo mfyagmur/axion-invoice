@@ -438,6 +438,7 @@
       "accountTypeBireysel": "Individual",
       "accountTypeKurumsal": "Business",
       "profession": "Profession",
+      "selectPlaceholder": "Select...",
       "supportText": "To update your personal information, please contact our support team.",
       "professions": {
         "yazilim": "Software Developer",

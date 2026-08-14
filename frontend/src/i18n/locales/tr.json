@@ -438,6 +438,7 @@
       "accountTypeBireysel": "Bireysel",
       "accountTypeKurumsal": "Kurumsal",
       "profession": "Meslek",
+      "selectPlaceholder": "Seçiniz...",
       "supportText": "Kişisel bilgilerinizi güncellemek için destek ekibimizle iletişime geçin.",
       "professions": {
         "yazilim": "Yazılım Geliştirici",

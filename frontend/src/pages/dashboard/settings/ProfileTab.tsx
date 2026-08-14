@@ -110,7 +110,7 @@ export function ProfileTab() {
               defaultValue=""
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
             >
-              <option value="">Seçiniz...</option>
+              <option value="">{t('settings.profile.selectPlaceholder')}</option>
               {professions.map((prof) => (
                 <option key={prof.value} value={prof.value}>
                   {prof.label}
