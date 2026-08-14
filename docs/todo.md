@@ -38,7 +38,16 @@ Encrypt henüz eklenmedi.
 
 ---
 
+## Tamamlananlar
+
+(Henüz yok — yeni yapılar ertelenmiş.)
+
+---
+
 ## Notlar
 - Haftalık ~10-15 saatlik bütçenin bulunması gerekebilir.
 - Her madde kapatılırken tarih eklenmeli (`## YYYY-MM-DD — [İş Adı]` başlığında).
 - Yeni işler ortaya çıktıkça buraya eklenecek — bu liste canlı belgelendirmedir.
+- **Dev ortamı hijyeni:** `npm run dev` her oturum sonunda kapatılmalı (terminal penceresinde `Ctrl+C`), 
+  eski süreçler birikme riskit varsa `taskkill /IM node.exe /F` ile tüm Node işlemleri sonlandırılabilir 
+  (dikkatli kullanılmalı, üretim Node'leri varsa tehlikelidir — bu proje dev ortamında kullanılır).

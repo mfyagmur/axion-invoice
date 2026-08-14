@@ -135,3 +135,38 @@ Türkçe/İngilizce görüntüleniyor.
 - Tarayıcıda TR/EN dil değiştiricisi kullanarak Profil sekmesinin tüm yazılarının
   (destek mesajı, hesap türü, meslek başlığı, dropdown options) doğru dilde görüntülendiğini
   teyit etmek gerekiyor (kullanıcı tarafından `npm run dev` ile yapılacak).
+
+---
+
+## 2026-08-14 — Hesap Sekmesi "Kaydet" Hatası (CORS + Birikmiş Vite Süreçleri)
+
+**Bağlam:** Kullanıcı, Ayarlar → Hesap sekmesinde (`/dashboard/settings?tab=account`) bilgi 
+girdikten sonra "Kaydet" butonuna bastığında hata aldığını bildirdi. Tarayıcı konsolunda 
+`[vite] Failed to reload /src/pages/dashboard/settings/ProfileTab.tsx` HMR uyarısı görüldü.
+
+**Araştırma ve kök neden:**
+- Kod tarafı tam kontrol edildi: `AccountTab.tsx` → `useUpdateAccount` → `profileApi.updateAccount` 
+  (`PATCH /profile/account`) → backend `update_account` (`backend/app/api/v1/profile.py:33-57`).
+  Frontend `AccountUpdatePayload` tipi, backend Pydantic şeması ve `User` modeli birebir eşleşiyor,
+  Alembic migration'ları doğru uygulanmış — **kod tarafında hiçbir sözdizimi veya mantık hatası yok.**
+- `netstat` ile kontrol sonucu: 11 ayrı `node.exe` süreci `5173`–`5183` portlarını dinliyordu.
+  Bunlar önceki oturumlardan kalan, hiç kapatılmamış `npm run dev` süreçleriydi (Vite, port
+  dolu olunca bir sonrakine geçer, böylece geri geri birikir). Bellek kullanımına göre
+  `5173` (PID 11232, 229K) canlı dev sunucusu, geri kalanları (PID 27104, 16124, 35188, 32448,
+  1896, 624, 16764, 23316, 8036, 40848) zombi süreçleriydi (29–45K, boşta kalmış).
+- **Gerçek sorun:** Backend `.env`'de `CORS_ORIGINS=http://localhost:5173,http://localhost:5174`
+  yazılı — sadece bu iki port izinli. Kullanıcının tarayıcı sekmesi CORS-izinli olmayan bir porta
+  (`5175`–`5183`) yönlenmiş ise, tüm API istekleri (Kaydet dahil) tarayıcı tarafından CORS
+  hatasıyla engellenir. Hard refresh bu sorunu çözmüyor, çünkü aynı origin'de kalılıyor.
+  HMR uyarısı ise bu eski/zombi süreçlerden birinin bayat modül grafiğinden kaynaklanan ilgisiz
+  bir yan etki.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| (Ortam temizliği) | Temizleme | 10 zombi `node.exe` süreci (PID'ler: 27104, 16124, 35188, 32448, 1896, 624, 16764, 23316, 8036, 40848) sonlandırıldı; yalnızca `5173`'teki canlı dev sunucusu (PID 11232) bırakıldı. Bundan sonra `npm run dev` her zaman aynı porta (5173) bağlanacak ve CORS sorunları ortaya çıkmayacak. |
+
+**Doğrulama:**
+- Süreçler temizlendikten sonra `netstat` kontrolü: sadece `5173` (PID 11232) açık.
+- Tarayıcıda `http://localhost:5173/dashboard/settings?tab=account`'a (5183 değil!) gidip hesap
+  bilgileri girdikten sonra "Kaydet" butonunun başarıyla çalıştığını teyit etmek gerekiyor
+  (kullanıcı tarafından yapılacak).
