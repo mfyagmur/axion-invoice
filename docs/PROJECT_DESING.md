@@ -302,3 +302,25 @@ istemişti.
 - **Bilinen sınırlık:** Dropdown UI ve "Kaydet"/"İptal" butonlarının görsel doğrulaması (button'ların
   yalnızca değer değişince göründüğü, kaydedilmiş değerin refresh sonrası kalıcı kaldığı) tarayıcıda
   kullanıcı tarafından teyit edilmesi gerekiyor: `http://localhost:5173/dashboard/settings?tab=profile`.
+
+---
+
+## 2026-08-14 — Dil Değişikliğine de Save/Cancel Butonu Ekleme
+
+**Bağlam:** Profil sekmesinde Meslek alanına "Kaydet"/"İptal" butonları (dirty state tracking ile)
+eklendikten sonra, kullanıcı tutarlılık için **Dil dropdown'una da aynı davranışın uygulanmasını
+istedi**. Önceki durumda Dil dropdown'u `onChange` anında doğrudan `setLocale()` çağırıyordu (anlık
+kayıt, buton yok). Artık her iki alan da aynı pattern'i takip ediyor: state tracking, buton sadece
+değişim olduğunda gösterilir, başarılı kayıt sonrası otomatik.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `frontend/src/pages/dashboard/settings/ProfileTab.tsx` | Değiştirme | Dil dropdown'u state management eklendi: `useState(locale)` ile `language` state'i, `onChange={(e) => setLanguage(e.target.value as Locale)}` ile güncelleme. `isLanguageDirty` calculation eklendi: `language !== locale` (sunucudaki değerle karşılaştırma). `handleLanguageSave` fonksiyonu eklendi: `updatePreferences.mutate({ locale: language as Locale })` çağrısı yapıyor (Meslek'in `handleProfessionSave`'ine benzer). Dil kartına conditional Save/Cancel butonları eklendi (`isLanguageDirty` şartıyla); butonlar `updatePreferences.isPending` sırasında disabled oluyor. Meslek kartındaki `handleSave` → `handleProfessionSave`, `isDirty` → `isProfessionDirty` olarak yeniden adlandırıldı (karşı confusion için — artık iki ayrı dirty state var). |
+
+**Doğrulama:**
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- Git commit: `68d3cb8` — "AxionOS - Dil Değişikliğine de Save/Cancel Butonu Ekleme".
+- **Bilinen sınırlık:** Dil değişiminin UI'da anlık yansımasının tarayıcıda doğrulanması gerekiyor:
+  dropdown'da Türkçe/İngilizce seç → "Kaydet"/"İptal" butonlarının göründüğünü, "Kaydet" tıklanınca
+  hook onSuccess callback'i aracılığıyla `useLocaleStore.setLocale()` çağrılıp UI dilinin değiştiğini,
+  meslek dropdown'unu da aynı pattern'i takip ettiğini teyit etmek: `http://localhost:5173/dashboard/settings?tab=profile`.
