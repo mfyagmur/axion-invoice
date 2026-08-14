@@ -12,6 +12,8 @@ const LANGUAGES = [
 
 const PROFESSION_VALUES = [
   'yazilim',
+  'game_developer',
+  'muhendis',
   'muhasebe',
   'mali_musavir',
   'grafik',
@@ -22,7 +24,6 @@ const PROFESSION_VALUES = [
   'ozel_muhasebeci',
   'danisman',
   'it_danisman',
-  'game_developer',
   'other'
 ]
 
