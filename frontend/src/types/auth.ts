@@ -17,6 +17,7 @@ export interface User {
   sector: string | null
   trade_registry_no: string | null
   corporate_email: string | null
+  profession: string | null
   locale: Locale
   notify_invoice_reminders: boolean
   notify_product_updates: boolean
@@ -70,6 +71,7 @@ export interface AccountUpdatePayload {
 
 export interface PreferencesUpdatePayload {
   locale?: Locale
+  profession?: string | null
   notify_invoice_reminders?: boolean
   notify_product_updates?: boolean
   notify_billing_emails?: boolean

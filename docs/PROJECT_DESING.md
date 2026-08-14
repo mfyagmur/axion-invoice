@@ -271,3 +271,34 @@ içinde mevcut düzenleme formunu açıyor (ayrı route/modal yok).
   kullanıcı tarafından teyit edilmesi gerekiyor: `http://localhost:5173/dashboard/settings?tab=account`.
 - Not: Register formu (`SignupForm.tsx`) hâlâ bu yeni alanları toplamıyor — bkz. `docs/todo.md` §1
   (güncellendi, ertelenmiş iş olarak işaretli).
+
+---
+
+## 2026-08-14 — Profil Sekmesi Meslek Alanı ve "Kaydet" Butonu
+
+**Bağlam:** Kullanıcı, Profil sekmesinde (`/dashboard/settings?tab=profile`) Meslek dropdown'u
+seçilebiliyor olsa da değişikliklerin kaydedilmediğini bildirdi. Dropdown'da `defaultValue` yazılı
+ama `onChange` handler'ı ve kaydetme mekanizması yoktu — tamamen işlevsizdi. Kullanıcı:
+1. `profession` alanını `User` modeline, TypeScript tipine, Pydantic şemasına eklemek
+2. `/profile/preferences` endpoint'inde professioni handle etmek
+3. Meslek dropdown'unda state management, onChange, ve "Kaydet" butonu eklemek
+istemişti.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/alembic/versions/b5c6d7e8f9a0_add_profession_to_users.py` | Ekleme | Yeni migration: `users` tablosuna `profession` (String 255) nullable kolonu eklendi. `down_revision = 'a4b5c6d7e8f9'` (önceki "Firma Bilgileri" migration'ının sonucu). `docker compose exec backend alembic upgrade head` ile uygulandı. |
+| `backend/app/models/user.py` | Değiştirme | `User` modeline `profession: Mapped[str \| None] = mapped_column(String(255), nullable=True)` alanı eklendi. |
+| `backend/app/schemas/auth.py` | Değiştirme | `UserResponse`e `profession: str \| None = None` eklendi. `PreferencesUpdatePayload`e `profession: str \| None = Field(default=None, max_length=255)` eklendi (dil/notification tercihlerinin yanına). |
+| `backend/app/api/v1/profile.py` | Değiştirme | `update_preferences` endpoint'inde `if payload.profession is not None: current_user.profession = payload.profession` satırı eklendi. |
+| `frontend/src/types/auth.ts` | Değiştirme | `User` interface'ine `profession: string \| null` eklendi. `PreferencesUpdatePayload`e `profession?: string \| null` eklendi. |
+| `frontend/src/pages/dashboard/settings/ProfileTab.tsx` | Değiştirme | Komponent başında `useState(user?.profession \|\| '')` state'i eklendi, `useUpdatePreferences()` hook'u import edildi. Meslek dropdown'u `value={profession}` ve `onChange={(e) => setProfession(e.target.value)}` bağlandı. İlave bir `<div className="flex gap-2">` bloğu eklendi: `isDirty`'ye göre (değer değişti mi) "Kaydet" ve "İptal" butonları gösterilecek. Butonlar `updatePreferences.mutate({ profession: profession \|\| null })` çağırıyor, başarı sonrası toast + UI otomatik güncellenecek. |
+
+**Doğrulama:**
+- `docker compose exec backend alembic upgrade head` → migration `a4b5c6d7e8f9 -> b5c6d7e8f9a0` başarıyla uygulandı.
+- `docker restart backend-backend-1` → başlangıç loglarında hata yok.
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- Test signup + login → `GET /api/v1/auth/me` 200 döndü, yeni `profession` alanı `null` olarak yer aldı ✓.
+- Test `PATCH /api/v1/profile/preferences` payload'ı `{ "profession": "yazilim" }` → backend 200 döndü, `profession` `"yazilim"` olarak kaydedildi ✓.
+- **Bilinen sınırlık:** Dropdown UI ve "Kaydet"/"İptal" butonlarının görsel doğrulaması (button'ların
+  yalnızca değer değişince göründüğü, kaydedilmiş değerin refresh sonrası kalıcı kaldığı) tarayıcıda
+  kullanıcı tarafından teyit edilmesi gerekiyor: `http://localhost:5173/dashboard/settings?tab=profile`.

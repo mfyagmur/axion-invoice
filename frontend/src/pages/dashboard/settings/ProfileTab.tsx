@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Mail, MapPin, Phone, Pencil } from 'lucide-react'
 import { Card } from '@/components/Card'
+import { Button } from '@/components/Button'
 import { useAuthStore } from '@/store/authStore'
 import { useLocaleStore } from '@/store/localeStore'
+import { useUpdatePreferences } from '@/features/profile/hooks/useUpdatePreferences'
 import type { Locale } from '@/types/auth'
 
 const LANGUAGES = [
@@ -31,6 +34,8 @@ export function ProfileTab() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const { locale, setLocale } = useLocaleStore()
+  const [profession, setProfession] = useState(user?.profession || '')
+  const updatePreferences = useUpdatePreferences()
 
   const professions = PROFESSION_VALUES.map((value) => ({
     value,
@@ -38,6 +43,14 @@ export function ProfileTab() {
   }))
 
   if (!user) return null
+
+  const handleSave = () => {
+    updatePreferences.mutate({
+      profession: profession || null,
+    })
+  }
+
+  const isDirty = profession !== (user?.profession || '')
 
   return (
     <div className="flex flex-col gap-6">
@@ -102,22 +115,46 @@ export function ProfileTab() {
         </Card>
 
         <Card className="rounded-xl shadow-md">
-          <div className="space-y-2">
-            <label htmlFor="profession" className="block text-sm font-semibold text-slate-900">
-              {t('settings.profile.profession')}
-            </label>
-            <select
-              id="profession"
-              defaultValue=""
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-            >
-              <option value="">{t('settings.profile.selectPlaceholder')}</option>
-              {professions.map((prof) => (
-                <option key={prof.value} value={prof.value}>
-                  {prof.label}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="profession" className="block text-sm font-semibold text-slate-900">
+                {t('settings.profile.profession')}
+              </label>
+              <select
+                id="profession"
+                value={profession}
+                onChange={(e) => setProfession(e.target.value)}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">{t('settings.profile.selectPlaceholder')}</option>
+                {professions.map((prof) => (
+                  <option key={prof.value} value={prof.value}>
+                    {prof.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {isDirty && (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  disabled={updatePreferences.isPending}
+                  onClick={handleSave}
+                  className="w-fit"
+                >
+                  {updatePreferences.isPending ? t('common.loading') : t('common.save')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={updatePreferences.isPending}
+                  onClick={() => setProfession(user?.profession || '')}
+                  className="w-fit"
+                >
+                  {t('common.cancel')}
+                </Button>
+              </div>
+            )}
           </div>
         </Card>
       </div>

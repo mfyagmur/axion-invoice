@@ -71,6 +71,8 @@ def update_preferences(
 ) -> User:
     if payload.locale is not None:
         current_user.locale = payload.locale
+    if payload.profession is not None:
+        current_user.profession = payload.profession
     if payload.notify_invoice_reminders is not None:
         current_user.notify_invoice_reminders = payload.notify_invoice_reminders
     if payload.notify_product_updates is not None:

@@ -45,6 +45,7 @@ class UserResponse(BaseModel):
     sector: str | None = None
     trade_registry_no: str | None = None
     corporate_email: str | None = None
+    profession: str | None = None
     locale: str
     notify_invoice_reminders: bool
     notify_product_updates: bool
@@ -77,6 +78,7 @@ class AccountUpdatePayload(BaseModel):
 
 class PreferencesUpdatePayload(BaseModel):
     locale: str | None = Field(default=None, pattern=r"^(tr|en)$")
+    profession: str | None = Field(default=None, max_length=255)
     notify_invoice_reminders: bool | None = None
     notify_product_updates: bool | None = None
     notify_billing_emails: bool | None = None
