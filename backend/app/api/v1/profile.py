@@ -52,6 +52,12 @@ def update_account(
         current_user.tax_office = payload.tax_office
     if payload.tax_number is not None:
         current_user.tax_number = payload.tax_number
+    if payload.sector is not None:
+        current_user.sector = payload.sector
+    if payload.trade_registry_no is not None:
+        current_user.trade_registry_no = payload.trade_registry_no
+    if payload.corporate_email is not None:
+        current_user.corporate_email = payload.corporate_email
     db.commit()
     db.refresh(current_user)
     return current_user

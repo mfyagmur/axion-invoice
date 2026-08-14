@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -33,14 +34,17 @@ class UserResponse(BaseModel):
     email: EmailStr
     full_name: str
     account_type: AccountType
-    company_name: str | None
-    address: str | None
-    city: str | None
-    postal_code: str | None
-    country: str | None
-    phone: str | None
-    tax_office: str | None
-    tax_number: str | None
+    company_name: str | None = None
+    address: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    country: str | None = None
+    phone: str | None = None
+    tax_office: str | None = None
+    tax_number: str | None = None
+    sector: str | None = None
+    trade_registry_no: str | None = None
+    corporate_email: str | None = None
     locale: str
     notify_invoice_reminders: bool
     notify_product_updates: bool
@@ -48,6 +52,7 @@ class UserResponse(BaseModel):
     is_demo: bool
     is_admin: bool
     has_password: bool
+    created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
@@ -65,6 +70,9 @@ class AccountUpdatePayload(BaseModel):
     phone: str | None = Field(default=None, max_length=50)
     tax_office: str | None = Field(default=None, max_length=255)
     tax_number: str | None = Field(default=None, max_length=50)
+    sector: str | None = Field(default=None, max_length=255)
+    trade_registry_no: str | None = Field(default=None, max_length=100)
+    corporate_email: EmailStr | None = Field(default=None, max_length=255)
 
 
 class PreferencesUpdatePayload(BaseModel):

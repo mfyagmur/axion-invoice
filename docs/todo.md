@@ -7,13 +7,19 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
-### 1. Konum ve Telefon Alanlarını Register Ekranına Taşıma
-**Dosya:** `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
-**Durum:** Ertelenmiş (salt-okunur placeholder)  
-**Bağlam:** Profil sayfasında konum ve telefon şu an placeholder metin/ikon gösterir; gerçek
-veri girişi henüz yapılmamış. Register akışında bu alanları toplayacak form/adımlar eklenecek.  
+### 1. Kurumsal Alanları Register Ekranına Taşıma
+**Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
+**Durum:** Ertelenmiş (tüm kurumsal alanlar hâlâ sadece Account sekmesinden giriliyor)  
+**Bağlam:** 2026-08-14 itibarıyla Account sekmesine ("Firma Bilgileri" kartı) `sector`,
+`trade_registry_no`, `corporate_email` alanları da eklendi (bkz. `docs/PROJECT_DESING.md` §
+2026-08-14). Ancak register formu (`SignupForm.tsx`) hâlâ sadece `company_name` topluyor — geri
+kalan TÜM kurumsal alanlar (`address, city, postal_code, country, phone, tax_office, tax_number,
+sector, trade_registry_no, corporate_email`) yalnızca kayıt SONRASI Account sekmesinden
+doldurulabiliyor. Profil sayfasında konum/telefon da hâlâ salt-okunur placeholder gösteriyor.
+İdeal akış: kurumsal hesap türü (`kurumsal`) seçildiğinde register formunda bu alanların (en azından
+zorunlu olanların) toplanması, boş bırakılırsa Account sekmesinden tamamlanabilmesi.  
 **Sıra:** Normal  
-**Tahmini:** ~4-6 saat (register flow genişletme, backend validation)
+**Tahmini:** ~6-8 saat (register flow genişletme, çok adımlı form/validation, backend zaten hazır)
 
 ### 2. Stripe Test Hesabıyla Faz 4 Doğrulaması
 **Dosya:** `backend/`, `frontend/src/pages/dashboard/billing/`  

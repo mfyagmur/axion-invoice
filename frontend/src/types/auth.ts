@@ -14,6 +14,9 @@ export interface User {
   phone: string | null
   tax_office: string | null
   tax_number: string | null
+  sector: string | null
+  trade_registry_no: string | null
+  corporate_email: string | null
   locale: Locale
   notify_invoice_reminders: boolean
   notify_product_updates: boolean
@@ -21,6 +24,7 @@ export interface User {
   is_demo: boolean
   is_admin: boolean
   has_password: boolean
+  created_at: string
 }
 
 export interface SignupPayload {
@@ -59,6 +63,9 @@ export interface AccountUpdatePayload {
   phone?: string | null
   tax_office?: string | null
   tax_number?: string | null
+  sector?: string | null
+  trade_registry_no?: string | null
+  corporate_email?: string | null
 }
 
 export interface PreferencesUpdatePayload {

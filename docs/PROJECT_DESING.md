@@ -198,5 +198,76 @@ hepsi aynı hataya takılıyordu.
 - Tarayıcıda `http://localhost:5173/dashboard/settings?tab=account`'a gidip hesap bilgilerinden 
   en az bir tanesini değiştirdikten sonra (örn. şirket adı) "Kaydet" butonunun başarıyla 
   çalıştığını ve verinin kaydedildiğini teyit etmek gerekiyor (kullanıcı tarafından yapılacak).
+
+---
+
+## 2026-08-14 — Login Hatası (Pydantic v2 Optional Fields Varsayılan Değerleri)
+
+**Bağlam:** Önceki oturumda "Firma Bilgileri" kartına (`/dashboard/settings?tab=account`) yeni
+kurumsal alanlar (`sector`, `trade_registry_no`, `corporate_email`) ve `created_at` alanı eklenmişti.
+Bu alanlar `UserResponse` şemasına ve `User` modeline eklendi; Alembic migration de çalıştırıldı.
+Fakat login ekranında "Giriş Yap" sonrası `GET /api/v1/auth/me` endpoint'i `500 Internal Server
+Error` dönüyordu. Backend konsolunda `pydantic_core._pydantic_core.ValidationError: 4 validation 
+errors for UserResponse: sector (Field required), trade_registry_no (Field required), 
+corporate_email (Field required), created_at (Field required)` hatası görüldü.
+
+**Kök neden:** Pydantic v2'de, `sector: str | None` yazısı (default değer olmaksızın) "alanı 
+zorunlu, ancak değer None olabilir" anlamına gelir — eksik alan "geçerli" değildir. Yeni 
+kullanıcılar signup anında bu alanlarla DB'ye yazılmadığı için (mevcut iş mantığında onlar Account
+sekmesinden doldurulması gerekiyor) veya `created_at` henüz `server_default` tarafından
+load'lanmadığı için (SQLAlchemy, server_default'ları signup sonrasında Python nesnesine
+otomatik yüklemez), Pydantic validation başarısız oluyordu. `has_password`'un önceki oturumda
+modele @property olarak eklenmesi gerekiyordu ancak yapılmamıştı; bu da aynı hataya
+katkıda bulunuyordu.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/schemas/auth.py` | Değiştirme | `UserResponse` şemasında 4 alana default değer eklendi: `company_name: str \| None = None`, `address: str \| None = None`, `city: str \| None = None`, `postal_code: str \| None = None`, `country: str \| None = None`, `phone: str \| None = None`, `tax_office: str \| None = None`, `tax_number: str \| None = None`, `sector: str \| None = None`, `trade_registry_no: str \| None = None`, `corporate_email: str \| None = None` (toplam 11 alana None default eklendi); `created_at: datetime \| None = None` (nullable hale getirildi çünkü yeni kullanıcılarda henüz load'lanmayabilir). Böylece Pydantic eksik alanları reject etmeyip None kullanıyor. |
+| `frontend/src/pages/dashboard/settings/AccountTab.tsx` | Değiştirme | `registrationDate` hesaplaması `user.created_at` null kontrolü eklendi: `const registrationDate = user.created_at ? new Date(user.created_at).toLocaleDateString(...) : notSpecified;` Böylece null tarih "Belirtilmemiş" olarak gösterilir ve `new Date(null)` Invalid Date hatası ortaya çıkmaz. |
+| `backend/` | Yeniden Başlatma | `docker compose restart backend` ile şema değişikliği yüklendi; backend'in watchfiles reloader'ı dosyayı algılayıp otomatik yeniden başladı. |
+
+**Doğrulama:**
+- Yeni bir kullanıcı signup endpoint'i aracılığıyla oluşturuldu (`POST /api/v1/auth/signup`).
+- Signup sonrası `GET /api/v1/auth/me` endpoint'i 200 OK dönüp geçerli bir `UserResponse` 
+  (tüm alanlarıyla, null olanlar da dahil) döndü — hata kayboldu ✓.
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- Backend logs'ta "Application startup complete" mesajı, artık 500 hata yok.
 - Backend konsolunda ResponseValidationError hatası görünmemesi (sonuç: HTTP 200 + güncellenen 
   User verisi).
+
+---
+
+## 2026-08-14 — "Firma Bilgileri" (Company Profile) Kartı ve Yeni Kurumsal Alanlar
+
+**Bağlam:** Kullanıcı, Ayarlar → Hesap sekmesinde (`/dashboard/settings?tab=account`) kayıt
+sırasında beyan edilen kurumsal bilgileri gösteren, kurumsal/güven veren, ikonlu, 3 kategoriye
+bölünmüş (Temel Şirket Bilgileri / Resmi ve Vergi Bilgileri / Kurumsal İletişim), tamamen
+responsive salt-okunur bir özet kart istedi; üstte "Bilgileri Güncelle" butonuyla mevcut
+düzenleme formuna geçiş. Araştırma sırasında istenen alanlardan 3'ünün (**Faaliyet Alanı/Sektör**,
+**Ticaret Sicil No**, **Kurumsal E-posta**) `User` modelinde hiç var olmadığı ortaya çıktı —
+kullanıcı bu 3 alanın da DB migration'ı dahil tam olarak eklenmesini istedi. "Bilgileri Güncelle"
+butonu **inline toggle** olarak tasarlandı: kart görüntüleme modunda başlıyor, buton aynı kart
+içinde mevcut düzenleme formunu açıyor (ayrı route/modal yok).
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/alembic/versions/a4b5c6d7e8f9_add_company_profile_fields_to_users.py` | Ekleme | Yeni migration: `users` tablosuna `sector` (String 255), `trade_registry_no` (String 100), `corporate_email` (String 255) nullable kolonları eklendi. `down_revision = 'a3b4c5d6e7f8'` (mevcut head). `docker compose exec backend alembic upgrade head` ile uygulandı. |
+| `backend/app/models/user.py` | Değiştirme | `User` modeline `sector`, `trade_registry_no`, `corporate_email` (`Mapped[str \| None]`) alanları, mevcut `tax_office`/`tax_number` desenine uygun şekilde eklendi. |
+| `backend/app/schemas/auth.py` | Değiştirme | `UserResponse`e `sector`, `trade_registry_no`, `corporate_email`, `created_at` (yeni — "Kayıt Tarihi" için) alanları eklendi. `AccountUpdatePayload`e aynı 3 alan eklendi (`corporate_email` için `EmailStr \| None` ile format doğrulaması). `datetime` importu eklendi. |
+| `backend/app/api/v1/profile.py` | Değiştirme | `update_account` endpoint'indeki conditional-update bloğuna `sector`/`trade_registry_no`/`corporate_email` için aynı `if payload.X is not None:` deseni eklendi. |
+| `frontend/src/types/auth.ts` | Değiştirme | `User` interface'ine `sector`, `trade_registry_no`, `corporate_email`, `created_at` (string) alanları; `AccountUpdatePayload`e aynı 3 opsiyonel alan eklendi. |
+| `frontend/src/i18n/locales/tr.json` | Değiştirme | `settings.account`e `sector`/`tradeRegistryNo`/`corporateEmail` form-label anahtarları ve yeni `settings.account.companyProfile.*` nesnesi (title, subtitle, updateButton, cancelButton, 3 bölüm başlığı, notSpecified fallback'i, 11 alan etiketi) eklendi. |
+| `frontend/src/i18n/locales/en.json` | Değiştirme | Aynı anahtarların İngilizce karşılıkları eklendi (`Company Profile`, `Business Sector`, `Trade Registry No`, `Corporate Email`, vb.). |
+| `frontend/src/pages/dashboard/settings/AccountTab.tsx` | Değiştirme | Bileşen baştan yazıldı: `isEditing` state'i ile görüntüleme/düzenleme modu arasında inline toggle. Görüntüleme modunda `Card` içinde 3 bölümlü `grid grid-cols-1 md:grid-cols-2 gap-6` yapı — her bölüm `border-gray-100 bg-gray-50 rounded-lg` kutu, her satır `InfoRow` yardımcı bileşeniyle (`text-blue-600` ikon + üstte `text-sm text-gray-500` etiket + altta `text-base font-medium text-gray-900` değer, `items-start` hizalı). Kullanılan lucide-react ikonları: `Building2, Briefcase, Calendar, Landmark, Hash, BadgeCheck, MapPin, Mail, Phone`. Boş alanlar için `notSpecified` ("Belirtilmemiş") fallback'i. "Bilgileri Güncelle" butonu (`Button variant="secondary"`, outline görünüm) `isEditing`'i `true` yapıyor; düzenleme modunda mevcut form + 3 yeni input (`sector`, `corporate_email` — `type="email"`, `trade_registry_no`) + "İptal" butonu gösteriliyor, başarılı kayıt sonrası `onSuccess` ile otomatik görüntüleme moduna dönülüyor. Kayıt Tarihi `user.created_at`'tan `toLocaleDateString` ile `useLocaleStore`'a göre TR/EN formatlanıyor. |
+
+**Doğrulama:**
+- `docker compose exec backend alembic upgrade head` → `a3b4c5d6e7f8 -> a4b5c6d7e8f9` başarıyla uygulandı, `psql \d users` ile 3 yeni kolon teyit edildi.
+- `docker compose restart backend` → başlangıç loglarında hata yok, `/docs` 200 dönüyor.
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- `npx eslint src/pages/dashboard/settings/AccountTab.tsx src/types/auth.ts` → temiz (exit 0).
+- Her iki i18n JSON dosyası `JSON.parse` ile doğrulandı, sözdizimi hatası yok.
+- **Bilinen sınırlık:** Bu oturumda tarayıcı otomasyon aracı yoktu, kartın görsel/responsive
+  doğrulaması (mobil tek kolon / masaüstü 2 kolon, ikon hizalaması, inline toggle akışı) tarayıcıda
+  kullanıcı tarafından teyit edilmesi gerekiyor: `http://localhost:5173/dashboard/settings?tab=account`.
+- Not: Register formu (`SignupForm.tsx`) hâlâ bu yeni alanları toplamıyor — bkz. `docs/todo.md` §1
+  (güncellendi, ertelenmiş iş olarak işaretli).

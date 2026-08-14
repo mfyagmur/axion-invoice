@@ -468,8 +468,32 @@
       "taxOffice": "Vergi Dairesi",
       "taxNumber": "Vergi Numarası",
       "phone": "Telefon",
+      "sector": "Faaliyet Alanı / Sektör",
+      "tradeRegistryNo": "Ticaret Sicil No",
+      "corporateEmail": "Kurumsal E-posta",
       "saveSuccess": "Hesap bilgileri güncellendi",
-      "saveError": "Hesap bilgileri güncellenirken hata oluştu"
+      "saveError": "Hesap bilgileri güncellenirken hata oluştu",
+      "companyProfile": {
+        "title": "Firma Bilgileri",
+        "subtitle": "Kayıt esnasında beyan ettiğiniz kurumsal bilgileriniz.",
+        "updateButton": "Bilgileri Güncelle",
+        "cancelButton": "İptal",
+        "sectionBasic": "Temel Şirket Bilgileri",
+        "sectionTax": "Resmi ve Vergi Bilgileri",
+        "sectionContact": "Kurumsal İletişim",
+        "notSpecified": "Belirtilmemiş",
+        "companyTitle": "Şirket Unvanı",
+        "sector": "Faaliyet Alanı / Sektör",
+        "registrationDate": "Kayıt Tarihi",
+        "taxOffice": "Vergi Dairesi",
+        "taxNumber": "Vergi Numarası",
+        "tradeRegistryNo": "Ticaret Sicil No",
+        "address": "Merkez Adresi",
+        "city": "Şehir",
+        "country": "Ülke",
+        "corporateEmail": "Kurumsal E-posta",
+        "companyPhone": "Şirket Telefonu"
+      }
     },
     "preferences": {
       "notifications": "Bildirim Tercihleri",

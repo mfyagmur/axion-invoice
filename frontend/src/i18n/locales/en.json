@@ -468,8 +468,32 @@
       "taxOffice": "Tax Office",
       "taxNumber": "Tax Number",
       "phone": "Phone",
+      "sector": "Business Sector",
+      "tradeRegistryNo": "Trade Registry No",
+      "corporateEmail": "Corporate Email",
       "saveSuccess": "Account information updated",
-      "saveError": "Error updating account information"
+      "saveError": "Error updating account information",
+      "companyProfile": {
+        "title": "Company Profile",
+        "subtitle": "The corporate information you provided during registration.",
+        "updateButton": "Update Information",
+        "cancelButton": "Cancel",
+        "sectionBasic": "Basic Company Information",
+        "sectionTax": "Official & Tax Information",
+        "sectionContact": "Corporate Contact",
+        "notSpecified": "Not specified",
+        "companyTitle": "Company Name",
+        "sector": "Business Sector",
+        "registrationDate": "Registration Date",
+        "taxOffice": "Tax Office",
+        "taxNumber": "Tax Number",
+        "tradeRegistryNo": "Trade Registry No",
+        "address": "Head Office Address",
+        "city": "City",
+        "country": "Country",
+        "corporateEmail": "Corporate Email",
+        "companyPhone": "Company Phone"
+      }
     },
     "preferences": {
       "notifications": "Notification Preferences",
