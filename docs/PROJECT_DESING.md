@@ -170,3 +170,33 @@ girdikten sonra "Kaydet" butonuna bastığında hata aldığını bildirdi. Tara
 - Tarayıcıda `http://localhost:5173/dashboard/settings?tab=account`'a (5183 değil!) gidip hesap
   bilgileri girdikten sonra "Kaydet" butonunun başarıyla çalıştığını teyit etmek gerekiyor
   (kullanıcı tarafından yapılacak).
+
+---
+
+## 2026-08-14 — Hesap Güncellemesi ResponseValidationError (`has_password` Özelliği)
+
+**Bağlam:** Yukarıdaki CORS/Zombi sorunun çözülüp backend yeniden başlatıldıktan sonra, 
+`PATCH /api/v1/profile/account` isteği hâlâ 500 Internal Server Error dönüyordu. Backend konsolunda 
+`ResponseValidationError: 1 validation errors: {'type': 'missing', 'loc': ('response', 'has_password')}` 
+hatası gözüktü — yani sorun aslında CORS değil, daha derinlemesine bir backend validation problemi.
+
+**Kök neden:** `backend/app/schemas/auth.py`'deki `UserResponse` Pydantic şeması (line 50) 
+`has_password: bool` alanı bekliyordu, ama `backend/app/models/user.py`'deki SQLAlchemy `User` 
+modeli bu alanı sağlamıyordu. Pydantic `from_attributes=True` mode'unda (line 52) model 
+özniteliklerini şema alanlarına eşlerken, `has_password` hesaplanan bir alan olmalıydı 
+(`password_hash is not None`), ama modelde hiçbir @property tanımı yoktu — bu yüzden 
+FastAPI response model doğrulaması başarısız oluyordu. Profil, Tercihler güncellemeleri ve 
+diğer tüm `/api/v1/profile/*` endpointleri aynı `response_model=UserResponse` kullanıyor, 
+hepsi aynı hataya takılıyordu.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/models/user.py` | Değiştirme | 43. satırdan sonraya (created_at ve sessions alanlarından sonra) `@property` dekoratörlü `has_password(self) -> bool` metodu eklendi; `self.password_hash is not None` döner. Bu, Pydantic'in User nesnesini UserResponse şemasına dönüştürürken kullanabileceği bir hesaplanan alan sağlıyor. |
+| `backend/` | Yeniden Başlatma | `docker compose restart backend` komutu çalıştırılıp değişiklik yüklendi. |
+
+**Doğrulama:**
+- Tarayıcıda `http://localhost:5173/dashboard/settings?tab=account`'a gidip hesap bilgilerinden 
+  en az bir tanesini değiştirdikten sonra (örn. şirket adı) "Kaydet" butonunun başarıyla 
+  çalıştığını ve verinin kaydedildiğini teyit etmek gerekiyor (kullanıcı tarafından yapılacak).
+- Backend konsolunda ResponseValidationError hatası görünmemesi (sonuç: HTTP 200 + güncellenen 
+  User verisi).
