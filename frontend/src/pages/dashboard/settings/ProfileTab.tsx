@@ -116,7 +116,7 @@ export function ProfileTab() {
               >
                 {LANGUAGES.map((lang) => (
                   <option key={lang.value} value={lang.value}>
-                    {lang.label}
+                    {lang.label} 
                   </option>
                 ))}
               </select>

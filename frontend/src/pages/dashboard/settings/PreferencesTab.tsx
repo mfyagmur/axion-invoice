@@ -47,7 +47,8 @@ export function PreferencesTab() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-xl">
-      <div className="flex flex-col gap-3">
+      {/* Dil seçimi Profil sekmesine taşındı — burda pasif */}
+      {/* <div className="flex flex-col gap-3">
         <label className="text-sm font-medium text-slate-700">{t('common.language')}</label>
         <div className="flex items-center gap-1 rounded-md border border-slate-300 p-0.5 w-fit">
           {LOCALES.map((option) => (
@@ -65,9 +66,9 @@ export function PreferencesTab() {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
-      <div className="border-t border-slate-200 pt-6">
+      <div>
         <h3 className="mb-4 text-sm font-medium text-slate-700">{t('settings.preferences.notifications')}</h3>
         <div className="flex flex-col gap-3">
           <label className="flex items-center gap-3 cursor-pointer">
