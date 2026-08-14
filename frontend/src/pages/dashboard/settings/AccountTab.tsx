@@ -22,7 +22,7 @@ function InfoRow({
       <div className="mt-0.5 shrink-0 text-blue-600">{icon}</div>
       <div className="min-w-0">
         <p className="text-sm text-gray-500">{label}</p>
-        <p className="break-words text-base font-medium text-gray-900">{value}</p>
+        <p className="wrap-break-word text-base font-medium text-gray-900">{value}</p>
       </div>
     </div>
   )
