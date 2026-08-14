@@ -95,21 +95,38 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         ))}
 
         {user?.is_admin && (
-          <NavLink
-            to="/dashboard/admin/templates"
-            onClick={onNavigate}
-            title={collapsed ? 'Admin' : undefined}
-            className={({ isActive }) =>
-              twMerge(
-                'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
-                collapsed && 'justify-center px-0',
-                isActive && 'bg-slate-900 text-white hover:bg-slate-900',
-              )
-            }
-          >
-            <ShieldCheck size={18} />
-            {!collapsed && 'Admin'}
-          </NavLink>
+          <>
+            <NavLink
+              to="/dashboard/admin/templates"
+              onClick={onNavigate}
+              title={collapsed ? 'Admin' : undefined}
+              className={({ isActive }) =>
+                twMerge(
+                  'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
+                  collapsed && 'justify-center px-0',
+                  isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+                )
+              }
+            >
+              <ShieldCheck size={18} />
+              {!collapsed && 'Admin'}
+            </NavLink>
+            <NavLink
+              to="/dashboard/settings"
+              onClick={onNavigate}
+              title={collapsed ? t('nav.settings') : undefined}
+              className={({ isActive }) =>
+                twMerge(
+                  'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
+                  collapsed && 'justify-center px-0',
+                  isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+                )
+              }
+            >
+              <Settings size={18} />
+              {!collapsed && t('nav.settings')}
+            </NavLink>
+          </>
         )}
       </div>
 
@@ -170,18 +187,18 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 </NavLink>
                 <button
                   type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                >
+                  <HelpCircle size={16} />
+                  {t('nav.support') || 'Support'}
+                </button>
+                <button
+                  type="button"
                   onClick={handleLogout}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
                 >
                   <LogOut size={16} />
                   {t('nav.logout')}
-                </button>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
-                >
-                  <HelpCircle size={16} />
-                  {t('nav.support') || 'Support'}
                 </button>
               </div>
             </div>
