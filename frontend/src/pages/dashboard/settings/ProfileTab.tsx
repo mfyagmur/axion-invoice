@@ -34,6 +34,7 @@ export function ProfileTab() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const { locale, setLocale } = useLocaleStore()
+  const [language, setLanguage] = useState(locale)
   const [profession, setProfession] = useState(user?.profession || '')
   const updatePreferences = useUpdatePreferences()
 
@@ -42,15 +43,22 @@ export function ProfileTab() {
     label: t(`settings.profile.professions.${value}`),
   }))
 
+  const isLanguageDirty = language !== locale
+  const isProfessionDirty = profession !== (user?.profession || '')
+
+  const handleLanguageSave = () => {
+    updatePreferences.mutate({
+      locale: language as Locale,
+    })
+  }
+
   if (!user) return null
 
-  const handleSave = () => {
+  const handleProfessionSave = () => {
     updatePreferences.mutate({
       profession: profession || null,
     })
   }
-
-  const isDirty = profession !== (user?.profession || '')
 
   return (
     <div className="flex flex-col gap-6">
@@ -95,22 +103,45 @@ export function ProfileTab() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="rounded-xl shadow-md">
-          <div className="space-y-2">
-            <label htmlFor="language" className="block text-sm font-semibold text-slate-900">
-              {t('common.language')}
-            </label>
-            <select
-              id="language"
-              value={locale}
-              onChange={(e) => setLocale(e.target.value as Locale)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang.value} value={lang.value}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="language" className="block text-sm font-semibold text-slate-900">
+                {t('common.language')}
+              </label>
+              <select
+                id="language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as Locale)}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+              >
+                {LANGUAGES.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {isLanguageDirty && (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  disabled={updatePreferences.isPending}
+                  onClick={handleLanguageSave}
+                  className="w-fit"
+                >
+                  {updatePreferences.isPending ? t('common.loading') : t('common.save')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={updatePreferences.isPending}
+                  onClick={() => setLanguage(locale)}
+                  className="w-fit"
+                >
+                  {t('common.cancel')}
+                </Button>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -134,12 +165,12 @@ export function ProfileTab() {
                 ))}
               </select>
             </div>
-            {isDirty && (
+            {isProfessionDirty && (
               <div className="flex gap-2">
                 <Button
                   type="button"
                   disabled={updatePreferences.isPending}
-                  onClick={handleSave}
+                  onClick={handleProfessionSave}
                   className="w-fit"
                 >
                   {updatePreferences.isPending ? t('common.loading') : t('common.save')}
