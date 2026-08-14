@@ -5,57 +5,36 @@ import { useAuthStore } from '@/store/authStore'
 import { useLocaleStore } from '@/store/localeStore'
 import type { Locale } from '@/types/auth'
 
-const PROFESSIONS = [
-  { value: 'yazilim', label: 'Yazılım Geliştirici' },
-  { value: 'muhasebe', label: 'Muhasebeci' },
-  { value: 'mali_musavir', label: 'Mali Müşavir' },
-  { value: 'grafik', label: 'Grafik Tasarımcı' },
-  { value: 'pazarlama', label: 'Pazarlama Uzmanı/Müdürü' },
-  { value: 'satis', label: 'Satış Müdürü' },
-  { value: 'insan_kaynaklari', label: 'İnsan Kaynakları' },
-  { value: 'proje_yoneticisi', label: 'Proje Yöneticisi' },
-  { value: 'danisman', label: 'Danışman' },
-  { value: 'avukat', label: 'Avukat' },
-  { value: 'bilgisayar_muhendisi', label: 'Bilgisayar Mühendisi' },
-  { value: 'mimar', label: 'Mimar' },
-  { value: 'elektrik_muhendisi', label: 'Elektrik Mühendisi' },
-  { value: 'makine_muhendisi', label: 'Makine Mühendisi' },
-  { value: 'endustri_muhendisi', label: 'Endüstri Mühendisi' },
-  { value: 'yapay_zeka', label: 'Yapay Zeka Uzmanı/Mühendisi' },
-  { value: 'veri', label: 'Veri Analisti' },
-  { value: 'veritabani', label: 'Veritabanı Yöneticisi' },
-  { value: 'siber_guvenlik', label: 'Siber Güvenlik Uzmanı' },
-  { value: 'network', label: 'Network Uzmanı' },
-  { value: 'bulut_bilisim', label: 'Bulut Bilişim Uzmanı' },
-  { value: 'veri_bilimci', label: 'Veri Bilimci' },
-  { value: 'mobil_uygulama', label: 'Mobil Uygulama Geliştirici' },
-  { value: 'web_gelistirici', label: 'Web Geliştirici' },
-  { value: 'oyun_gelistirici', label: 'Oyun Geliştirici' },
-  { value: 'yapay_zeka_egitim', label: 'Yapay Zeka Eğitmeni' },
-  { value: 'berber', label: 'Berber' },
-  { value: 'kuafor', label: 'Kuaför' },
-  { value: 'musteri_hizmetleri', label: 'Müşteri Hizmetleri' },
-  { value: 'saglik', label: 'Sağlık Sektörü' },
-  { value: 'egitim', label: 'Eğitim Sektörü' },
-  { value: 'finans', label: 'Finans Sektörü' },
-  { value: 'insaat', label: 'İnşaat Sektörü' },
-  { value: 'lojistik', label: 'Lojistik Sektörü' },
-  { value: 'turizm', label: 'Turizm Sektörü' },
-  { value: 'medya', label: 'Medya Sektörü' },
-  { value: 'hukuk', label: 'Hukuk Sektörü' },
-  { value: 'e-ticaret', label: 'E-Ticaret Sektörü' },
-  { value: 'diger', label: 'Diğer' },
-]
-
 const LANGUAGES = [
   { value: 'tr', label: 'Türkçe', flag: 'fi-tr' },
   { value: 'en', label: 'English', flag: 'fi-gb' },
+]
+
+const PROFESSION_VALUES = [
+  'yazilim',
+  'muhasebe',
+  'mali_musavir',
+  'grafik',
+  'pazarlama',
+  'satis',
+  'insan_kaynaklari',
+  'proje_yoneticisi',
+  'ozel_muhasebeci',
+  'danisman',
+  'it_danisman',
+  'game_developer',
+  'other'
 ]
 
 export function ProfileTab() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const { locale, setLocale } = useLocaleStore()
+
+  const professions = PROFESSION_VALUES.map((value) => ({
+    value,
+    label: t(`settings.profile.professions.${value}`),
+  }))
 
   if (!user) return null
 
@@ -66,7 +45,7 @@ export function ProfileTab() {
           <h2 className="text-lg font-bold text-slate-900">{user.full_name}</h2>
 
           <div className="inline-block rounded bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-            {user.account_type === 'bireysel' ? 'Bireysel' : 'Kurumsal'}
+            {t(user.account_type === 'bireysel' ? 'settings.profile.accountTypeBireysel' : 'settings.profile.accountTypeKurumsal')}
           </div>
 
           {/* TODO: Konum/telefon salt-okunur placeholder; register akışına eklenecek */}
@@ -95,11 +74,7 @@ export function ProfileTab() {
           </div>
 
           <p className="border-t border-slate-200 pt-4 text-xs text-slate-600">
-            Kişisel bilgilerinizi güncellemek için{' '}
-            <a href="#" className="font-medium text-blue-600 hover:text-blue-700">
-              destek ekibimizle iletişime geçin
-            </a>
-            .
+            {t('settings.profile.supportText')}
           </p>
         </div>
       </Card>
@@ -128,7 +103,7 @@ export function ProfileTab() {
         <Card className="rounded-xl shadow-md">
           <div className="space-y-2">
             <label htmlFor="profession" className="block text-sm font-semibold text-slate-900">
-              Meslek
+              {t('settings.profile.profession')}
             </label>
             <select
               id="profession"
@@ -136,7 +111,7 @@ export function ProfileTab() {
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
             >
               <option value="">Seçiniz...</option>
-              {PROFESSIONS.map((prof) => (
+              {professions.map((prof) => (
                 <option key={prof.value} value={prof.value}>
                   {prof.label}
                 </option>

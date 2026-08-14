@@ -110,3 +110,28 @@ kalan işlerin `docs/todo.md`'ye yazılması istendi — bu dokümantasyon siste
   Konum satırında "-" gösterildiğini, telefon satırında placeholder maskesi gösterildiğini,
   telefon kalem ikonunun dikeyde ortalandığını teyit etmek gerekiyor (kullanıcı tarafından
   `npm run dev` ile yapılacak).
+
+---
+
+## 2026-08-14 — Profil Sekmesi i18n Tercümeleri (Türkçe/İngilizce)
+
+**Bağlam:** Profil sayfası (`/dashboard/settings?tab=profile`) üzerindeki bazı yazılar İngilizce
+diline çevrilmiyordu:
+1. Destek mesajı "Kişisel bilgilerinizi güncellemek için..."
+2. Hesap Türü badge'i (Bireysel/Kurumsal)
+3. Meslek başlığı ve PROFESSIONS dropdown'ı
+
+Bunların tümü artık i18n tercüme dosyalarına taşınarak, kullanıcının dil seçimine göre
+Türkçe/İngilizce görüntüleniyor.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `frontend/src/i18n/locales/en.json` | Değiştirme | `settings.profile` bölümüne yeni anahtarlar eklendi: `accountTypeBireysel` ("Individual"), `accountTypeKurumsal` ("Business"), `profession` ("Profession"), `supportText` ("To update your personal information..."), `professions` (9 meslek için tercümeler). |
+| `frontend/src/i18n/locales/tr.json` | Değiştirme | Aynı anahtarlar Türkçe olarak eklendi: `accountTypeBireysel` ("Bireysel"), `accountTypeKurumsal` ("Kurumsal"), `profession` ("Meslek"), `supportText` ("Kişisel bilgilerinizi güncellemek için..."), `professions` (9 meslek). |
+| `frontend/src/pages/dashboard/settings/ProfileTab.tsx` | Değiştirme | Statik yazılar i18n çağrılarıyla değiştirildi: Hesap Türü badge'i `t(user.account_type === 'bireysel' ? 'settings.profile.accountTypeBireysel' : '...')`, destek mesajı `t('settings.profile.supportText')`, Meslek başlığı `t('settings.profile.profession')`. Hardcoded PROFESSIONS array'i kaldırıldı, yerine `PROFESSION_VALUES` kullanarak bileşen içinde dinamik tercüme (`professions = PROFESSION_VALUES.map(v => t(...))`) yapılıyor. |
+
+**Doğrulama:**
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- Tarayıcıda TR/EN dil değiştiricisi kullanarak Profil sekmesinin tüm yazılarının
+  (destek mesajı, hesap türü, meslek başlığı, dropdown options) doğru dilde görüntülendiğini
+  teyit etmek gerekiyor (kullanıcı tarafından `npm run dev` ile yapılacak).
