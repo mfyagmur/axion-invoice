@@ -508,11 +508,17 @@
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
       "sessions": "Active Sessions",
-      "thisBrowser": "This Browser",
-      "lastUsed": "Last used",
+      "thisBrowser": "Current device",
+      "lastUsed": "Last seen",
       "revoke": "Sign out",
       "revokeOthers": "Sign out all others",
-      "noSessions": "No sessions"
+      "revokeAllDevices": "Log Out All Devices",
+      "noSessions": "No sessions",
+      "twoFactor": {
+        "title": "Two-Factor Authentication (2FA)",
+        "description": "Enable two-factor authentication to increase your account security.",
+        "setupButton": "Start Setup"
+      }
     },
     "definitions": {
       "units": "Units",

@@ -2,6 +2,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -56,7 +57,7 @@ def revoke_session(
     session = db.get(UserSession, session_id)
     if session is None or session.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Oturum bulunamadı")
-    session.revoked_at = db.func.now()
+    session.revoked_at = func.now()
     db.commit()
 
 
@@ -78,12 +79,12 @@ def revoke_other_sessions(
             UserSession.user_id == current_user.id,
             UserSession.refresh_token_jti != current_jti,
             UserSession.revoked_at.is_(None),
-        ).update({UserSession.revoked_at: db.func.now()})
+        ).update({UserSession.revoked_at: func.now()})
     else:
         db.query(UserSession).filter(
             UserSession.user_id == current_user.id,
             UserSession.revoked_at.is_(None),
-        ).update({UserSession.revoked_at: db.func.now()})
+        ).update({UserSession.revoked_at: func.now()})
 
     db.commit()
     revoked_count = (

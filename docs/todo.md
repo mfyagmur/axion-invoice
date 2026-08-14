@@ -36,6 +36,47 @@ sonra `docker compose -f docker-compose.prod.yml up -d --build` çalıştırıla
 Encrypt henüz eklenmedi.  
 **Sıra:** Yüksek (görev sırası başındadır ama ön koşullar harici)
 
+### 4. 2FA (İki Adımlı Doğrulama) Backend Entegrasyonu
+**Dosya:** `backend/app/models/user.py`, `backend/app/api/v1/profile.py`, `frontend/src/pages/dashboard/settings/SecurityTab.tsx`  
+**Durum:** Ertelenmiş (2026-08-14'te sadece görsel/UI eklendi, gerçek TOTP yok)  
+**Bağlam:** `SecurityTab.tsx`'teki 2FA kartı şu an sadece kozmetik — switch local state'te tutuluyor,
+backend'e hiç yazılmıyor, "Kurulumu Başlat" butonu disabled. Gerçek implementasyon için: `User`
+modeline `totp_secret`, `totp_enabled`, `totp_backup_codes` kolonları (migration), TOTP secret
+üretimi (`pyotp` kütüphanesi), QR kod üretimi (`qrcode`), `POST /profile/2fa/enable` (secret+QR
+döner), `POST /profile/2fa/verify` (kullanıcının authenticator'dan girdiği kodu doğrular, `totp_enabled=true`
+yapar), `POST /profile/2fa/disable`, login akışına 2FA kodu adımı eklenmesi gerekiyor.  
+**Sıra:** Normal  
+**Tahmini:** ~4-6 saat
+
+### 5. PreferencesTab.tsx Checkbox'larını Switch Bileşenine Taşıma
+**Dosya:** `frontend/src/pages/dashboard/settings/PreferencesTab.tsx`, `frontend/src/components/Switch.tsx`  
+**Durum:** Ertelenmiş (kapsam dışı bırakıldı)  
+**Bağlam:** 2026-08-14'te Güvenlik Ayarları sayfası için yeni `Switch.tsx` bileşeni eklendi.
+Tutarlılık için `PreferencesTab.tsx`'teki bildirim tercihlerinin düz `<input type="checkbox">`
+yerine bu yeni `Switch` bileşenini kullanması ileride değerlendirilebilir.  
+**Sıra:** Düşük
+
+### 6. Oturum Listesinde Konum (GeoIP) Gösterimi
+**Dosya:** `backend/app/api/v1/sessions.py`, `backend/app/models/session.py`  
+**Durum:** Ertelenmiş  
+**Bağlam:** `UserSession` modelinde sadece `ip_address` tutuluyor, IP'den şehir/ülke çözümleyen bir
+GeoIP servisi/kütüphanesi entegre edilmedi. Güvenlik Ayarları sayfasındaki oturum listesi şu an
+sadece IP adresini gösteriyor, konum bilgisi yok.  
+**Sıra:** Düşük
+
+### 7. `revoke_other_sessions` — `revoked_count` Hesaplama Mantığı Yanıltıcı Olabilir
+**Dosya:** `backend/app/api/v1/sessions.py` (satır ~89-98)  
+**Durum:** Ertelenmiş (2026-08-14'te oturum yönetimi bug fix'i sırasında fark edildi, kapsam dışı bırakıldı)  
+**Bağlam:** Dönen `revoked_count`, `len(kullanıcının TÜM zamanki oturumları) - şu an aktif olanlar - 1`
+formülüyle hesaplanıyor. Bu formül, kullanıcının geçmişte (bu istekten önce) zaten revoke edilmiş
+oturumları da toplam sayıya dahil ediyor — yani kullanıcının çok sayıda eski/kapalı oturumu varsa,
+frontend'e dönen ve toast'ta gösterilen "N oturum sonlandırıldı" mesajındaki N, bu istekte
+gerçekten kapatılan oturum sayısından **daha yüksek** çıkabilir. Doğru hesaplama: `update()`
+çağrısından hemen önce, henüz revoke edilmemiş (`revoked_at IS NULL`) ve current olmayan
+oturumların sayısını almak (`.filter(...).count()` update'ten önce), `update()`'in kendi dönüş
+değerini (`.update()` etkilenen satır sayısını döner) kullanmak yeterli olurdu.  
+**Sıra:** Düşük (kozmetik — işlevi bozmuyor, sadece toast mesajındaki sayı yanlış olabilir)
+
 ---
 
 ## Tamamlananlar

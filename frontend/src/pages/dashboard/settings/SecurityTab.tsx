@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Shield, Lock, Monitor, Laptop, Smartphone } from 'lucide-react'
+import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Badge } from '@/components/Badge'
+import { Switch } from '@/components/Switch'
 import { useAuthStore } from '@/store/authStore'
 import { useChangePassword } from '@/features/profile/hooks/useChangePassword'
 import { useSessions, useRevokeSession, useRevokeOtherSessions } from '@/features/sessions/hooks'
+import type { UserSession } from '@/types/session'
 
 export function SecurityTab() {
   const { t } = useTranslation()
@@ -14,6 +18,9 @@ export function SecurityTab() {
   const { data: sessions, isLoading: isSessionsLoading } = useSessions()
   const revokeSession = useRevokeSession()
   const revokeOthers = useRevokeOtherSessions()
+
+  // TODO: backend TOTP entegrasyonu — docs/todo.md. Şimdilik sadece görsel, persist edilmiyor.
+  const [is2faEnabled, setIs2faEnabled] = useState(false)
 
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -56,15 +63,24 @@ export function SecurityTab() {
     })
   }
 
-  const getDeviceLabel = (session: any): string => {
-    if (!session.user_agent) return 'Unknown Device'
-    const ua = session.user_agent.toLowerCase()
-    if (ua.includes('chrome')) return 'Chrome'
-    if (ua.includes('safari')) return 'Safari'
-    if (ua.includes('firefox')) return 'Firefox'
-    if (ua.includes('edg')) return 'Edge'
-    if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) return 'Mobile'
-    return 'Browser'
+  const getDeviceInfo = (session: UserSession): { label: string; isMobile: boolean } => {
+    const ua = session.user_agent?.toLowerCase() ?? ''
+    const isMobile = ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')
+
+    let os = 'Unknown Device'
+    if (ua.includes('windows')) os = 'Windows PC'
+    else if (ua.includes('mac')) os = 'Mac'
+    else if (ua.includes('android')) os = 'Android'
+    else if (ua.includes('iphone') || ua.includes('ipad')) os = 'iOS'
+    else if (ua.includes('linux')) os = 'Linux'
+
+    let browser = ''
+    if (ua.includes('edg')) browser = 'Microsoft Edge'
+    else if (ua.includes('chrome')) browser = 'Google Chrome'
+    else if (ua.includes('firefox')) browser = 'Firefox'
+    else if (ua.includes('safari')) browser = 'Safari'
+
+    return { label: browser ? `${os} - ${browser}` : os, isMobile }
   }
 
   const formatDate = (date: string) => {
@@ -78,100 +94,131 @@ export function SecurityTab() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-xl">
-      <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-        <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-4">
-            {user.has_password ? t('settings.security.changePassword') : t('settings.security.setPassword')}
-          </h3>
-
-          {user.has_password && (
-            <Input
-              label={t('settings.security.currentPassword')}
-              type="password"
-              value={passwordForm.current_password}
-              onChange={(e) => handlePasswordChange('current_password', e.target.value)}
-              required
-              className="mb-2"
-            />
-          )}
-
-          <Input
-            label={t('settings.security.newPassword')}
-            type="password"
-            value={passwordForm.new_password}
-            onChange={(e) => handlePasswordChange('new_password', e.target.value)}
-            required
-            className="mb-2"
-          />
-
-          <Input
-            label={t('settings.security.confirmPassword')}
-            type="password"
-            value={passwordForm.confirm_password}
-            onChange={(e) => handlePasswordChange('confirm_password', e.target.value)}
-            required
-          />
-
-          {passwordError && <p className="text-xs text-red-600 mt-2">{passwordError}</p>}
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <Card
+        className="rounded-xl border-gray-100 shadow-sm"
+        icon={<Shield size={18} />}
+        title={t('settings.security.twoFactor.title')}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-sm text-slate-600">{t('settings.security.twoFactor.description')}</p>
+            <Switch checked={is2faEnabled} onChange={setIs2faEnabled} label={t('settings.security.twoFactor.title')} />
+          </div>
+          <Button type="button" variant="secondary" disabled className="w-fit">
+            {t('settings.security.twoFactor.setupButton')}
+          </Button>
         </div>
+      </Card>
 
-        <Button type="submit" disabled={changePassword.isPending} className="w-fit">
-          {changePassword.isPending ? t('common.loading') : t('common.save')}
-        </Button>
-      </form>
+      <Card
+        className="rounded-xl border-gray-100 shadow-sm"
+        icon={<Lock size={18} />}
+        title={user.has_password ? t('settings.security.changePassword') : t('settings.security.setPassword')}
+      >
+        <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            {user.has_password && (
+              <Input
+                label={t('settings.security.currentPassword')}
+                type="password"
+                placeholder="••••••••"
+                value={passwordForm.current_password}
+                onChange={(e) => handlePasswordChange('current_password', e.target.value)}
+                required
+              />
+            )}
 
-      <div className="border-t border-slate-200 pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-slate-700">{t('settings.security.sessions')}</h3>
-          {sessions && sessions.length > 1 && (
+            <Input
+              label={t('settings.security.newPassword')}
+              type="password"
+              placeholder="••••••••"
+              value={passwordForm.new_password}
+              onChange={(e) => handlePasswordChange('new_password', e.target.value)}
+              required
+            />
+
+            <Input
+              label={t('settings.security.confirmPassword')}
+              type="password"
+              placeholder="••••••••"
+              value={passwordForm.confirm_password}
+              onChange={(e) => handlePasswordChange('confirm_password', e.target.value)}
+              required
+            />
+
+            {passwordError && <p className="text-xs text-red-600">{passwordError}</p>}
+          </div>
+
+          <Button type="submit" disabled={changePassword.isPending} className="w-fit">
+            {changePassword.isPending ? t('common.loading') : t('settings.security.changePassword')}
+          </Button>
+        </form>
+      </Card>
+
+      <Card
+        className="rounded-xl border-gray-100 shadow-sm lg:col-span-2"
+        icon={<Monitor size={18} />}
+        title={t('settings.security.sessions')}
+        action={
+          sessions && sessions.length > 1 ? (
             <Button
-              variant="secondary"
+              type="button"
               onClick={() => revokeOthers.mutate()}
               disabled={revokeOthers.isPending}
-              className="px-3 py-1 text-xs"
+              className="border border-red-500 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
             >
-              {t('settings.security.revokeOthers')}
+              {t('settings.security.revokeAllDevices')}
             </Button>
-          )}
-        </div>
-
+          ) : undefined
+        }
+      >
         {isSessionsLoading ? (
           <p className="text-sm text-slate-500">{t('common.loading')}</p>
         ) : sessions && sessions.length > 0 ? (
           <div className="flex flex-col gap-2">
-            {sessions.map((session) => (
-              <div
-                key={session.id}
-                className="flex items-center justify-between rounded-lg border border-slate-200 p-3"
-              >
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-900">{getDeviceLabel(session)}</span>
-                    {session.is_current && <Badge>{t('settings.security.thisBrowser')}</Badge>}
+            {sessions.map((session) => {
+              const device = getDeviceInfo(session)
+              const DeviceIcon = device.isMobile ? Smartphone : Laptop
+              return (
+                <div
+                  key={session.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 p-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <DeviceIcon size={18} className="mt-0.5 shrink-0 text-slate-500" />
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-slate-900">{device.label}</span>
+                        {session.is_current && <Badge color="green">{t('settings.security.thisBrowser')}</Badge>}
+                      </div>
+                      <p className="text-xs text-slate-500">{session.ip_address || 'IP unknown'}</p>
+                      <p className="text-xs text-slate-500">
+                        {session.is_current
+                          ? t('settings.security.thisBrowser')
+                          : `${t('settings.security.lastUsed')}: ${formatDate(session.last_used_at)}`}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500">{session.ip_address || 'IP unknown'}</p>
-                  <p className="text-xs text-slate-500">
-                    {t('settings.security.lastUsed')}: {formatDate(session.last_used_at)}
-                  </p>
+                  {!session.is_current && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => revokeSession.mutate(session.id)}
+                      disabled={revokeSession.isPending}
+                      className="shrink-0 px-3 py-1 text-xs"
+                    >
+                      {t('settings.security.revoke')}
+                    </Button>
+                  )}
                 </div>
-                {!session.is_current && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => revokeSession.mutate(session.id)}
-                    disabled={revokeSession.isPending}
-                    className="px-3 py-1 text-xs"
-                  >
-                    {t('settings.security.revoke')}
-                  </Button>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <p className="text-sm text-slate-500">{t('settings.security.noSessions')}</p>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

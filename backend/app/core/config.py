@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
 
     refresh_cookie_name: str = "refresh_token"
-    refresh_cookie_path: str = "/api/v1/auth"
+    refresh_cookie_path: str = "/api/v1"
     cookie_secure: bool = False
 
     google_client_id: str = ""

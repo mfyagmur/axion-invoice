@@ -507,12 +507,18 @@
       "currentPassword": "Mevcut Şifre",
       "newPassword": "Yeni Şifre",
       "confirmPassword": "Şifreyi Onayla",
-      "sessions": "Aktif Oturumlar",
-      "thisBrowser": "Bu Tarayıcı",
-      "lastUsed": "Son Kullanılma",
+      "sessions": "Açık Oturumlar",
+      "thisBrowser": "Şu anki cihaz",
+      "lastUsed": "Son görülme",
       "revoke": "Kapat",
       "revokeOthers": "Diğerlerini Kapat",
-      "noSessions": "Hiç oturum yok"
+      "revokeAllDevices": "Tüm Cihazlardan Çıkış Yap",
+      "noSessions": "Hiç oturum yok",
+      "twoFactor": {
+        "title": "İki Adımlı Doğrulama (2FA)",
+        "description": "Hesabınızın güvenliğini artırmak için iki adımlı doğrulamayı etkinleştirin.",
+        "setupButton": "Kurulumu Başlat"
+      }
     },
     "definitions": {
       "units": "Birimler",

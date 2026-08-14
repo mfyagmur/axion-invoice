@@ -324,3 +324,76 @@ değişim olduğunda gösterilir, başarılı kayıt sonrası otomatik.
   dropdown'da Türkçe/İngilizce seç → "Kaydet"/"İptal" butonlarının göründüğünü, "Kaydet" tıklanınca
   hook onSuccess callback'i aracılığıyla `useLocaleStore.setLocale()` çağrılıp UI dilinin değiştiğini,
   meslek dropdown'unu da aynı pattern'i takip ettiğini teyit etmek: `http://localhost:5173/dashboard/settings?tab=profile`.
+
+---
+
+## 2026-08-14 — Güvenlik Ayarları Sayfası Yeniden Tasarımı (2FA / Şifre / Oturumlar)
+
+**Bağlam:** `/dashboard/settings?tab=security` (`SecurityTab.tsx`) zaten vardı ve şifre değiştirme
++ aktif oturum listeleme backend'e bağlı olarak çalışıyordu, ama görünüm tek kolonlu, düz bir
+listeydi — kart yapısı, ikonlar ve 2FA bölümü yoktu. Kullanıcı sayfayı 3 karta (2FA, Şifre
+Değiştirme, Açık Oturumlar) ve masaüstünde 2 kolonlu (mobilde alt alta) responsive bir grid'e
+oturtmamı istedi. 2FA backend'de hiç yoktu (greenfield) — bu görev kapsamında sadece görsel/UI
+olarak eklendi (toggle kapalı/gri başlıyor, "Kurulumu Başlat" disabled); gerçek TOTP
+implementasyonu `docs/todo.md`'ye ertelendi. Şifre ve oturum kartları mevcut çalışan hook'ları
+(`useChangePassword`, `useSessions`, `useRevokeSession`, `useRevokeOtherSessions`) aynen kullanmaya
+devam ediyor, sadece kart/ikon/liste görünümü yenilendi.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `frontend/src/components/Switch.tsx` | Ekleme | Projede daha önce hiç Switch/Toggle bileşeni yoktu (boolean alanlar düz `<input type="checkbox">` kullanıyordu). `Button`/`Card` ile aynı `twMerge` deseninde, controlled (`checked`, `onChange`, `disabled?`, `label?`) basit bir switch bileşeni eklendi — açık `bg-slate-900`, kapalı `bg-slate-200`, `translate-x` ile kayan yuvarlak thumb, `disabled`'da `opacity-50`. |
+| `frontend/src/pages/dashboard/settings/SecurityTab.tsx` | Değiştirme | Tamamen yeniden yapılandırıldı: dış kapsayıcı `grid grid-cols-1 lg:grid-cols-2 gap-8` (eski `flex flex-col max-w-xl` yerine). **2FA kartı (yeni):** `Shield` ikonlu `Card`, açıklama paragrafı, `Switch` (local `is2faEnabled` state — backend'e bağlı değil, sadece görsel, kodda `TODO` yorumuyla işaretli), disabled "Kurulumu Başlat" butonu. **Şifre Değiştirme kartı:** mevcut form/state/validasyon aynen korunarak `Lock` ikonlu `Card` kabuğuna taşındı, input'lara placeholder eklendi. **Açık Oturumlar kartı:** `lg:col-span-2` ile tam genişlik, `Monitor` ikonlu `Card`, sağ üstte kırmızı outline (`border-red-500 text-red-600 hover:bg-red-50`) "Tüm Cihazlardan Çıkış Yap" butonu (`action` prop). `getDeviceLabel` → `getDeviceInfo`'ya genişletildi: artık işletim sistemi de tespit ediyor (`"Windows PC - Google Chrome"` gibi), mobil user-agent'larda `Smartphone` ikonu, masaüstünde `Laptop` ikonu gösteriliyor; "şu anki cihaz" artık yeşil `Badge color="green"` ile işaretleniyor (önceden nötr `Badge` rengindeydi). |
+| `frontend/src/i18n/locales/tr.json` | Değiştirme | `settings.security` altına `twoFactor.{title,description,setupButton}` ve `revokeAllDevices` anahtarları eklendi; `sessions` "Aktif Oturumlar" → "Açık Oturumlar", `thisBrowser`/`lastUsed` metinleri yeni tasarıma göre güncellendi ("Bu Tarayıcı" → "Şu anki cihaz" vb.). |
+| `frontend/src/i18n/locales/en.json` | Değiştirme | Aynı anahtarların İngilizce karşılıkları eklendi/güncellendi. |
+| `docs/todo.md` | Değiştirme | 3 yeni madde eklendi: (4) 2FA backend entegrasyonu (TOTP secret/QR/backup code/endpoint'ler), (5) `PreferencesTab.tsx` checkbox'larını yeni `Switch` bileşenine taşıma (düşük öncelik), (6) oturum listesinde GeoIP/konum gösterimi (düşük öncelik). |
+
+**Doğrulama:**
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- **Bilinen sınırlık:** Tarayıcıda görsel/responsive teyit kullanıcıya kalıyor —
+  `http://localhost:5173/dashboard/settings?tab=security` açılıp masaüstünde 2 kolon (2FA solda,
+  Şifre sağda, Oturumlar altta tam genişlik), dar pencerede tüm kartların alt alta dizildiği,
+  2FA switch'inin tıklanabilir ama "Kurulumu Başlat" butonunun disabled olduğu, oturum listesinde
+  gerçek aktif oturumun cihaz ikonu + "Şu anki cihaz" rozetiyle göründüğü teyit edilmeli.
+
+---
+
+## 2026-08-14 — Oturum Yönetimi Bug Fix'leri (Kapat / Tüm Cihazlardan Çıkış Yap / Şu anki cihaz rozeti)
+
+**Bağlam:** Bir önceki bölümde yeniden tasarlanan Güvenlik Ayarları sayfasında kullanıcı 3 sorun
+bildirdi: "Tüm Cihazlardan Çıkış Yap" ve "Kapat" butonları tıklanınca hiçbir şey olmuyordu, ve
+kendi aktif oturumunda yeşil "Şu anki cihaz" rozeti hiç görünmüyordu. Kod incelemesiyle 2 bağımsız
+kök neden bulundu: (A) `SecurityTab.tsx`'in import ettiği `@/features/sessions/hooks` barrel'ı
+(`index.ts`), aynı klasördeki toast-entegre `useRevokeSession.ts`/`useRevokeOtherSessions.ts`
+dosyalarını **gölgeleyen**, toast'sız duplike mutation tanımları içeriyordu — mutasyon başarısız
+olsa da (örn. demo kısıtı `require_not_demo` → 403) başarılı olsa da kullanıcıya hiçbir geri
+bildirim gösterilmiyordu. (B) Backend'de `refresh_token` cookie'si `path=/api/v1/auth` ile
+sınırlıydı, bu yüzden `/api/v1/sessions` isteklerine hiç gönderilmiyordu; `list_sessions`
+endpoint'i `is_current`'ı bu cookie'den çözüyordu, cookie hiç gelmediği için `is_current` daima
+`False` dönüyordu — rozet hiç görünmüyordu ve (ikincil etki olarak) kullanıcının kendi oturumu
+için de yanlışlıkla "Kapat" butonu gösteriliyordu.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/core/config.py` | Değiştirme | `refresh_cookie_path` `"/api/v1/auth"` → `"/api/v1"` yapıldı — cookie artık `/api/v1/sessions/*` isteklerine de gönderiliyor, `is_current` hesaplaması doğru çalışıyor. `docs/CLAUDE.md`'deki mimari karar tablosu da bu değişiklikle güncellendi. |
+| `frontend/src/features/sessions/hooks/index.ts` | Değiştirme | İçindeki duplike, toast'sız `useSessions`/`useRevokeSession`/`useRevokeOtherSessions` tanımları silindi; dosya artık aynı klasördeki `useSessions.ts`/`useRevokeSession.ts`/`useRevokeOtherSessions.ts`'den `export *` yapıyor. Böylece mutasyonlar `useToastStore` üzerinden başarı ("Oturum sonlandırıldı", "N oturum sonlandırıldı") ve hata mesajı gösteriyor — `SecurityTab.tsx`'te import yolu değişmedi. |
+
+**Doğrulama:**
+- `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
+- **Bilinen sınırlık:** Backend restart + yeniden login gerektirir (mevcut oturumların cookie'si
+  eski path ile set edilmiş) — bu ve tarayıcıda buton/rozet davranışının teyidi kullanıcıya kalıyor.
+
+**Ek düzeltme (aynı gün, ikinci tur):** Yukarıdaki toast entegrasyonu devreye girince gerçek bir
+backend hatası ortaya çıktı — kullanıcı "Tüm Cihazlardan Çıkış Yap"a bastığında backend log'unda
+`AttributeError: 'Session' object has no attribute 'func'` ile 500 dönüyordu. Kök neden:
+`backend/app/api/v1/sessions.py`'de `db.func.now()` çağrılıyordu — SQLAlchemy `Session` nesnesinin
+(`db`) böyle bir `func` attribute'u yok, `func` ayrı bir `sqlalchemy` modül import'u olmalı. Bu,
+projede daha önce hiç fark edilmemiş bir hataydı çünkü `useRevokeOtherSessions`/`useRevokeSession`
+barrel'daki eski toast'sız versiyonları kullanıldığı sürece hata sessizce yutuluyordu.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/api/v1/sessions.py` | Değiştirme | `from sqlalchemy import func` eklendi; `revoke_session`'daki `session.revoked_at = db.func.now()` → `func.now()`, `revoke_other_sessions`'daki iki `.update({UserSession.revoked_at: db.func.now()})` çağrısı → `func.now()` olarak düzeltildi. |
+
+**Doğrulama:** `--reload` ile çalışan uvicorn (bkz. `backend/docker-compose.yml:49`) dosya
+değişikliğini otomatik yakalayıp yeniden başlatacak, ek restart gerekmiyor. Tarayıcıda tekrar
+"Tüm Cihazlardan Çıkış Yap" ve "Kapat" denenip başarı toast'ının çıktığı teyit edilmeli.

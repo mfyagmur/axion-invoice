@@ -103,7 +103,7 @@ karar/ilerleme sonrası bu dosya güncellenmelidir. Detaylı mimari için `PROJE
 | Veritabanı | PostgreSQL + JSONB (layout_json) | Tasarım pozisyon verisi esnek şema gerektiriyor |
 | Async işler | Celery + Redis | PDF üretimi ve e-posta gönderimi bloklamamalı |
 | Auth | JWT (access+refresh) + Google OAuth | Bireysel/Kurumsal ayrımı ile |
-| Refresh token saklama | httpOnly cookie (`refresh_token`, `path=/api/v1/auth`) | XSS'e karşı erişilemez; access token (15dk) sadece Zustand'da bellekte tutulur, localStorage'a yazılmaz |
+| Refresh token saklama | httpOnly cookie (`refresh_token`, `path=/api/v1`) | XSS'e karşı erişilemez; access token (15dk) sadece Zustand'da bellekte tutulur, localStorage'a yazılmaz. Path başlangıçta `/api/v1/auth` idi ama bu, `/api/v1/sessions` endpoint'lerinin `is_current` hesaplaması için cookie'yi hiç görememesine yol açtı (2026-08-14'te düzeltildi, bkz. `docs/PROJECT_DESING.md`) |
 | Frontend HTTP istemcisi | axios | 401→refresh→retry interceptor deseni native fetch'e göre daha az boilerplate |
 | Frontend routing | React Router v7, `createBrowserRouter` | Data-router API, `ProtectedRoute`/`PublicOnlyRoute` ile auth durumuna göre yönlendirme |
 | Frontend i18n | react-i18next + i18next | PROJEPLAN §7'de belirlenmişti, Zustand `localeStore` (persist) ile senkron |
