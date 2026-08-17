@@ -199,6 +199,7 @@
       "taxNumber": "Tax Number",
       "fax": "Fax",
       "mersisNo": "MERSIS No",
+      "nationalId": "National ID No",
       "submit": "Add",
       "update": "Update",
       "cancel": "Cancel",
@@ -213,6 +214,7 @@
         "addressRequired": "Address is required.",
         "taxOfficeRequired": "Tax office is required.",
         "taxNumberRequired": "Tax number is required.",
+        "nationalIdInvalid": "Enter a valid 11-digit national ID number.",
         "companyNameRequired": "Company name is required for corporate customers."
       }
     },

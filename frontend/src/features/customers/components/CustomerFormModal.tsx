@@ -231,7 +231,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
           />
         </div>
 
-        {/* Vergi Dairesi ve Vergi Numarası */}
+        {/* Vergi Dairesi ve Vergi Numarası / T.C. Kimlik No */}
         <div className="grid grid-cols-2 gap-3">
           <Input
             label={t('customers.form.taxOffice')}
@@ -239,8 +239,9 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
             {...register('tax_office')}
           />
           <Input
-            label={t('customers.form.taxNumber')}
+            label={customerType === 'bireysel' ? t('customers.form.nationalId') : t('customers.form.taxNumber')}
             error={errors.tax_number && t(errors.tax_number.message ?? '')}
+            maxLength={customerType === 'bireysel' ? 11 : undefined}
             {...register('tax_number')}
           />
         </div>
@@ -248,7 +249,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
         {/* Faks ve MERSIS No */}
         <div className="grid grid-cols-2 gap-3">
           <Input label={t('customers.form.fax')} {...register('fax')} />
-          <Input label={t('customers.form.mersis_no')} {...register('mersis_no')} />
+          <Input label={t('customers.form.mersisNo')} {...register('mersis_no')} />
         </div>
 
         {/* Butonlar */}

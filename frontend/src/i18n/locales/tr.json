@@ -199,6 +199,7 @@
       "taxNumber": "Vergi Numarası",
       "fax": "Faks",
       "mersisNo": "MERSİS No",
+      "nationalId": "T.C. Kimlik No",
       "submit": "Ekle",
       "update": "Güncelle",
       "cancel": "Vazgeç",
@@ -213,6 +214,7 @@
         "addressRequired": "Adres zorunludur.",
         "taxOfficeRequired": "Vergi dairesi zorunludur.",
         "taxNumberRequired": "Vergi numarası zorunludur.",
+        "nationalIdInvalid": "Geçerli 11 haneli bir T.C. Kimlik No girin.",
         "companyNameRequired": "Kurumsal müşteriler için şirket adı zorunludur."
       }
     },

@@ -40,7 +40,7 @@ export interface CustomerCreatePayload {
   postal_code?: string
   country?: string
   website?: string
-  tax_office: string
+  tax_office?: string
   tax_number: string
   fax?: string
   mersis_no?: string
