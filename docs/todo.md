@@ -47,6 +47,17 @@ eklemek isterse, `formatIban` util'i genişletilip model/form'a ülke kodu alan�
 eklenmeli.
 **Sıra:** Düşük
 
+### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu
+**Dosya:** `frontend/src/pages/dashboard/invoices/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
+**Durum:** Ertelenmiş (2026-08-17'de Sabit Tanımlar paneli tamamlandı, form entegrasyonu henüz yapılmadı)
+**Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
+Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel. Bunların fatura/müşteri/şablon formlarda 
+kullanılması gerekiyor: `InvoiceForm`'da kalem birimlerini, KDV oranlarını, ödeme vadelerini definitions'tan 
+çekmek; `CustomerForm`'da kategorileri seçmek; `InvoiceDetailPage`'de banka hesapları seçeneğini göstermek. 
+Şu an birçok alan hardcoded veya dropdown olmadan geçilip atlıyor.
+**Sıra:** Normal
+**Tahmini:** ~8-10 saat (forms'ı hook'larla veri bağlamak, dropdown'lar ekleme, validation)
+
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
 **Durum:** Ertelenmiş (tüm kurumsal alanlar hâlâ sadece Account sekmesinden giriliyor)  
