@@ -154,5 +154,16 @@ Login:
 ---
 
 **Tarih:** 2026-08-05  
+**Son Güncelleme:** 2026-08-17  
 **Durum:** ✅ Ready for Testing  
 **Contact:** m.yagmur@koel.com.tr
+
+---
+
+## 🔄 En Son Güncelleme (2026-08-17)
+
+Silinen admin kullanıcısı yeniden oluşturuldu:
+- ✅ Admin user: `admin@axioninvoice.app` / `Admin@123456`
+- ✅ Business subscription (ACTIVE) ile atandı
+- ✅ API login testi: **BAŞARILI** ✓
+- ✅ Tüm yetkiler: Sınırsız Fatura, Sınırsız Şablon, Admin Erişimi
