@@ -104,7 +104,7 @@ export function AccountTab() {
       </div>
 
       {!isEditing ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
             <h3 className="text-sm font-semibold text-slate-700">{t('settings.account.companyProfile.sectionBasic')}</h3>
             <InfoRow icon={<Building2 size={18} />} label={t('settings.account.companyProfile.companyTitle')} value={user.company_name || notSpecified} />
