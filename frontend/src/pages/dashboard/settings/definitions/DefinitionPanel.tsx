@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
 import {
   useUnits,
   useCreateUnit,
@@ -312,11 +313,13 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
                     value={values.label ?? ''}
                     onChange={(e) => setValue('label', e.target.value)}
                   />
-                  <Input
+                  <Textarea
                     label={t('settings.definitions.noteContent')}
                     placeholder="e.g., Bizi tercih ettiğiniz için teşekkür ederiz."
                     value={values.content ?? ''}
                     onChange={(e) => setValue('content', e.target.value)}
+                    rows={5}
+                    className="w-full min-w-150 resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </>
               )}
