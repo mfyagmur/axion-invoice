@@ -18,7 +18,7 @@ COPY . .
 # Docker seeds a fresh named volume's ownership from whatever's already at that path in the
 # image; without this the volume is created as root:root and Playwright can't write to it.
 RUN useradd --create-home --uid 1000 appuser \
-    && mkdir -p /app/generated_pdfs \
+    && mkdir -p /app/generated_pdfs /app/generated_logos \
     && chown -R appuser:appuser /app \
     && mkdir -p /home/appuser/.cache \
     && cp -r /root/.cache/ms-playwright /home/appuser/.cache/ \

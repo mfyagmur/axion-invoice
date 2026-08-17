@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/features/auth/api/authApi'
-import { SESSION_IDLE_TIMEOUT_MS } from '@/features/auth/sessionConfig'
 import { useAuthStore } from '@/store/authStore'
 import { useToastStore } from '@/store/toastStore'
 
@@ -12,6 +11,7 @@ export function useIdleLogout(): void {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionTimeoutMinutes = useAuthStore((state) => state.user?.session_timeout_minutes)
 
   useEffect(() => {
     const triggerIdleLogout = () => {
@@ -25,7 +25,8 @@ export function useIdleLogout(): void {
 
     const resetTimer = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      timeoutRef.current = setTimeout(triggerIdleLogout, SESSION_IDLE_TIMEOUT_MS)
+      const timeoutMs = (sessionTimeoutMinutes ?? 5) * 60 * 1000
+      timeoutRef.current = setTimeout(triggerIdleLogout, timeoutMs)
     }
 
     resetTimer()
@@ -35,5 +36,5 @@ export function useIdleLogout(): void {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, resetTimer))
     }
-  }, [navigate, t])
+  }, [navigate, t, sessionTimeoutMinutes])
 }

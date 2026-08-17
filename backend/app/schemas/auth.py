@@ -51,6 +51,7 @@ class UserResponse(BaseModel):
     notify_invoice_reminders: bool
     notify_product_updates: bool
     notify_billing_emails: bool
+    session_timeout_minutes: int
     is_demo: bool
     is_admin: bool
     has_password: bool
@@ -83,6 +84,7 @@ class PreferencesUpdatePayload(BaseModel):
     notify_invoice_reminders: bool | None = None
     notify_product_updates: bool | None = None
     notify_billing_emails: bool | None = None
+    session_timeout_minutes: int | None = Field(default=None, ge=5, le=30, multiple_of=5)
 
 
 class PasswordChangePayload(BaseModel):

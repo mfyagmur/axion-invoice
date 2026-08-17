@@ -42,6 +42,7 @@ class User(Base):
     notify_invoice_reminders: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     notify_product_updates: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     notify_billing_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    session_timeout_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     invoice_sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

@@ -23,6 +23,7 @@ export interface User {
   notify_invoice_reminders: boolean
   notify_product_updates: boolean
   notify_billing_emails: boolean
+  session_timeout_minutes: number
   is_demo: boolean
   is_admin: boolean
   has_password: boolean
@@ -76,6 +77,7 @@ export interface PreferencesUpdatePayload {
   notify_invoice_reminders?: boolean
   notify_product_updates?: boolean
   notify_billing_emails?: boolean
+  session_timeout_minutes?: number
 }
 
 export interface PasswordChangePayload {

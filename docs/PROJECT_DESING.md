@@ -6,6 +6,38 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-17 — Kullanıcı Bazlı Oturum (Idle) Zaman Aşımı
+
+**Bağlam:** Hareketsizlik sonrası otomatik çıkış (idle-logout) önceden tüm kullanıcılar için
+sabit ve sistem geneli (5 dakika, `sessionConfig.ts`'deki hardcoded sabit) idi. Kullanıcı, her
+kullanıcının `/dashboard/settings?tab=preferences` sayfasından bu süreyi kendi tercihine göre
+ayarlayabilmesini istedi: 5 dakikanın katları, maksimum 30 dakika.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/models/user.py` | Ekleme | `session_timeout_minutes: Mapped[int]` kolonu eklendi (satır 45, default=5), `notify_billing_emails`'dan sonra. |
+| `backend/alembic/versions/d7e9f0a1b2c3_add_session_timeout_to_users.py` | Ekleme | Alembic migration: `users` tablosuna `session_timeout_minutes` kolonu, `server_default='5'` ile. |
+| `backend/app/schemas/auth.py` | Ekleme | `UserResponse` şemasına `session_timeout_minutes: int` eklendi (satır 54). `PreferencesUpdatePayload`'a `session_timeout_minutes: int \| None = Field(default=None, ge=5, le=30, multiple_of=5)` eklendi (satır 87) — backend'de 5'in katı + 5-30 aralığı doğrulaması. |
+| `backend/app/api/v1/profile.py` | Değiştirme | `update_preferences` endpoint'ine `if payload.session_timeout_minutes is not None: current_user.session_timeout_minutes = payload.session_timeout_minutes` eklendi (satır 156-157), mevcut desene uygun. |
+| `frontend/src/types/auth.ts` | Ekleme | `User` interface'ine `session_timeout_minutes: number` (satır 26). `PreferencesUpdatePayload` interface'ine `session_timeout_minutes?: number` (satır 80) eklendi. |
+| `frontend/src/pages/dashboard/settings/PreferencesTab.tsx` | Değiştirme | (1) `formData` state'ine `session_timeout_minutes: user?.session_timeout_minutes ?? 5` eklendi (satır 22). (2) `handleSubmit` payload'ına `session_timeout_minutes: formData.session_timeout_minutes` eklendi (satır 46). (3) Bildirimler bölümünün altına yeni bölüm eklendi (satır 108-122): "Oturum Açık Kalma Süresi" başlığı, 5/10/15/20/25/30 dakika seçenekli `<select>` dropdown, hint metni. |
+| `frontend/src/features/auth/hooks/useIdleLogout.ts` | Değiştirme | (1) `SESSION_IDLE_TIMEOUT_MS` sabit import'u kaldırıldı. (2) `const sessionTimeoutMinutes = useAuthStore((state) => state.user?.session_timeout_minutes)` ile kullanıcıdan tercih okunması eklendi (satır 14). (3) `resetTimer` içinde timeout hesabı `(sessionTimeoutMinutes ?? 5) * 60 * 1000` olarak dinamikleştirildi (satır 28). (4) `useEffect` dependency array'ine `sessionTimeoutMinutes` eklendi (satır 39) — tercih değiştiğinde hook yeniden çalışsın. |
+| `frontend/src/features/auth/sessionConfig.ts` | Çıkarma | Artık kullanılmayan dosya silindi (tek kullanım yeriydi, useIdleLogout.ts). |
+| `frontend/src/i18n/locales/tr.json` | Ekleme | `settings.preferences` objesine üç anahtar eklendi (satır 516-518): `sessionTimeout: "Oturum Açık Kalma Süresi"`, `sessionTimeoutHint: "Bu süre boyunca işlem yapılmazsa otomatik olarak çıkış yapılır."`, `sessionTimeoutOption: "{{count}} dakika"`. |
+| `frontend/src/i18n/locales/en.json` | Ekleme | Aynı üç anahtarın İngilizce karşılıkları (satır 516-518): `sessionTimeout: "Session Timeout"`, `sessionTimeoutHint: "You'll be automatically logged out after this many minutes of inactivity."`, `sessionTimeoutOption: "{{count}} minutes"`. |
+
+**Kapsam kararı:** Özellik yalnızca frontend idle-logout mekanizmasını hedefliyor. Backend JWT access
+token süresi (sistem geneli, 15 dakika, `config.py`) ve refresh token (7 gün) değişmedi — refresh
+mekanizması arka planda access token'ı sessizce yeniliyor, kullanıcı deneyimlediği "oturum açık kalma"
+idle-timeout'tur. Varsayılan değer mevcut davranışı korumak için 5 dakika seçildi.
+
+**Validasyon:** Backend `PreferencesUpdatePayload`'daki `Field(ge=5, le=30, multiple_of=5)` frontend
+dropdown'ında sunulanların her birini accept eder ama dışındaki değerleri 422 ile reddeder. Frontend
+`useIdleLogout` hook'u `user?.session_timeout_minutes` değişimini dependency array'den izliyor,
+tercih değiştiğinde timeout otomatik olarak yeniden hesaplanır (extra kod gerekmez).
+
+---
+
 ## 2026-08-13 — Ayarlar Sayfası Regresyon Düzeltmeleri
 
 **Bağlam:** Önceki bir oturumda (`docs/profil.md`) Ayarlar sayfası (Profil, Hesap, Tercihler,
