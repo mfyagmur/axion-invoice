@@ -230,8 +230,20 @@ export function AccountTab() {
           <h2 className="text-lg font-bold text-slate-900">{t('settings.account.logo.title')}</h2>
           <p className="text-sm text-slate-500">{t('settings.account.logo.subtitle')}</p>
         </div>
-        <LogoUpload />
-        <InvoiceLogoPreviewExample />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700">
+              {t('settings.account.logo.uploadSectionTitle')}
+            </h3>
+            <LogoUpload />
+          </div>
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700">
+              {t('settings.account.logo.previewSectionTitle')}
+            </h3>
+            <InvoiceLogoPreviewExample />
+          </div>
+        </div>
       </Card>
     </div>
   )

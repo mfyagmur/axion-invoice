@@ -503,7 +503,9 @@
         "removeButton": "Remove",
         "invalidType": "Only PNG, JPG or SVG files are allowed",
         "tooLarge": "The logo file cannot be larger than 2MB",
-        "previewSectionTitle": "How it will look on an invoice"
+        "uploadSectionTitle": "Upload Logo",
+        "previewSectionTitle": "How it will look on an invoice",
+        "previewEmptyState": "Preview will appear here once a logo is uploaded"
       }
     },
     "preferences": {
