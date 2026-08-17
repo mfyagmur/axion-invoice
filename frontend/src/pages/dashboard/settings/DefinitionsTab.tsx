@@ -49,21 +49,21 @@ export function DefinitionsTab() {
     <div className="flex flex-col">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <DefinitionCategoryCard
-          icon={<Settings size={18} />}
+          icon={<Settings className="text-blue-600" size={18} />}
           title={t('settings.definitions.systemSettings')}
           items={systemItems}
           activeKey={activeKey}
           onSelect={handleSelect}
         />
         <DefinitionCategoryCard
-          icon={<Wallet size={18} />}
+          icon={<Wallet className="text-green-600" size={18} />}
           title={t('settings.definitions.financeSettings')}
           items={financeItems}
           activeKey={activeKey}
           onSelect={handleSelect}
         />
         <DefinitionCategoryCard
-          icon={<Package size={18} />}
+          icon={<Package className="text-purple-600" size={18} />}
           title={t('settings.definitions.operationsSettings')}
           items={operationsItems}
           activeKey={activeKey}

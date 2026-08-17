@@ -98,7 +98,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
       style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
     >
       <div className="overflow-hidden">
-        <div className="mt-6 rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="mt-6 rounded-xl border border-gray-300 bg-white p-5 shadow-sm">
           {activeKey && SCALAR_KEYS.includes(activeKey as ScalarSettingKey) && (
             <CompanyScalarSettingForm settingKey={activeKey as ScalarSettingKey} />
           )}
