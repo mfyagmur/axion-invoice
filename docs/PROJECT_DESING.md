@@ -38,6 +38,60 @@ tercih değiştiğinde timeout otomatik olarak yeniden hesaplanır (extra kod ge
 
 ---
 
+## 2026-08-17 — Sabit Tanımlamalar Sekmesi: 3 Kartlı Grid Yeniden Tasarımı
+
+**Bağlam:** `dashboard/settings?tab=definitions` önceden 4 tanımlama tipini (Birimler, KDV
+Oranları, Ödeme Vadeleri, Kategoriler) tek sütunlu, dikey sıralı liste kartları olarak
+gösteriyordu. Kullanıcı bu ekranı kurumsal bir SaaS ayarlar sayfasına dönüştürmek istedi: 3
+kategoriye (Genel Sistem / Fatura ve Finans / Operasyon ve Ürün) bölünmüş, responsive (mobil 1 /
+tablet 2 / masaüstü 3 kolon) kart grid; her kartta tıklanabilir, ikonlu menü satırları; seçilen
+öğe kartların altında CSS-animasyonlu bir panelde açılıyor; değişiklikler otomatik kaydedilip
+yeşil toast ile bildiriliyor. Kapsamda 6 yeni tanımlama tipi de eklendi: Para Birimi, Tarih
+Formatı, Vergi Yılı Başlangıcı, Fatura No (prefix+basamak), Banka Bilgileri, Sabit Açıklama.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/models/user.py` | Ekleme | `User` modeline 5 yeni skaler kolon: `default_currency` (String(3), default "TRY"), `date_format` (String(20), default "DD.MM.YYYY"), `tax_year_start_month` (Integer, default 1), `invoice_prefix` (String(20), nullable), `invoice_number_padding` (Integer, default 4). `invoice_sequence` alanına dokunulmadı. |
+| `backend/app/models/definitions.py` | Ekleme | İki yeni tablo: `DefinitionBankAccount` (`bank_name`, `iban`, `account_holder`, `branch`, `is_active`) ve `DefinitionNote` (`label`, `content`, `is_active`) — mevcut 4 tanımlama tablosuyla birebir aynı `id`/`user_id`/`is_active`/`created_at` kalıbında. |
+| `backend/alembic/versions/e1f2a3b4c5d6_add_company_settings_to_users.py` | Ekleme | `users` tablosuna 5 yeni kolonu `server_default` ile ekleyen migration (`d7e9f0a1b2c3` → `e1f2a3b4c5d6`). Yerel dev DB'de `alembic upgrade head` ile uygulanıp doğrulandı. |
+| `backend/alembic/versions/f2a3b4c5d6e7_create_definition_bank_accounts_and_notes_tables.py` | Ekleme | `definition_bank_accounts` ve `definition_notes` tablolarını oluşturan migration (`e1f2a3b4c5d6` → `f2a3b4c5d6e7`, yeni head). Uygulanıp doğrulandı. |
+| `backend/app/schemas/auth.py` | Değiştirme | `UserResponse`'a 6 yeni alan eklendi (`default_currency`, `date_format`, `tax_year_start_month`, `invoice_prefix`, `invoice_number_padding`, `invoice_sequence` — sonuncusu ilk kez response'a eklendi, frontend'de "sıradaki fatura no" önizlemesi için). Yeni `CompanySettingsUpdatePayload` (tüm alanlar `Optional`, PATCH semantiği; `default_currency` 3 büyük harf regex, `invoice_number_padding` 3-6 aralığı). |
+| `backend/app/schemas/definitions.py` | Ekleme | `BankAccountPayload`/`BankAccountResponse` ve `NotePayload`/`NoteResponse` şema çiftleri, mevcut `CategoryPayload`/`CategoryResponse` kalıbında. |
+| `backend/app/api/v1/profile.py` | Değiştirme | Yeni `PATCH /profile/company-settings` endpoint'i eklendi (`update_preferences` ile aynı desende: sadece gönderilen alan güncellenir, `require_not_demo` guard'ı yok — bu diğer skaler ayarlarla (`preferences`) tutarlı, demo kullanıcı da kendi tercihini görebilsin diye bilinçli). |
+| `backend/app/api/v1/definitions.py` | Ekleme | `bank-accounts` ve `notes` için tam CRUD + `toggleStatus` endpoint seti (`list/create/update/delete/patch status`), `_get_own_bank_account`/`_get_own_note` helper'ları dahil — mevcut `units`/`categories` bloklarının birebir kopyası. |
+| `frontend/src/types/auth.ts` | Değiştirme | `User` interface'ine 6 yeni alan, yeni `CompanySettingsUpdatePayload` interface'i. |
+| `frontend/src/types/definitions.ts` | Ekleme | `DefinitionBankAccount`/`BankAccountPayload`, `DefinitionNote`/`NotePayload` tipleri. |
+| `frontend/src/features/definitions/api/definitionsApi.ts` | Ekleme | `bankAccounts` ve `notes` namespace'leri (`categories` bloğunun kopyası). |
+| `frontend/src/features/profile/api/profileApi.ts` | Ekleme | `updateCompanySettings(payload)` — `PATCH /profile/company-settings`. |
+| `frontend/src/features/definitions/hooks/useBankAccounts.ts`, `useNotes.ts` | Ekleme | `useUnits.ts` kalıbında 4'er hook (list/create/update/delete/toggleStatus), Türkçe toast mesajlarıyla. |
+| `frontend/src/features/profile/hooks/useUpdateCompanySettings.ts` | Ekleme | Tek mutation hook, `useUpdatePreferences.ts` deseninde; `onSuccess`'te `setAuth` ile store güncellenir + yeşil "Ayarlar kaydedildi" toast'ı. |
+| `frontend/src/pages/dashboard/settings/definitions/DefinitionCategoryCard.tsx` | Ekleme (yeni dosya) | Kategori kartı bileşeni: ikon+başlık, altında `hover:bg-green-50` + sağda `ChevronRight` olan tıklanabilir menü satırları listesi, aktif seçili satır yeşil vurgulu. |
+| `frontend/src/pages/dashboard/settings/definitions/DefinitionPanel.tsx` | Ekleme (yeni dosya) | Seçilen `activeKey`'e göre ilgili liste tipi (`DefinitionListSection` — Birimler/KDV/Ödeme Vadeleri/Kategoriler/Banka Bilgileri/Sabit Açıklama) veya skaler ayar formunu render eden panel; `grid-template-rows: 0fr → 1fr` + `transition` ile framer-motion olmadan CSS tabanlı aç/kapa animasyonu. |
+| `frontend/src/pages/dashboard/settings/definitions/CompanyScalarSettingForm.tsx` | Ekleme (yeni dosya) | 4 skaler ayar formu (Para Birimi, Tarih Formatı, Vergi Yılı Başlangıcı, Fatura No): dropdown'lar `onChange`'de anında `useUpdateCompanySettings().mutate(...)` çağırır (buton yok, otomatik kayıt); Fatura No'daki prefix input'u `onBlur`'da kaydedilir (yazarken değil), basamak sayısı seçici ve canlı "sıradaki numara" önizlemesi (`invoice_sequence + 1` + padding) içerir. |
+| `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` | Değiştirme (tamamen yeniden yazıldı) | Eski dikey tek-sütun liste yerine `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6` ile 3 `DefinitionCategoryCard` (Genel Sistem / Fatura ve Finans / Operasyon ve Ürün, `lucide-react` ikonlarıyla — `Settings`, `Wallet`, `Package` ve alt öğe ikonları) + altında tek `DefinitionPanel`. Tek `activeKey` state'i, aynı öğeye tekrar tıklanınca kapanan akordeon davranışı. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Ekleme | `settings.definitions` altına ~29 yeni key: 3 kategori başlığı, 4 skaler ayar başlığı+alt alanları, Banka Bilgileri/Sabit Açıklama alan etiketleri, 12 ay ismi (`month1`..`month12`). |
+
+**Kapsam kararı:** Kullanıcıyla netleştirilen 3 karar: (1) Sabit Açıklama, tek skaler metin değil
+Birimler/Kategoriler gibi çoklu şablon listesi olarak modellendi (`DefinitionListSection` deseni
+tekrar kullanıldı). (2) Banka Bilgileri IBAN'ı için sadece format kontrolü (`min_length=15,
+max_length=34`) yapılıyor, tam MOD-97 checksum bu iterasyonda eklenmedi. (3) Fatura No ayarında
+kullanıcı yalnızca prefix + basamak sayısını değiştirebiliyor, `invoice_sequence` (asıl sıra
+sayacı) hiç editlenemez — mevcut faturalarla numara çakışması riski taşıdığı için kapsam dışı
+bırakıldı, `docs/todo.md`'ye not düşüldü.
+
+**Doğrulama:** Backend: `py -m alembic heads` (tek head: `f2a3b4c5d6e7`) ve `py -m alembic upgrade
+head` yerel dev Postgres'e karşı hatasız çalıştırıldı. Uvicorn ile backend ayağa kaldırılıp gerçek
+kullanıcı için üretilen bir JWT ile `PATCH /profile/company-settings`, `POST/GET/PATCH(status)/
+DELETE /definitions/bank-accounts`, `POST/DELETE /definitions/notes` uçtan uca `curl` ile test
+edildi — hepsi beklenen 200/201/204 döndü, veriler doğru şekilde okunup silindi. Frontend: `npx tsc
+--noEmit` ve `npx eslint` (yeni dosyalarda) hatasız; `npm run dev` ile Vite dev server hatasız
+başladı ve HMR güncellemeleri konsol hatası vermeden uygulandı. Tarayıcıda görsel/etkileşimli
+teyit (kart grid responsive kırılımları, panel açılma animasyonu, toast görünümü) bu oturumda
+**yapılamadı** — ortamda tarayıcı otomasyon aracı yoktu, bu adım kullanıcıya kalıyor
+(`docs/todo.md`'ye eklendi).
+
+---
+
 ## 2026-08-13 — Ayarlar Sayfası Regresyon Düzeltmeleri
 
 **Bağlam:** Önceki bir oturumda (`docs/profil.md`) Ayarlar sayfası (Profil, Hesap, Tercihler,

@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient'
-import type { AccountUpdatePayload, PasswordChangePayload, PreferencesUpdatePayload, ProfileUpdatePayload, User } from '@/types/auth'
+import type { AccountUpdatePayload, CompanySettingsUpdatePayload, PasswordChangePayload, PreferencesUpdatePayload, ProfileUpdatePayload, User } from '@/types/auth'
 
 export const profileApi = {
   updateProfile: async (payload: ProfileUpdatePayload): Promise<User> => {
@@ -14,6 +14,11 @@ export const profileApi = {
 
   updatePreferences: async (payload: PreferencesUpdatePayload): Promise<User> => {
     const { data } = await apiClient.patch('/profile/preferences', payload)
+    return data
+  },
+
+  updateCompanySettings: async (payload: CompanySettingsUpdatePayload): Promise<User> => {
+    const { data } = await apiClient.patch('/profile/company-settings', payload)
     return data
   },
 

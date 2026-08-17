@@ -52,6 +52,12 @@ class UserResponse(BaseModel):
     notify_product_updates: bool
     notify_billing_emails: bool
     session_timeout_minutes: int
+    default_currency: str
+    date_format: str
+    tax_year_start_month: int
+    invoice_prefix: str | None = None
+    invoice_number_padding: int
+    invoice_sequence: int
     is_demo: bool
     is_admin: bool
     has_password: bool
@@ -85,6 +91,14 @@ class PreferencesUpdatePayload(BaseModel):
     notify_product_updates: bool | None = None
     notify_billing_emails: bool | None = None
     session_timeout_minutes: int | None = Field(default=None, ge=5, le=30, multiple_of=5)
+
+
+class CompanySettingsUpdatePayload(BaseModel):
+    default_currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+    date_format: str | None = Field(default=None, max_length=20)
+    tax_year_start_month: int | None = Field(default=None, ge=1, le=12)
+    invoice_prefix: str | None = Field(default=None, max_length=20)
+    invoice_number_padding: int | None = Field(default=None, ge=3, le=6)
 
 
 class PasswordChangePayload(BaseModel):

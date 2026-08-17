@@ -49,3 +49,35 @@ export interface CategoryPayload {
   name: string
   is_active?: boolean
 }
+
+export interface DefinitionBankAccount {
+  id: string
+  bank_name: string
+  iban: string
+  account_holder: string
+  branch: string | null
+  is_active: boolean
+  created_at: string
+}
+
+export interface BankAccountPayload {
+  bank_name: string
+  iban: string
+  account_holder: string
+  branch?: string
+  is_active?: boolean
+}
+
+export interface DefinitionNote {
+  id: string
+  label: string
+  content: string
+  is_active: boolean
+  created_at: string
+}
+
+export interface NotePayload {
+  label: string
+  content: string
+  is_active?: boolean
+}

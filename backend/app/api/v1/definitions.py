@@ -7,15 +7,21 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
 from app.models.definitions import (
+    DefinitionBankAccount,
     DefinitionCategory,
+    DefinitionNote,
     DefinitionPaymentTerm,
     DefinitionTaxRate,
     DefinitionUnit,
 )
 from app.models.user import User
 from app.schemas.definitions import (
+    BankAccountPayload,
+    BankAccountResponse,
     CategoryPayload,
     CategoryResponse,
+    NotePayload,
+    NoteResponse,
     PaymentTermPayload,
     PaymentTermResponse,
     TaxRatePayload,
@@ -53,6 +59,20 @@ def _get_own_category(db: Session, user_id: uuid.UUID, category_id: uuid.UUID) -
     if category is None or category.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kategori bulunamadı")
     return category
+
+
+def _get_own_bank_account(db: Session, user_id: uuid.UUID, bank_account_id: uuid.UUID) -> DefinitionBankAccount:
+    bank_account = db.get(DefinitionBankAccount, bank_account_id)
+    if bank_account is None or bank_account.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banka hesabı bulunamadı")
+    return bank_account
+
+
+def _get_own_note(db: Session, user_id: uuid.UUID, note_id: uuid.UUID) -> DefinitionNote:
+    note = db.get(DefinitionNote, note_id)
+    if note is None or note.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sabit açıklama bulunamadı")
+    return note
 
 
 @router.get("/units", response_model=list[UnitResponse])
@@ -313,3 +333,147 @@ def toggle_category_status(
     db.commit()
     db.refresh(category)
     return category
+
+
+@router.get("/bank-accounts", response_model=list[BankAccountResponse])
+def list_bank_accounts(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> list[DefinitionBankAccount]:
+    return (
+        db.query(DefinitionBankAccount)
+        .filter(DefinitionBankAccount.user_id == current_user.id)
+        .order_by(DefinitionBankAccount.bank_name)
+        .all()
+    )
+
+
+@router.post("/bank-accounts", response_model=BankAccountResponse, status_code=status.HTTP_201_CREATED)
+def create_bank_account(
+    payload: BankAccountPayload,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> DefinitionBankAccount:
+    bank_account = DefinitionBankAccount(
+        user_id=current_user.id,
+        bank_name=payload.bank_name,
+        iban=payload.iban,
+        account_holder=payload.account_holder,
+        branch=payload.branch,
+        is_active=payload.is_active,
+    )
+    db.add(bank_account)
+    db.commit()
+    db.refresh(bank_account)
+    return bank_account
+
+
+@router.put("/bank-accounts/{bank_account_id}", response_model=BankAccountResponse)
+def update_bank_account(
+    bank_account_id: uuid.UUID,
+    payload: BankAccountPayload,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> DefinitionBankAccount:
+    bank_account = _get_own_bank_account(db, current_user.id, bank_account_id)
+    bank_account.bank_name = payload.bank_name
+    bank_account.iban = payload.iban
+    bank_account.account_holder = payload.account_holder
+    bank_account.branch = payload.branch
+    bank_account.is_active = payload.is_active
+    db.commit()
+    db.refresh(bank_account)
+    return bank_account
+
+
+@router.delete("/bank-accounts/{bank_account_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_bank_account(
+    bank_account_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    bank_account = _get_own_bank_account(db, current_user.id, bank_account_id)
+    db.delete(bank_account)
+    db.commit()
+
+
+@router.patch("/bank-accounts/{bank_account_id}/status")
+def toggle_bank_account_status(
+    bank_account_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> BankAccountResponse:
+    bank_account = _get_own_bank_account(db, current_user.id, bank_account_id)
+    bank_account.is_active = not bank_account.is_active
+    db.commit()
+    db.refresh(bank_account)
+    return bank_account
+
+
+@router.get("/notes", response_model=list[NoteResponse])
+def list_notes(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> list[DefinitionNote]:
+    return db.query(DefinitionNote).filter(DefinitionNote.user_id == current_user.id).order_by(DefinitionNote.label).all()
+
+
+@router.post("/notes", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
+def create_note(
+    payload: NotePayload,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> DefinitionNote:
+    note = DefinitionNote(user_id=current_user.id, label=payload.label, content=payload.content, is_active=payload.is_active)
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@router.put("/notes/{note_id}", response_model=NoteResponse)
+def update_note(
+    note_id: uuid.UUID,
+    payload: NotePayload,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> DefinitionNote:
+    note = _get_own_note(db, current_user.id, note_id)
+    note.label = payload.label
+    note.content = payload.content
+    note.is_active = payload.is_active
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@router.delete("/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_note(
+    note_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    note = _get_own_note(db, current_user.id, note_id)
+    db.delete(note)
+    db.commit()
+
+
+@router.patch("/notes/{note_id}/status")
+def toggle_note_status(
+    note_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> NoteResponse:
+    note = _get_own_note(db, current_user.id, note_id)
+    note.is_active = not note.is_active
+    db.commit()
+    db.refresh(note)
+    return note

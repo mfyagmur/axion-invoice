@@ -7,6 +7,35 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
+### 0. Sabit Tanımlamalar Yeniden Tasarımının Tarayıcıda Görsel Teyidi
+**Dosya:** `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` ve `definitions/` altındaki yeni bileşenler
+**Durum:** Ertelenmiş (tarayıcı otomasyon aracı yoktu)
+**Bağlam:** 2026-08-17'de `dashboard/settings?tab=definitions` 3 kartlı grid olarak yeniden
+tasarlandı (bkz. `docs/PROJECT_DESING.md` § 2026-08-17). Backend uçtan uca `curl` ile, frontend
+`tsc`/`eslint`/Vite HMR ile doğrulandı ama gerçek tarayıcıda hiç açılmadı. Kontrol edilmesi
+gerekenler: (1) 3 kolonlu grid'in mobil/tablet/masaüstü kırılımları, (2) panel açma/kapama CSS
+animasyonunun (`grid-template-rows` transition) pürüzsüz çalışması, (3) skaler ayarların
+(Para Birimi, Tarih Formatı, Vergi Yılı Başlangıcı, Fatura No) dropdown `onChange`'de gerçekten
+otomatik kaydedip yeşil toast gösterdiği, (4) Banka Bilgileri/Sabit Açıklama liste tipi
+CRUD akışının diğer tanımlamalarla aynı şekilde çalıştığı, (5) var olan 4 tanımlamanın (Birimler,
+KDV, Ödeme Vadeleri, Kategoriler) fonksiyonel olarak bozulmadığı (regresyon).
+**Sıra:** Yüksek
+
+### 0.1 Fatura Sıra Numarasının Kullanıcı Tarafından Düzenlenmesi
+**Dosya:** `backend/app/models/user.py` (`invoice_sequence`), `backend/app/schemas/auth.py`, `frontend/src/pages/dashboard/settings/definitions/CompanyScalarSettingForm.tsx`
+**Durum:** Kapsam dışı bırakıldı (kullanıcı onayıyla)
+**Bağlam:** Fatura No ayarında şu an yalnızca prefix + basamak sayısı düzenlenebiliyor;
+`invoice_sequence` (asıl sayaç) hiç editlenemiyor. Kullanıcı manuel resetleme isterse, mevcut
+faturalarla numara çakışması riskine karşı geri gitmeme + çakışma kontrolü eklenmesi gerekiyor.
+**Sıra:** Düşük
+
+### 0.2 Banka Hesabı IBAN Tam Checksum Doğrulaması
+**Dosya:** `backend/app/schemas/definitions.py` (`BankAccountPayload`), `frontend/src/pages/dashboard/settings/DefinitionListSection.tsx` kullanım yeri (Banka Bilgileri formu)
+**Durum:** Kapsam dışı bırakıldı (kullanıcı onayıyla)
+**Bağlam:** Şu an IBAN için sadece uzunluk (`min_length=15, max_length=34`) kontrolü var, tam
+resmi MOD-97 checksum algoritması (TCKN doğrulamasında yapıldığı gibi) eklenmedi.
+**Sıra:** Düşük
+
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
 **Durum:** Ertelenmiş (tüm kurumsal alanlar hâlâ sadece Account sekmesinden giriliyor)  

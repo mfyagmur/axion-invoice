@@ -12,6 +12,7 @@ from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import (
     AccountUpdatePayload,
+    CompanySettingsUpdatePayload,
     PasswordChangePayload,
     PreferencesUpdatePayload,
     ProfileUpdatePayload,
@@ -155,6 +156,27 @@ def update_preferences(
         current_user.notify_billing_emails = payload.notify_billing_emails
     if payload.session_timeout_minutes is not None:
         current_user.session_timeout_minutes = payload.session_timeout_minutes
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.patch("/company-settings", response_model=UserResponse)
+def update_company_settings(
+    payload: CompanySettingsUpdatePayload,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> User:
+    if payload.default_currency is not None:
+        current_user.default_currency = payload.default_currency
+    if payload.date_format is not None:
+        current_user.date_format = payload.date_format
+    if payload.tax_year_start_month is not None:
+        current_user.tax_year_start_month = payload.tax_year_start_month
+    if payload.invoice_prefix is not None:
+        current_user.invoice_prefix = payload.invoice_prefix
+    if payload.invoice_number_padding is not None:
+        current_user.invoice_number_padding = payload.invoice_number_padding
     db.commit()
     db.refresh(current_user)
     return current_user

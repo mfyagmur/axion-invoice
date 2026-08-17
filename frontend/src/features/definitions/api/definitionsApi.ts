@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient'
-import type { DefinitionUnit, UnitPayload, DefinitionTaxRate, TaxRatePayload, DefinitionPaymentTerm, PaymentTermPayload, DefinitionCategory, CategoryPayload } from '@/types/definitions'
+import type { DefinitionUnit, UnitPayload, DefinitionTaxRate, TaxRatePayload, DefinitionPaymentTerm, PaymentTermPayload, DefinitionCategory, CategoryPayload, DefinitionBankAccount, BankAccountPayload, DefinitionNote, NotePayload } from '@/types/definitions'
 
 export const definitionsApi = {
   units: {
@@ -86,6 +86,50 @@ export const definitionsApi = {
     },
     toggleStatus: async (id: string): Promise<DefinitionCategory> => {
       const { data } = await apiClient.patch(`/definitions/categories/${id}/status`)
+      return data
+    },
+  },
+
+  bankAccounts: {
+    list: async (): Promise<DefinitionBankAccount[]> => {
+      const { data } = await apiClient.get('/definitions/bank-accounts')
+      return data
+    },
+    create: async (payload: BankAccountPayload): Promise<DefinitionBankAccount> => {
+      const { data } = await apiClient.post('/definitions/bank-accounts', payload)
+      return data
+    },
+    update: async (id: string, payload: BankAccountPayload): Promise<DefinitionBankAccount> => {
+      const { data } = await apiClient.put(`/definitions/bank-accounts/${id}`, payload)
+      return data
+    },
+    delete: async (id: string): Promise<void> => {
+      await apiClient.delete(`/definitions/bank-accounts/${id}`)
+    },
+    toggleStatus: async (id: string): Promise<DefinitionBankAccount> => {
+      const { data } = await apiClient.patch(`/definitions/bank-accounts/${id}/status`)
+      return data
+    },
+  },
+
+  notes: {
+    list: async (): Promise<DefinitionNote[]> => {
+      const { data } = await apiClient.get('/definitions/notes')
+      return data
+    },
+    create: async (payload: NotePayload): Promise<DefinitionNote> => {
+      const { data } = await apiClient.post('/definitions/notes', payload)
+      return data
+    },
+    update: async (id: string, payload: NotePayload): Promise<DefinitionNote> => {
+      const { data } = await apiClient.put(`/definitions/notes/${id}`, payload)
+      return data
+    },
+    delete: async (id: string): Promise<void> => {
+      await apiClient.delete(`/definitions/notes/${id}`)
+    },
+    toggleStatus: async (id: string): Promise<DefinitionNote> => {
+      const { data } = await apiClient.patch(`/definitions/notes/${id}/status`)
       return data
     },
   },

@@ -24,6 +24,12 @@ export interface User {
   notify_product_updates: boolean
   notify_billing_emails: boolean
   session_timeout_minutes: number
+  default_currency: string
+  date_format: string
+  tax_year_start_month: number
+  invoice_prefix: string | null
+  invoice_number_padding: number
+  invoice_sequence: number
   is_demo: boolean
   is_admin: boolean
   has_password: boolean
@@ -78,6 +84,14 @@ export interface PreferencesUpdatePayload {
   notify_product_updates?: boolean
   notify_billing_emails?: boolean
   session_timeout_minutes?: number
+}
+
+export interface CompanySettingsUpdatePayload {
+  default_currency?: string
+  date_format?: string
+  tax_year_start_month?: number
+  invoice_prefix?: string
+  invoice_number_padding?: number
 }
 
 export interface PasswordChangePayload {

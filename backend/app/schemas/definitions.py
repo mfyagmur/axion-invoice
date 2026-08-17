@@ -62,3 +62,39 @@ class CategoryResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class BankAccountPayload(BaseModel):
+    bank_name: str = Field(min_length=1, max_length=100)
+    iban: str = Field(min_length=15, max_length=34)
+    account_holder: str = Field(min_length=1, max_length=150)
+    branch: str | None = Field(default=None, max_length=100)
+    is_active: bool = True
+
+
+class BankAccountResponse(BaseModel):
+    id: uuid.UUID
+    bank_name: str
+    iban: str
+    account_holder: str
+    branch: str | None
+    is_active: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class NotePayload(BaseModel):
+    label: str = Field(min_length=1, max_length=100)
+    content: str = Field(min_length=1, max_length=1000)
+    is_active: bool = True
+
+
+class NoteResponse(BaseModel):
+    id: uuid.UUID
+    label: str
+    content: str
+    is_active: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
