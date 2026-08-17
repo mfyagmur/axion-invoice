@@ -358,9 +358,11 @@ def create_bank_account(
     bank_account = DefinitionBankAccount(
         user_id=current_user.id,
         bank_name=payload.bank_name,
+        branch_name=payload.branch_name,
+        branch_code=payload.branch_code,
+        currency=payload.currency,
+        account_number=payload.account_number,
         iban=payload.iban,
-        account_holder=payload.account_holder,
-        branch=payload.branch,
         is_active=payload.is_active,
     )
     db.add(bank_account)
@@ -379,9 +381,11 @@ def update_bank_account(
 ) -> DefinitionBankAccount:
     bank_account = _get_own_bank_account(db, current_user.id, bank_account_id)
     bank_account.bank_name = payload.bank_name
+    bank_account.branch_name = payload.branch_name
+    bank_account.branch_code = payload.branch_code
+    bank_account.currency = payload.currency
+    bank_account.account_number = payload.account_number
     bank_account.iban = payload.iban
-    bank_account.account_holder = payload.account_holder
-    bank_account.branch = payload.branch
     bank_account.is_active = payload.is_active
     db.commit()
     db.refresh(bank_account)

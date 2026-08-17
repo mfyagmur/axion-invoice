@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
+import { Select } from '@/components/Select'
 import {
   useUnits,
   useCreateUnit,
@@ -45,8 +46,10 @@ import {
 } from '@/features/definitions/hooks/useNotes'
 import { DefinitionListSection } from '../DefinitionListSection'
 import { CompanyScalarSettingForm, type ScalarSettingKey } from './CompanyScalarSettingForm'
+import { formatIban, sanitizeIban } from '@/utils/formatIban'
 
 const SCALAR_KEYS: ScalarSettingKey[] = ['currency', 'dateFormat', 'taxYearStart', 'invoiceNumber']
+const CURRENCY_OPTIONS = ['TRY', 'USD', 'EUR', 'GBP']
 
 interface DefinitionPanelProps {
   activeKey: string | null
@@ -109,8 +112,8 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               title={t('settings.definitions.units')}
               items={units || []}
               isLoading={unitsLoading}
-              onCreate={(payload) => createUnit.mutate(payload)}
-              onUpdate={(id, payload) => updateUnit.mutate({ id, payload })}
+              onCreate={(payload) => createUnit.mutate(payload as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+              onUpdate={(id, payload) => updateUnit.mutate({ id, payload: payload as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
               onDelete={(id) => deleteUnit.mutate(id)}
               onToggleStatus={(id) => toggleUnitStatus.mutate(id)}
               isCreating={createUnit.isPending}
@@ -138,8 +141,8 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               title={t('settings.definitions.taxRates')}
               items={taxRates || []}
               isLoading={taxRatesLoading}
-              onCreate={(payload) => createTaxRate.mutate(payload)}
-              onUpdate={(id, payload) => updateTaxRate.mutate({ id, payload })}
+              onCreate={(payload) => createTaxRate.mutate(payload as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+              onUpdate={(id, payload) => updateTaxRate.mutate({ id, payload: payload as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
               onDelete={(id) => deleteTaxRate.mutate(id)}
               onToggleStatus={(id) => toggleTaxRateStatus.mutate(id)}
               isCreating={createTaxRate.isPending}
@@ -178,8 +181,8 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               title={t('settings.definitions.paymentTerms')}
               items={paymentTerms || []}
               isLoading={paymentTermsLoading}
-              onCreate={(payload) => createPaymentTerm.mutate(payload)}
-              onUpdate={(id, payload) => updatePaymentTerm.mutate({ id, payload })}
+              onCreate={(payload) => createPaymentTerm.mutate(payload as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+              onUpdate={(id, payload) => updatePaymentTerm.mutate({ id, payload: payload as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
               onDelete={(id) => deletePaymentTerm.mutate(id)}
               onToggleStatus={(id) => togglePaymentTermStatus.mutate(id)}
               isCreating={createPaymentTerm.isPending}
@@ -217,8 +220,8 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               title={t('settings.definitions.categories')}
               items={categories || []}
               isLoading={categoriesLoading}
-              onCreate={(payload) => createCategory.mutate(payload)}
-              onUpdate={(id, payload) => updateCategory.mutate({ id, payload })}
+              onCreate={(payload) => createCategory.mutate(payload as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+              onUpdate={(id, payload) => updateCategory.mutate({ id, payload: payload as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
               onDelete={(id) => deleteCategory.mutate(id)}
               onToggleStatus={(id) => toggleCategoryStatus.mutate(id)}
               isCreating={createCategory.isPending}
@@ -246,15 +249,16 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               title={t('settings.definitions.bankAccounts')}
               items={bankAccounts || []}
               isLoading={bankAccountsLoading}
-              onCreate={(payload) => createBankAccount.mutate(payload)}
-              onUpdate={(id, payload) => updateBankAccount.mutate({ id, payload })}
+              onCreate={(payload) => createBankAccount.mutate(payload as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+              onUpdate={(id, payload) => updateBankAccount.mutate({ id, payload: payload as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
               onDelete={(id) => deleteBankAccount.mutate(id)}
               onToggleStatus={(id) => toggleBankAccountStatus.mutate(id)}
               isCreating={createBankAccount.isPending}
               isUpdating={updateBankAccount.isPending}
               isDeleting={deleteBankAccount.isPending}
               isToggling={toggleBankAccountStatus.isPending}
-              fields={['bank_name', 'iban', 'account_holder']}
+              fields={['bank_name', 'branch_name', 'branch_code', 'currency', 'account_number', 'iban']}
+              initialValues={{ currency: 'TRY' }}
               renderFields={(values, setValue) => (
                 <>
                   <Input
@@ -264,30 +268,56 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
                     onChange={(e) => setValue('bank_name', e.target.value)}
                   />
                   <Input
-                    label={t('settings.definitions.iban')}
-                    placeholder="TR00 0000 0000 0000 0000 0000 00"
-                    value={values.iban ?? ''}
-                    onChange={(e) => setValue('iban', e.target.value)}
+                    label={t('settings.definitions.branchName')}
+                    placeholder="e.g., Merkez Şubesi"
+                    value={values.branch_name ?? ''}
+                    onChange={(e) => setValue('branch_name', e.target.value)}
                   />
                   <Input
-                    label={t('settings.definitions.accountHolder')}
-                    placeholder="e.g., Axion Yazılım A.Ş."
-                    value={values.account_holder ?? ''}
-                    onChange={(e) => setValue('account_holder', e.target.value)}
+                    label={t('settings.definitions.branchCode')}
+                    placeholder="e.g., 001"
+                    value={values.branch_code ?? ''}
+                    onChange={(e) => setValue('branch_code', e.target.value)}
+                  />
+                  <Select
+                    label={t('settings.definitions.currency')}
+                    value={values.currency ?? 'TRY'}
+                    onChange={(v) => setValue('currency', v)}
+                    options={CURRENCY_OPTIONS.map((code) => ({ value: code, label: code }))}
+                  />
+                  <Input
+                    label={t('settings.definitions.accountNumber')}
+                    placeholder="e.g., 123456789"
+                    value={values.account_number ?? ''}
+                    onChange={(e) => setValue('account_number', e.target.value)}
+                  />
+                  <Input
+                    label={t('settings.definitions.iban')}
+                    placeholder="TR00 0000 0000 0000 0000 0000 00"
+                    autoComplete="off"
+                    maxLength={32}
+                    value={values.iban ?? ''}
+                    onChange={(e) => setValue('iban', formatIban(e.target.value))}
                   />
                 </>
               )}
               buildPayload={(values) => ({
                 bank_name: values.bank_name,
-                iban: values.iban,
-                account_holder: values.account_holder,
+                branch_name: values.branch_name,
+                branch_code: values.branch_code,
+                currency: values.currency || 'TRY',
+                account_number: values.account_number,
+                iban: sanitizeIban(values.iban),
               })}
               getEditValues={(item) => ({
                 bank_name: item.bank_name ?? '',
-                iban: item.iban ?? '',
-                account_holder: item.account_holder ?? '',
+                branch_name: item.branch_name ?? '',
+                branch_code: item.branch_code ?? '',
+                currency: item.currency ?? 'TRY',
+                account_number: item.account_number ?? '',
+                iban: formatIban(item.iban ?? ''),
               })}
-              formatValue={(item) => `${item.bank_name} — ${item.iban}`}
+              formatValue={(item) => `${item.bank_name} — ${item.branch_name} — ${item.iban} — ${item.currency}`}
             />
           )}
 
@@ -296,8 +326,8 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               title={t('settings.definitions.fixedNotes')}
               items={notes || []}
               isLoading={notesLoading}
-              onCreate={(payload) => createNote.mutate(payload)}
-              onUpdate={(id, payload) => updateNote.mutate({ id, payload })}
+              onCreate={(payload) => createNote.mutate(payload as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
+              onUpdate={(id, payload) => updateNote.mutate({ id, payload: payload as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
               onDelete={(id) => deleteNote.mutate(id)}
               onToggleStatus={(id) => toggleNoteStatus.mutate(id)}
               isCreating={createNote.isPending}

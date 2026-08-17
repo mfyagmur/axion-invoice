@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
 import { Badge } from '@/components/Badge'
 
@@ -13,14 +13,13 @@ interface Definition {
 }
 
 type FormValues = Record<string, string>
-type Payload = Record<string, unknown>
 
-interface DefinitionListSectionProps<T extends Definition> {
+interface DefinitionListSectionProps<T extends Definition = Definition, P extends Record<string, unknown> = Record<string, unknown>> {
   title: string
   items: T[]
   isLoading: boolean
-  onCreate: (payload: Payload) => void
-  onUpdate: (id: string, payload: Payload) => void
+  onCreate: (payload: P) => void
+  onUpdate: (id: string, payload: P) => void
   onDelete: (id: string) => void
   onToggleStatus: (id: string) => void
   isCreating: boolean
@@ -29,14 +28,15 @@ interface DefinitionListSectionProps<T extends Definition> {
   isToggling: boolean
   fields: string[]
   renderFields: (values: FormValues, setValue: (key: string, value: string) => void) => React.ReactNode
-  buildPayload: (values: FormValues) => Payload
+  buildPayload: (values: FormValues) => P
   getEditValues: (item: T) => FormValues
   formatValue: (item: T) => string
+  initialValues?: FormValues
 }
 
 const EMPTY_FORM: FormValues = {}
 
-export function DefinitionListSection<T extends Definition>({
+export function DefinitionListSection<T extends Definition = Definition, P extends Record<string, unknown> = Record<string, unknown>>({
   title,
   items,
   isLoading,
@@ -53,10 +53,19 @@ export function DefinitionListSection<T extends Definition>({
   buildPayload,
   getEditValues,
   formatValue,
-}: DefinitionListSectionProps<T>) {
+  initialValues,
+}: DefinitionListSectionProps<T, P>) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formValues, setFormValues] = useState<FormValues>(EMPTY_FORM)
+
+  useEffect(() => {
+    if (isFormOpen && !editingId && initialValues) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormValues(initialValues)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFormOpen, editingId])
 
   const setValue = (key: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [key]: value }))

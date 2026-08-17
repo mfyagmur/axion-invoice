@@ -66,18 +66,22 @@ class CategoryResponse(BaseModel):
 
 class BankAccountPayload(BaseModel):
     bank_name: str = Field(min_length=1, max_length=100)
+    branch_name: str = Field(min_length=1, max_length=100)
+    branch_code: str = Field(min_length=1, max_length=20)
+    currency: str = Field(default="TRY", pattern=r"^[A-Z]{3}$")
+    account_number: str = Field(min_length=1, max_length=50)
     iban: str = Field(min_length=15, max_length=34)
-    account_holder: str = Field(min_length=1, max_length=150)
-    branch: str | None = Field(default=None, max_length=100)
     is_active: bool = True
 
 
 class BankAccountResponse(BaseModel):
     id: uuid.UUID
     bank_name: str
+    branch_name: str
+    branch_code: str
+    currency: str
+    account_number: str
     iban: str
-    account_holder: str
-    branch: str | None
     is_active: bool
     created_at: datetime
 

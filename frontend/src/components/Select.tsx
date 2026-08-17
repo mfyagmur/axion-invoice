@@ -30,6 +30,7 @@ export function Select({
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 })
 
   const selectedOption = options.find((opt) => opt.value === value)
   const displayText = selectedOption?.label || placeholder
@@ -44,6 +45,17 @@ export function Select({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      })
+    }
+  }, [isOpen])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === 'Escape') {
@@ -75,7 +87,14 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 z-20 mt-1 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+        <div
+          className="fixed z-50 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+          style={{
+            top: `${dropdownPos.top}px`,
+            left: `${dropdownPos.left}px`,
+            width: `${dropdownPos.width}px`,
+          }}
+        >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-sm text-slate-500">Seçenek yok</div>
           ) : (

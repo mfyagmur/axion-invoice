@@ -53,18 +53,22 @@ export interface CategoryPayload {
 export interface DefinitionBankAccount {
   id: string
   bank_name: string
+  branch_name: string
+  branch_code: string
+  currency: string
+  account_number: string
   iban: string
-  account_holder: string
-  branch: string | null
   is_active: boolean
   created_at: string
 }
 
 export interface BankAccountPayload {
   bank_name: string
+  branch_name: string
+  branch_code: string
+  currency: string
+  account_number: string
   iban: string
-  account_holder: string
-  branch?: string
   is_active?: boolean
 }
 

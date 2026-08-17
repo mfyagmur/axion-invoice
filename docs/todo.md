@@ -36,6 +36,17 @@ faturalarla numara çakışması riskine karşı geri gitmeme + çakışma kontr
 resmi MOD-97 checksum algoritması (TCKN doğrulamasında yapıldığı gibi) eklenmedi.
 **Sıra:** Düşük
 
+### 0.3 Banka Bilgilerinde TR Dışı Banka Desteği
+**Dosya:** `frontend/src/utils/formatIban.ts`, `frontend/src/pages/dashboard/settings/definitions/DefinitionPanel.tsx` (bankAccounts bloğu), backend `BankAccountPayload`/model alanları
+**Durum:** Ertelenmiş (2026-08-17'de Türkiye'ye özgü şekilde uygulandı)
+**Bağlam:** Şu an Banka Bilgileri formu (Şube Adı, Şube Kodu, IBAN maskeleme) yalnızca Türkiye
+banka/IBAN formatına göre tasarlandı: IBAN maskeleme `TR00 0000 0000 0000 0000 0000 00` örneğiyle
+4'lü gruplar halinde, 26 karakter. TR dışı banka/IBAN formatları (farklı uzunluk, farklı gruplama,
+SWIFT/BIC gibi ek alanlar, ülke-özgü validasyon) desteklenmiyor. Kullanıcı yurt dışı banka hesabı
+eklemek isterse, `formatIban` util'i genişletilip model/form'a ülke kodu alanı/dinamik IBAN maskeleme
+eklenmeli.
+**Sıra:** Düşük
+
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
 **Durum:** Ertelenmiş (tüm kurumsal alanlar hâlâ sadece Account sekmesinden giriliyor)  
