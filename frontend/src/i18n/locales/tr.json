@@ -493,6 +493,17 @@
         "country": "Ülke",
         "corporateEmail": "Kurumsal E-posta",
         "companyPhone": "Şirket Telefonu"
+      },
+      "logo": {
+        "title": "Firma Logosu",
+        "subtitle": "Faturalarınızda görüntülenecek logoyu yükleyin.",
+        "dropzoneText": "Logonuzu yüklemek için tıklayın veya sürükleyip bırakın",
+        "formatHint": "PNG, JPG veya SVG · Maks. 2MB",
+        "changeButton": "Değiştir",
+        "removeButton": "Kaldır",
+        "invalidType": "Sadece PNG, JPG veya SVG dosyaları yüklenebilir",
+        "tooLarge": "Logo dosyası 2MB'den büyük olamaz",
+        "previewSectionTitle": "Faturada Nasıl Görünecek"
       }
     },
     "preferences": {

@@ -1,8 +1,11 @@
+import uuid
+from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.security import hash_password, verify_password
@@ -16,6 +19,24 @@ from app.schemas.auth import (
 )
 
 router = APIRouter(prefix="/profile", tags=["profile"])
+
+MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024
+ALLOWED_LOGO_TYPES = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/svg+xml": "svg",
+}
+LOGO_MAGIC_BYTES = {
+    "image/png": b"\x89PNG",
+    "image/jpeg": b"\xff\xd8\xff",
+}
+
+
+def _delete_logo_file(logo_url: str | None) -> None:
+    if not logo_url:
+        return
+    file_path = Path(settings.logo_storage_dir) / Path(logo_url).name
+    file_path.unlink(missing_ok=True)
 
 
 @router.patch("", response_model=UserResponse)
@@ -58,6 +79,59 @@ def update_account(
         current_user.trade_registry_no = payload.trade_registry_no
     if payload.corporate_email is not None:
         current_user.corporate_email = payload.corporate_email
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.post("/account/logo", response_model=UserResponse)
+async def upload_account_logo(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    file: UploadFile = File(...),
+) -> User:
+    content_type = file.content_type
+    if content_type not in ALLOWED_LOGO_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Sadece PNG, JPG veya SVG formatları desteklenir",
+        )
+
+    contents = await file.read()
+    if len(contents) > MAX_LOGO_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Logo dosyası 2MB'den büyük olamaz",
+        )
+
+    magic_bytes = LOGO_MAGIC_BYTES.get(content_type)
+    if magic_bytes is not None and not contents.startswith(magic_bytes):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Dosya içeriği belirtilen formatla eşleşmiyor",
+        )
+
+    storage_dir = Path(settings.logo_storage_dir)
+    storage_dir.mkdir(parents=True, exist_ok=True)
+
+    extension = ALLOWED_LOGO_TYPES[content_type]
+    filename = f"{uuid.uuid4()}.{extension}"
+    (storage_dir / filename).write_bytes(contents)
+
+    _delete_logo_file(current_user.logo_url)
+    current_user.logo_url = f"/static/logos/{filename}"
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.delete("/account/logo", response_model=UserResponse)
+def remove_account_logo(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> User:
+    _delete_logo_file(current_user.logo_url)
+    current_user.logo_url = None
     db.commit()
     db.refresh(current_user)
     return current_user

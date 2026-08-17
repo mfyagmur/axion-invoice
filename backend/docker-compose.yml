@@ -41,6 +41,7 @@ services:
       - ./tests:/app/tests
       - ./pytest.ini:/app/pytest.ini
       - pdf_storage:/app/generated_pdfs
+      - logo_storage:/app/generated_logos
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,6 +60,7 @@ services:
     volumes:
       - ./app:/app/app
       - pdf_storage:/app/generated_pdfs
+      - logo_storage:/app/generated_logos
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,3 +71,4 @@ services:
 volumes:
   postgres_data:
   pdf_storage:
+  logo_storage:

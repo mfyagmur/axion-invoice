@@ -493,6 +493,17 @@
         "country": "Country",
         "corporateEmail": "Corporate Email",
         "companyPhone": "Company Phone"
+      },
+      "logo": {
+        "title": "Company Logo",
+        "subtitle": "Upload the logo that will appear on your invoices.",
+        "dropzoneText": "Click to upload your logo, or drag and drop",
+        "formatHint": "PNG, JPG or SVG · Max 2MB",
+        "changeButton": "Change",
+        "removeButton": "Remove",
+        "invalidType": "Only PNG, JPG or SVG files are allowed",
+        "tooLarge": "The logo file cannot be larger than 2MB",
+        "previewSectionTitle": "How it will look on an invoice"
       }
     },
     "preferences": {

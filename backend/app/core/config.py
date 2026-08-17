@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
 
     pdf_storage_dir: str = "/app/generated_pdfs"
+    logo_storage_dir: str = "/app/generated_logos"
 
     smtp_host: str = ""
     smtp_port: int = 587

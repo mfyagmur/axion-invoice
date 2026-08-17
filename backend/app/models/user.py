@@ -37,6 +37,7 @@ class User(Base):
     trade_registry_no: Mapped[str | None] = mapped_column(String(100), nullable=True)
     corporate_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     profession: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     locale: Mapped[str] = mapped_column(String(5), nullable=False, default="tr")
     notify_invoice_reminders: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     notify_product_updates: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

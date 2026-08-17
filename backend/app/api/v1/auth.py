@@ -2,6 +2,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -115,7 +116,7 @@ def refresh(
         session = db.query(UserSession).filter(UserSession.refresh_token_jti == jti).first()
         if session is None or session.revoked_at is not None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Oturum iptal edildi")
-        session.last_used_at = db.func.now()
+        session.last_used_at = func.now()
         db.commit()
     else:
         token, new_jti = create_refresh_token(str(user.id))
@@ -157,7 +158,7 @@ def logout(
             if jti:
                 session = db.query(UserSession).filter(UserSession.refresh_token_jti == jti).first()
                 if session:
-                    session.revoked_at = db.func.now()
+                    session.revoked_at = func.now()
                     db.commit()
     response.delete_cookie(settings.refresh_cookie_name, path=settings.refresh_cookie_path)
 
@@ -215,25 +216,5 @@ def demo_login(request: Request, response: Response, db: Annotated[Session, Depe
 
 
 @router.get("/me", response_model=UserResponse)
-def me(current_user: Annotated[User, Depends(get_current_user)]) -> UserResponse:
-    return UserResponse(
-        id=current_user.id,
-        email=current_user.email,
-        full_name=current_user.full_name,
-        account_type=current_user.account_type,
-        company_name=current_user.company_name,
-        address=current_user.address,
-        city=current_user.city,
-        postal_code=current_user.postal_code,
-        country=current_user.country,
-        phone=current_user.phone,
-        tax_office=current_user.tax_office,
-        tax_number=current_user.tax_number,
-        locale=current_user.locale,
-        notify_invoice_reminders=current_user.notify_invoice_reminders,
-        notify_product_updates=current_user.notify_product_updates,
-        notify_billing_emails=current_user.notify_billing_emails,
-        is_demo=current_user.is_demo,
-        is_admin=current_user.is_admin,
-        has_password=current_user.password_hash is not None,
-    )
+def me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    return current_user

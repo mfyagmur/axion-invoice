@@ -20,4 +20,18 @@ export const profileApi = {
   changePassword: async (payload: PasswordChangePayload): Promise<void> => {
     await apiClient.post('/profile/password', payload)
   },
+
+  uploadLogo: async (file: File): Promise<User> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const { data } = await apiClient.post('/profile/account/logo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return data
+  },
+
+  removeLogo: async (): Promise<User> => {
+    const { data } = await apiClient.delete('/profile/account/logo')
+    return data
+  },
 }

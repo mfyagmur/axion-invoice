@@ -18,6 +18,7 @@ export interface User {
   trade_registry_no: string | null
   corporate_email: string | null
   profession: string | null
+  logo_url: string | null
   locale: Locale
   notify_invoice_reminders: boolean
   notify_product_updates: boolean

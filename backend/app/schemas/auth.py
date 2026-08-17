@@ -46,6 +46,7 @@ class UserResponse(BaseModel):
     trade_registry_no: str | None = None
     corporate_email: str | None = None
     profession: str | None = None
+    logo_url: str | None = None
     locale: str
     notify_invoice_reminders: bool
     notify_product_updates: bool

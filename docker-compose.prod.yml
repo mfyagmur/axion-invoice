@@ -36,6 +36,7 @@ services:
       - "8000:8000"
     volumes:
       - pdf_storage:/app/generated_pdfs
+      - logo_storage:/app/generated_logos
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,6 +54,7 @@ services:
       REDIS_URL: redis://redis:6379/0
     volumes:
       - pdf_storage:/app/generated_pdfs
+      - logo_storage:/app/generated_logos
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,3 +78,4 @@ services:
 volumes:
   postgres_data:
   pdf_storage:
+  logo_storage:
