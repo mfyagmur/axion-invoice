@@ -21,8 +21,6 @@ export interface User {
   logo_url: string | null
   locale: Locale
   notify_invoice_reminders: boolean
-  notify_product_updates: boolean
-  notify_billing_emails: boolean
   session_timeout_minutes: number
   default_currency: string
   date_format: string
@@ -81,8 +79,6 @@ export interface PreferencesUpdatePayload {
   locale?: Locale
   profession?: string | null
   notify_invoice_reminders?: boolean
-  notify_product_updates?: boolean
-  notify_billing_emails?: boolean
   session_timeout_minutes?: number
 }
 

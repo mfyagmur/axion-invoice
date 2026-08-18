@@ -513,8 +513,6 @@
     "preferences": {
       "notifications": "Bildirim Tercihleri",
       "invoiceReminders": "Fatura hatırlatıcı bildirimleri",
-      "productUpdates": "Ürün güncellemeleri",
-      "billingEmails": "Faturalandırma e-postaları",
       "sessionTimeout": "Oturum Açık Kalma Süresi",
       "sessionTimeoutHint": "Bu süre boyunca işlem yapılmazsa otomatik olarak çıkış yapılır.",
       "sessionTimeoutOption": "{{count}} dakika"

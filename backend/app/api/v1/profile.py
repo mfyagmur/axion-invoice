@@ -150,10 +150,6 @@ def update_preferences(
         current_user.profession = payload.profession
     if payload.notify_invoice_reminders is not None:
         current_user.notify_invoice_reminders = payload.notify_invoice_reminders
-    if payload.notify_product_updates is not None:
-        current_user.notify_product_updates = payload.notify_product_updates
-    if payload.notify_billing_emails is not None:
-        current_user.notify_billing_emails = payload.notify_billing_emails
     if payload.session_timeout_minutes is not None:
         current_user.session_timeout_minutes = payload.session_timeout_minutes
     db.commit()

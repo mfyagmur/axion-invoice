@@ -49,8 +49,6 @@ class UserResponse(BaseModel):
     logo_url: str | None = None
     locale: str
     notify_invoice_reminders: bool
-    notify_product_updates: bool
-    notify_billing_emails: bool
     session_timeout_minutes: int
     default_currency: str
     date_format: str
@@ -88,8 +86,6 @@ class PreferencesUpdatePayload(BaseModel):
     locale: str | None = Field(default=None, pattern=r"^(tr|en)$")
     profession: str | None = Field(default=None, max_length=255)
     notify_invoice_reminders: bool | None = None
-    notify_product_updates: bool | None = None
-    notify_billing_emails: bool | None = None
     session_timeout_minutes: int | None = Field(default=None, ge=5, le=30, multiple_of=5)
 
 

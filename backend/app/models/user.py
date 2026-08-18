@@ -40,8 +40,6 @@ class User(Base):
     logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     locale: Mapped[str] = mapped_column(String(5), nullable=False, default="tr")
     notify_invoice_reminders: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    notify_product_updates: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    notify_billing_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     session_timeout_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     default_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="TRY")
     date_format: Mapped[str] = mapped_column(String(20), nullable=False, default="DD.MM.YYYY")

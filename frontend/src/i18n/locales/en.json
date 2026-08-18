@@ -513,8 +513,6 @@
     "preferences": {
       "notifications": "Notification Preferences",
       "invoiceReminders": "Invoice reminder notifications",
-      "productUpdates": "Product updates",
-      "billingEmails": "Billing emails",
       "sessionTimeout": "Session Timeout",
       "sessionTimeoutHint": "You'll be automatically logged out after this many minutes of inactivity.",
       "sessionTimeoutOption": "{{count}} minutes"
