@@ -407,6 +407,7 @@
       "timelinePaymentReceived": "Payment Received",
       "timelinePaid": "Paid",
       "recipientNameLabel": "Recipient Name",
+      "dueDate": "Due Date",
       "bankAccount": "Bank Account",
       "selectBankAccount": "Select a bank account",
       "noBankAccount": "No bank account selected",

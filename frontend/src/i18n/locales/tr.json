@@ -407,6 +407,7 @@
       "timelinePaymentReceived": "Ödeme Alındı",
       "timelinePaid": "Ödendi",
       "recipientNameLabel": "Alıcı Adı",
+      "dueDate": "Vade Tarihi",
       "bankAccount": "Banka Hesabı",
       "selectBankAccount": "Banka hesabı seçin",
       "noBankAccount": "Banka hesabı seçilmedi",

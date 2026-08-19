@@ -37,7 +37,14 @@ export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser 
             <h1 className="text-xl font-semibold text-slate-900">{invoice.invoice_number}</h1>
             <InvoiceStatusBadge status={invoice.status} />
           </div>
-          <span className="text-sm text-slate-500">{formatDateDisplay(new Date(invoice.created_at))}</span>
+          <div className="flex flex-col gap-1 text-sm text-slate-500">
+            <span>{formatDateDisplay(new Date(invoice.created_at))}</span>
+            {invoice.due_at && (
+              <span className="font-medium text-slate-700">
+                {t('invoices.detail.dueDate')}: {formatDateDisplay(new Date(invoice.due_at))}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
