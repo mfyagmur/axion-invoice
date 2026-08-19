@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
 import { Badge } from '@/components/Badge'
+import { Checkbox } from '@/components/Checkbox'
 
 interface Definition {
   id: string
@@ -9,10 +10,16 @@ interface Definition {
   rate?: number
   days?: number
   is_active: boolean
+  is_default?: boolean
   created_at: string
 }
 
 type FormValues = Record<string, string>
+
+interface DefaultSelectionConfig {
+  onSetDefault: (id: string) => void
+  isSettingDefault: boolean
+}
 
 interface DefinitionListSectionProps<T extends Definition = Definition, P extends Record<string, unknown> = Record<string, unknown>> {
   title: string
@@ -32,6 +39,7 @@ interface DefinitionListSectionProps<T extends Definition = Definition, P extend
   getEditValues: (item: T) => FormValues
   formatValue: (item: T) => string
   initialValues?: FormValues
+  defaultSelection?: DefaultSelectionConfig
 }
 
 const EMPTY_FORM: FormValues = {}
@@ -54,6 +62,7 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
   getEditValues,
   formatValue,
   initialValues,
+  defaultSelection,
 }: DefinitionListSectionProps<T, P>) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -142,7 +151,19 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
                 <span className="text-slate-700">{formatValue(item)}</span>
                 {!item.is_active && <Badge color="slate">Inactive</Badge>}
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 items-center">
+                {defaultSelection && (
+                  <Checkbox
+                    checked={item.is_default ?? false}
+                    onChange={() => {
+                      if (!(item.is_default ?? false)) {
+                        defaultSelection.onSetDefault(item.id)
+                      }
+                    }}
+                    disabled={defaultSelection.isSettingDefault || !item.is_active}
+                    ariaLabel="Set as default"
+                  />
+                )}
                 <Button
                   variant="secondary"
                   onClick={() => onToggleStatus(item.id)}

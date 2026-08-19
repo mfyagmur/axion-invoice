@@ -74,3 +74,19 @@ export const useToggleNoteStatus = () => {
     },
   })
 }
+
+export const useSetDefaultNote = () => {
+  const queryClient = useQueryClient()
+  const pushToast = useToastStore((state) => state.push)
+
+  return useMutation({
+    mutationFn: (id: string) => definitionsApi.notes.setDefault(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['definitions', 'notes'] })
+      pushToast('Varsayılan sabit açıklama ayarlandı', 'success')
+    },
+    onError: () => {
+      pushToast('Varsayılan sabit açıklama ayarlanırken hata oluştu')
+    },
+  })
+}

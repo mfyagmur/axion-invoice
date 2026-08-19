@@ -74,3 +74,19 @@ export const useToggleUnitStatus = () => {
     },
   })
 }
+
+export const useSetDefaultUnit = () => {
+  const queryClient = useQueryClient()
+  const pushToast = useToastStore((state) => state.push)
+
+  return useMutation({
+    mutationFn: (id: string) => definitionsApi.units.setDefault(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['definitions', 'units'] })
+      pushToast('Varsayılan birim ayarlandı', 'success')
+    },
+    onError: () => {
+      pushToast('Varsayılan birim ayarlanırken hata oluştu')
+    },
+  })
+}

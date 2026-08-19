@@ -139,6 +139,23 @@ def toggle_unit_status(
     return unit
 
 
+@router.patch("/units/{unit_id}/default")
+def set_unit_default(
+    unit_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> UnitResponse:
+    unit = _get_own_unit(db, current_user.id, unit_id)
+    db.query(DefinitionUnit).filter(DefinitionUnit.user_id == current_user.id, DefinitionUnit.id != unit_id).update(
+        {"is_default": False}
+    )
+    unit.is_default = True
+    db.commit()
+    db.refresh(unit)
+    return unit
+
+
 @router.get("/tax-rates", response_model=list[TaxRateResponse])
 def list_tax_rates(
     current_user: Annotated[User, Depends(get_current_user)],
@@ -199,6 +216,23 @@ def toggle_tax_rate_status(
 ) -> TaxRateResponse:
     tax_rate = _get_own_tax_rate(db, current_user.id, tax_rate_id)
     tax_rate.is_active = not tax_rate.is_active
+    db.commit()
+    db.refresh(tax_rate)
+    return tax_rate
+
+
+@router.patch("/tax-rates/{tax_rate_id}/default")
+def set_tax_rate_default(
+    tax_rate_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> TaxRateResponse:
+    tax_rate = _get_own_tax_rate(db, current_user.id, tax_rate_id)
+    db.query(DefinitionTaxRate).filter(DefinitionTaxRate.user_id == current_user.id, DefinitionTaxRate.id != tax_rate_id).update(
+        {"is_default": False}
+    )
+    tax_rate.is_default = True
     db.commit()
     db.refresh(tax_rate)
     return tax_rate
@@ -478,6 +512,23 @@ def toggle_note_status(
 ) -> NoteResponse:
     note = _get_own_note(db, current_user.id, note_id)
     note.is_active = not note.is_active
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@router.patch("/notes/{note_id}/default")
+def set_note_default(
+    note_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(require_not_demo)],
+    db: Annotated[Session, Depends(get_db)],
+) -> NoteResponse:
+    note = _get_own_note(db, current_user.id, note_id)
+    db.query(DefinitionNote).filter(DefinitionNote.user_id == current_user.id, DefinitionNote.id != note_id).update(
+        {"is_default": False}
+    )
+    note.is_default = True
     db.commit()
     db.refresh(note)
     return note

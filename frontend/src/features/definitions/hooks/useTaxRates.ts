@@ -74,3 +74,19 @@ export const useToggleTaxRateStatus = () => {
     },
   })
 }
+
+export const useSetDefaultTaxRate = () => {
+  const queryClient = useQueryClient()
+  const pushToast = useToastStore((state) => state.push)
+
+  return useMutation({
+    mutationFn: (id: string) => definitionsApi.taxRates.setDefault(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['definitions', 'taxRates'] })
+      pushToast('Varsayılan KDV oranı ayarlandı', 'success')
+    },
+    onError: () => {
+      pushToast('Varsayılan KDV oranı ayarlanırken hata oluştu')
+    },
+  })
+}

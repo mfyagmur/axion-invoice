@@ -2,6 +2,7 @@ export interface DefinitionUnit {
   id: string
   name: string
   is_active: boolean
+  is_default: boolean
   created_at: string
 }
 
@@ -15,6 +16,7 @@ export interface DefinitionTaxRate {
   label: string
   rate: number
   is_active: boolean
+  is_default: boolean
   created_at: string
 }
 
@@ -77,6 +79,7 @@ export interface DefinitionNote {
   label: string
   content: string
   is_active: boolean
+  is_default: boolean
   created_at: string
 }
 

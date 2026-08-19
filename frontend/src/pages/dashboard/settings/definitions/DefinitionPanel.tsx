@@ -43,7 +43,10 @@ import {
   useUpdateNote,
   useDeleteNote,
   useToggleNoteStatus,
+  useSetDefaultNote,
 } from '@/features/definitions/hooks/useNotes'
+import { useSetDefaultUnit } from '@/features/definitions/hooks/useUnits'
+import { useSetDefaultTaxRate } from '@/features/definitions/hooks/useTaxRates'
 import { DefinitionListSection } from '../DefinitionListSection'
 import { CompanyScalarSettingForm, type ScalarSettingKey } from './CompanyScalarSettingForm'
 import { formatIban, sanitizeIban } from '@/utils/formatIban'
@@ -63,12 +66,14 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
   const updateUnit = useUpdateUnit()
   const deleteUnit = useDeleteUnit()
   const toggleUnitStatus = useToggleUnitStatus()
+  const setDefaultUnit = useSetDefaultUnit()
 
   const { data: taxRates, isLoading: taxRatesLoading } = useTaxRates()
   const createTaxRate = useCreateTaxRate()
   const updateTaxRate = useUpdateTaxRate()
   const deleteTaxRate = useDeleteTaxRate()
   const toggleTaxRateStatus = useToggleTaxRateStatus()
+  const setDefaultTaxRate = useSetDefaultTaxRate()
 
   const { data: paymentTerms, isLoading: paymentTermsLoading } = usePaymentTerms()
   const createPaymentTerm = useCreatePaymentTerm()
@@ -93,6 +98,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
   const updateNote = useUpdateNote()
   const deleteNote = useDeleteNote()
   const toggleNoteStatus = useToggleNoteStatus()
+  const setDefaultNote = useSetDefaultNote()
 
   const isOpen = activeKey !== null
 
@@ -133,6 +139,10 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               buildPayload={(values) => ({ name: values.name })}
               getEditValues={(item) => ({ name: item.name ?? '' })}
               formatValue={(item) => item.name || ''}
+              defaultSelection={{
+                onSetDefault: (id) => setDefaultUnit.mutate(id),
+                isSettingDefault: setDefaultUnit.isPending,
+              }}
             />
           )}
 
@@ -173,6 +183,10 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               buildPayload={(values) => ({ label: values.label, rate: parseFloat(values.rate) })}
               getEditValues={(item) => ({ label: item.label ?? '', rate: String(item.rate ?? '') })}
               formatValue={(item) => `${item.label} — ${item.rate}%`}
+              defaultSelection={{
+                onSetDefault: (id) => setDefaultTaxRate.mutate(id),
+                isSettingDefault: setDefaultTaxRate.isPending,
+              }}
             />
           )}
 
@@ -356,6 +370,10 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
               buildPayload={(values) => ({ label: values.label, content: values.content })}
               getEditValues={(item) => ({ label: item.label ?? '', content: item.content ?? '' })}
               formatValue={(item) => item.label || ''}
+              defaultSelection={{
+                onSetDefault: (id) => setDefaultNote.mutate(id),
+                isSettingDefault: setDefaultNote.isPending,
+              }}
             />
           )}
         </div>

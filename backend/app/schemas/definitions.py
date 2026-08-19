@@ -13,6 +13,7 @@ class UnitResponse(BaseModel):
     id: uuid.UUID
     name: str
     is_active: bool
+    is_default: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -29,6 +30,7 @@ class TaxRateResponse(BaseModel):
     label: str
     rate: float
     is_active: bool
+    is_default: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -99,6 +101,7 @@ class NoteResponse(BaseModel):
     label: str
     content: str
     is_active: bool
+    is_default: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}

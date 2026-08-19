@@ -22,6 +22,10 @@ export const definitionsApi = {
       const { data } = await apiClient.patch(`/definitions/units/${id}/status`)
       return data
     },
+    setDefault: async (id: string): Promise<DefinitionUnit> => {
+      const { data } = await apiClient.patch(`/definitions/units/${id}/default`)
+      return data
+    },
   },
 
   taxRates: {
@@ -42,6 +46,10 @@ export const definitionsApi = {
     },
     toggleStatus: async (id: string): Promise<DefinitionTaxRate> => {
       const { data } = await apiClient.patch(`/definitions/tax-rates/${id}/status`)
+      return data
+    },
+    setDefault: async (id: string): Promise<DefinitionTaxRate> => {
+      const { data } = await apiClient.patch(`/definitions/tax-rates/${id}/default`)
       return data
     },
   },
@@ -130,6 +138,10 @@ export const definitionsApi = {
     },
     toggleStatus: async (id: string): Promise<DefinitionNote> => {
       const { data } = await apiClient.patch(`/definitions/notes/${id}/status`)
+      return data
+    },
+    setDefault: async (id: string): Promise<DefinitionNote> => {
+      const { data } = await apiClient.patch(`/definitions/notes/${id}/default`)
       return data
     },
   },
