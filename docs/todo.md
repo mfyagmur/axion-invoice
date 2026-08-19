@@ -7,6 +7,12 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
+### 0. Fatura Detayında Vade Tarihi Gösterimi
+**Dosya:** `frontend/src/features/invoices/components/InvoiceActionHeader.tsx`
+**Durum:** ✅ Tamamlandı (2026-08-19)
+**Bağlam:** Fatura detay sayfasındaki başlık satırında oluşturma tarihinin yanında vade tarihi gösteriliyordu. "Vade Tarihi: 26.08.2026" formatında oluşturma tarihinin altında gösterilir.
+**Sıra:** Tamamlandı
+
 ### 0. Sabit Tanımlamalar Yeniden Tasarımının Tarayıcıda Görsel Teyidi
 **Dosya:** `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` ve `definitions/` altındaki yeni bileşenler
 **Durum:** Ertelenmiş (tarayıcı otomasyon aracı yoktu)
