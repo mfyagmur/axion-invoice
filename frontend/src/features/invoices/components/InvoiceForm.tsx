@@ -16,6 +16,8 @@ import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
 import { useExchangeRate } from '@/features/invoices/hooks/useExchangeRate'
 import { LineItemCard } from '@/features/invoices/components/LineItemCard'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
+import { usePaymentTerms } from '@/features/definitions/hooks/usePaymentTerms'
+import { useAuthStore } from '@/store/authStore'
 
 export interface InvoiceFormValues {
   template_id: string
@@ -66,15 +68,17 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { t, i18n } = useTranslation()
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
+  const user = useAuthStore((state) => state.user)
   const createInvoice = useCreateInvoice()
   const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
   const [isFixedRate, setIsFixedRate] = useState(false)
+  const [selectedPaymentTermId, setSelectedPaymentTermId] = useState('')
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<InvoiceFormValues>({
     defaultValues: initialValues ?? {
       template_id: '',
       customer_id: '',
-      currency: 'TRY',
+      currency: user?.default_currency ?? 'TRY',
       payment_currency: 'TRY',
       exchange_rate: '',
       invoice_type: 'sale' as const,
@@ -96,10 +100,24 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const lineItems = useWatch({ control, name: 'line_items' })
   const currency = watch('currency')
   const paymentCurrency = watch('payment_currency')
+  const dueAtValue = watch('due_at')
 
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
+  const { data: paymentTerms } = usePaymentTerms()
 
   const exchangeRateQuery = useExchangeRate(paymentCurrency, currency, !isFixedRate)
+
+  useEffect(() => {
+    if (selectedPaymentTermId && paymentTerms) {
+      const selectedTerm = paymentTerms.find((pt) => pt.id === selectedPaymentTermId)
+      if (selectedTerm && selectedTerm.is_active) {
+        const baseDate = new Date()
+        baseDate.setDate(baseDate.getDate() + selectedTerm.days)
+        const formattedDate = baseDate.toISOString().split('T')[0]
+        setValue('due_at', formattedDate)
+      }
+    }
+  }, [selectedPaymentTermId, paymentTerms, setValue])
 
   useEffect(() => {
     if (!isFixedRate && exchangeRateQuery.data) {
@@ -403,7 +421,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-3">
               <Controller
                 name="invoice_type"
                 control={control}
@@ -431,6 +449,25 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                   />
                 )}
               />
+              <div className="flex flex-col gap-1">
+                <Select
+                  label={t('invoices.form.dueTerm')}
+                  value={selectedPaymentTermId}
+                  onChange={(value) => setSelectedPaymentTermId(value)}
+                  options={paymentTerms?.filter((pt) => pt.is_active).map((pt) => ({
+                    value: pt.id,
+                    label: i18n.language === 'tr' ? `${pt.label} (${pt.days} gün)` : `${pt.label} (${pt.days} days)`,
+                  })) || []}
+                  placeholder={t('invoices.form.selectDueTerm')}
+                />
+                {selectedPaymentTermId && dueAtValue && (
+                  <span className="text-xs text-slate-500">
+                    {i18n.language === 'tr'
+                      ? `Vade Tarihi: ${new Date(dueAtValue).toLocaleDateString('tr-TR', { year: 'numeric', month: '2-digit', day: '2-digit' })}`
+                      : `Due Date: ${new Date(dueAtValue).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}`}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </Card>

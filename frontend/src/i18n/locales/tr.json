@@ -344,6 +344,8 @@
       "invoiceTypePurchase": "ALIŞ",
       "scenario": "Senaryo",
       "scenarioCommercial": "Ticari Fatura",
+      "dueTerm": "Vade",
+      "selectDueTerm": "Vade seçin",
       "lineItems": "Fatura Detayları",
       "addLineItem": "Kalem Ekle",
       "removeLineItem": "Sil",

@@ -62,6 +62,50 @@ Sabit Tanımlar sekmesinde (dashboard/settings?tab=definitions) KDV Oranları, B
 
 ---
 
+## 2026-08-19 — Fatura Oluşturma: Ödeme Detayları'na Vade Alanı + Fatura Para Birimi Varsayılanı
+
+**Dosya:**
+- Frontend: `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/i18n/locales/tr.json`, `frontend/src/i18n/locales/en.json`
+- Backend: Değişiklik yok (mevcut `due_at` alanı zaten var ve kullanılmıyor)
+
+**İşlem Türü:** Ekleme
+
+**Özet:**
+
+`dashboard/invoices/new` sayfasındaki Ödeme Detayları kartında (Payment Details Card) iki eksiklik giderildi:
+
+1. **Vade Alanı Eklendi:** "Fatura Tipi" ve "Senaryo" alanlarının bulunduğu satıra 3. kolon olarak "Vade" (Due Term) seçimi eklendi. Dropdown'da `dashboard/settings?tab=definitions` → Ödeme Vadeleri tanımlarından gelen aktif tanımlar listelenir. Kullanıcı bir vade seçtiğinde, tanımın gün sayısı bugüne eklenerek otomatik olarak `due_at` form alanına hesaplanmış vade tarihi yazılır. Seçim altında hesaplanan vade tarihini gösteren küçük bilgi metni ("Vade Tarihi: 18.09.2026") gösterilir.
+
+2. **Fatura Para Birimi Varsayılanı:** "Fatura para birimi" (`currency`) alanı artık `dashboard/settings?tab=definitions` → Döviz Tipi'nde seçili olan para birimiyle önceden dolu gelir (`user.default_currency`). Kullanıcı isterse yine dropdown'dan başka bir para birimine değiştirebilir (kilitlenmez). Mevcut kur hesaplama mantığı (`useExchangeRate`, "Güncel Döviz Kuru" gösterimi) hiç değişmedi ve aynen çalışmaya devam eder.
+
+### Detaylar:
+
+**Frontend Değişiklikleri (`InvoiceForm.tsx`):**
+1. Import'lar: `usePaymentTerms` hook'u ve `useAuthStore` eklendi.
+2. `useAuthStore`'dan `user` state'i okundu; `defaultValues.currency` artık hardcoded `'TRY'` yerine `user?.default_currency ?? 'TRY'` kullanılıyor.
+3. Yeni local state: `selectedPaymentTermId` — vade seçimi tutmak için.
+4. `usePaymentTerms()` hook'u çağrılıp ödeme vadeleri listesi alınır (sadece `is_active` olanlar dropdown'da gösterilir).
+5. `useEffect`: `selectedPaymentTermId` değiştiğinde, ilgili `DefinitionPaymentTerm.days` bulunup (`baseDate + days` gün olarak hesaplanan vade tarihi, ISO `YYYY-MM-DD` formatında `setValue('due_at', ...)` ile forma yazılır. Bugün referans alınır, `issued_at` formu önceden dolu değil (dead field).
+6. JSX — Ödeme Detayları kartında "Fatura Tipi"/"Senaryo" satırı: grid `sm:grid-cols-2` → `sm:grid-cols-3` yapıldı. "Senaryo" Controller'ından sonra yeni bir `Select` eklendi:
+   - Label: `t('invoices.form.dueTerm')` (yeni i18n key)
+   - Options: `paymentTerms.filter(is_active).map(pt => ({ value: pt.id, label: "${pt.label} (${pt.days} gün)" }))`
+   - Value: `selectedPaymentTermId`
+   - Altında: seçiliyse hesaplanan vade tarihini gösteren `<span>` ("Vade Tarihi: 18.09.2026")
+
+**i18n Değişiklikleri:**
+- `frontend/src/i18n/locales/tr.json`: `invoices.form.dueTerm` ("Vade") ve `selectDueTerm` ("Vade seçin") eklendi.
+- `frontend/src/i18n/locales/en.json`: `invoices.form.dueTerm` ("Due Term") ve `selectDueTerm` ("Select a due term") eklendi.
+
+**Kapsam Dışında Bırakılan:**
+- `issued_at` (Fatura Düzenleme Tarihi) için ayrı UI alanı eklenmedi — vade hesaplamasında "boşsa bugün" fallback'i olarak kalır.
+- `payment_currency` (Ödeme para birimi) alanına varsayılan bağlanmadı.
+- Backend'de değişiklik yok — `due_at`/`currency` zaten mevcut, pass-through alanlar.
+
+**Tasarım Kararı:**
+- Vade hesaplama, Bulgudan gelen tahrif tarih değeri yerine, şu an bugünü baz alır. `issued_at` hiç UI'ye bağlı olmadığı için "düzenleme tarihi" kavramı zaten canlı değil; gelecekte `issued_at` UI alanı eklenirse vade hesaplama buna bağlanabilir.
+
+---
+
 **Referanslar:**
 - Plan: C:\Users\Mehmet Fazıl YAĞMUR\.claude\plans\rol-n-k-demli-fullstack-radiant-lampson.md
-- Todo (Görev 4): `docs/todo.md` — "Sabit Tanımlamaların Fatura Ekranında Kullanılması"
+- Todo (Görev 0.4): `docs/todo.md` — "Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu" (kısmen tamamlandı)

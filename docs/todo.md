@@ -49,15 +49,23 @@ eklenmeli.
 
 ### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu
 **Dosya:** `frontend/src/pages/dashboard/invoices/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
-**Durum:** Ertelenmiş (2026-08-17'de Sabit Tanımlar paneli tamamlandı, 2026-08-19'de varsayılan seçim checkbox'ları eklendi, form entegrasyonu henüz yapılmadı)
+**Durum:** Kısmen tamamlandı (2026-08-19'de Vade alanı + Fatura para birimi varsayılanı eklendi; geri kalan kısımlar henüz yapılmadı)
 **Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
-Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel ve KDV/Birimler/Sabit Açıklama için varsayılan seçim checkbox'ları var. 
-Bunların fatura/müşteri/şablon formlarda kullanılması gerekiyor: `InvoiceForm`'da kalem birimlerini, KDV oranlarını, ödeme vadelerini 
-definitions'tan çekmek (varsayılan seçili olanlar önceden dolmuş şekilde); `CustomerForm`'da kategorileri seçmek; 
-`InvoiceDetailPage`'de banka hesapları seçeneğini göstermek; `InvoiceDetailPage`'de varsayılan banka seçeneğini göstermek. 
-Şu an birçok alan hardcoded veya dropdown olmadan geçilip atlıyor.
+Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel ve KDV/Birimler/Sabit Açıklama için varsayılan seçim checkbox'ları var.
+
+**Tamamlanan (2026-08-19):**
+- `InvoiceForm.tsx`: Ödeme Detayları kartına "Vade" alanı eklendi (Ödeme Vadeleri dropdown'u, vade tarihi otomatik hesaplama)
+- `InvoiceForm.tsx`: "Fatura para birimi" (`currency`) alanı artık Ayarlar'daki Döviz Tipi'nde seçili para birimiyle önceden dolu geliyor (kilitli değil, değiştirilebilir)
+
+**Kalan görevler:**
+- Kalem birimlerini (line_items unit) KDV/Birimler definitions'tan seçebilir dropdown yapma
+- InvoiceForm'da KDV oranı alanını KDV definitions'tan seçebilir hale getirme
+- CustomerForm'da kategori seçimi definitions'tan yapma
+- InvoiceDetailPage'de banka hesabı seçimi yapma
+- Varsayılan seçimlerin (checkbox ile işaretlenmiş) forms'da ön dolmasını sağlama
+
 **Sıra:** Normal
-**Tahmini:** ~10-12 saat (forms'ı hook'larla veri bağlamak, dropdown'lar ekleme, validation, varsayılan değerler ile ön dolma)
+**Tahmini:** Vade + Fatura para birimi ~1 saat tamamlandı; kalan ~8-10 saat
 
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  

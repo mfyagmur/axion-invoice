@@ -344,6 +344,8 @@
       "invoiceTypePurchase": "PURCHASE",
       "scenario": "Scenario",
       "scenarioCommercial": "Commercial Invoice",
+      "dueTerm": "Due Term",
+      "selectDueTerm": "Select a due term",
       "lineItems": "Line Items",
       "addLineItem": "Add Line Item",
       "removeLineItem": "Remove",
