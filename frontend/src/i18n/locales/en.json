@@ -199,6 +199,8 @@
       "taxNumber": "Tax Number",
       "fax": "Fax",
       "mersisNo": "MERSIS No",
+      "category": "Category",
+      "categoryPlaceholder": "Select category (optional)",
       "nationalId": "National ID No",
       "submit": "Add",
       "update": "Update",

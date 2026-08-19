@@ -61,6 +61,9 @@ class InvoiceCustomer(Base):
     tax_office: Mapped[str | None] = mapped_column(String(255), nullable=True)
     tax_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     mersis_no: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("definition_categories.id", ondelete="SET NULL"), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     contacts: Mapped[list["CustomerContact"]] = relationship(
         back_populates="customer", cascade="all, delete-orphan"
@@ -116,6 +119,9 @@ class Invoice(Base):
     customer_snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     issued_at: Mapped[date | None] = mapped_column(nullable=True)
     due_at: Mapped[date | None] = mapped_column(nullable=True)
+    bank_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("definition_bank_accounts.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

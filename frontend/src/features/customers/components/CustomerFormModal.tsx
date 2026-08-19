@@ -8,7 +8,9 @@ import { Input } from '@/components/Input'
 import { Modal } from '@/components/Modal'
 import { useCreateCustomer } from '@/features/customers/hooks/useCreateCustomer'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
+import { useCategories } from '@/features/definitions/hooks/useCategories'
 import { customerSchema, type CustomerFormValues } from '@/features/customers/schemas/customerSchema'
+import { Select } from '@/components/Select'
 import type { Customer } from '@/types/customer'
 
 const EMPTY_VALUES: CustomerFormValues = {
@@ -27,6 +29,7 @@ const EMPTY_VALUES: CustomerFormValues = {
   tax_number: '',
   fax: '',
   mersis_no: '',
+  category_id: null,
 }
 
 interface CustomerFormModalProps {
@@ -40,6 +43,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
   const { t } = useTranslation()
   const createCustomer = useCreateCustomer()
   const updateCustomer = useUpdateCustomer()
+  const { data: categories } = useCategories()
 
   const {
     register,
@@ -54,6 +58,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
   })
 
   const customerType = watch('customer_type')
+  const categoryId = watch('category_id')
 
   useEffect(() => {
     if (isOpen) {
@@ -74,6 +79,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
           tax_number: customer.tax_number ?? '',
           fax: customer.fax ?? '',
           mersis_no: customer.mersis_no ?? '',
+          category_id: customer.category_id ?? null,
         })
       } else {
         reset(EMPTY_VALUES)
@@ -251,6 +257,21 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
           <Input label={t('customers.form.fax')} {...register('fax')} />
           <Input label={t('customers.form.mersisNo')} {...register('mersis_no')} />
         </div>
+
+        {/* Kategori */}
+        <Controller
+          control={control}
+          name="category_id"
+          render={({ field }) => (
+            <Select
+              label={t('customers.form.category')}
+              value={field.value ?? ''}
+              onChange={field.onChange}
+              options={categories?.filter(c => c.is_active).map(c => ({ value: c.id, label: c.name })) || []}
+              placeholder={t('customers.form.categoryPlaceholder')}
+            />
+          )}
+        />
 
         {/* Butonlar */}
         <div className="flex gap-2 pt-4">

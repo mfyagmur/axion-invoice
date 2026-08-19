@@ -24,6 +24,7 @@ export interface Customer {
   tax_number: string | null
   fax: string | null
   mersis_no: string | null
+  category_id: string | null
   is_active: boolean
   contacts?: CustomerContact[]
 }
@@ -44,6 +45,7 @@ export interface CustomerCreatePayload {
   tax_number: string
   fax?: string
   mersis_no?: string
+  category_id?: string | null
 }
 
 export type CustomerUpdatePayload = CustomerCreatePayload

@@ -30,6 +30,7 @@ export const customerSchema = z
     tax_number: z.string().min(1, 'customers.form.errors.taxNumberRequired'),
     fax: z.string().optional(),
     mersis_no: z.string().optional(),
+    category_id: z.string().nullable().optional(),
   })
   .refine((data) => data.customer_type !== 'kurumsal' || !!data.company_name?.trim(), {
     message: 'customers.form.errors.companyNameRequired',

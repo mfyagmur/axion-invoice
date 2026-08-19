@@ -35,6 +35,7 @@ class InvoiceUpdatePayload(BaseModel):
     customer_snapshot: CustomerSnapshotPayload | None = None
     notes: str | None = Field(default=None, max_length=2000)
     line_items: list[LineItemPayload] | None = Field(default=None, min_length=1)
+    bank_account_id: uuid.UUID | None = None
 
 
 class InvoiceCreatePayload(BaseModel):

@@ -199,6 +199,8 @@
       "taxNumber": "Vergi Numarası",
       "fax": "Faks",
       "mersisNo": "MERSİS No",
+      "category": "Kategori",
+      "categoryPlaceholder": "Kategori seçin (opsiyonel)",
       "nationalId": "T.C. Kimlik No",
       "submit": "Ekle",
       "update": "Güncelle",

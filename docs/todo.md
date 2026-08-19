@@ -49,23 +49,28 @@ eklenmeli.
 
 ### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu
 **Dosya:** `frontend/src/pages/dashboard/invoices/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
-**Durum:** Kısmen tamamlandı (2026-08-19'de Vade alanı + Fatura para birimi varsayılanı eklendi; geri kalan kısımlar henüz yapılmadı)
+**Durum:** ~60% tamamlandı (2026-08-19'de Vade, Fatura Para Birimi, Kalem Birimi/KDV dropdown'ları, Müşteri Kategorisi eklendi; Fatura Banka Hesabı seçimi yarım kaldı)
 **Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
-Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel ve KDV/Birimler/Sabit Açıklama için varsayılan seçim checkbox'ları var.
+Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel.
 
 **Tamamlanan (2026-08-19):**
-- `InvoiceForm.tsx`: Ödeme Detayları kartına "Vade" alanı eklendi (Ödeme Vadeleri dropdown'u, vade tarihi otomatik hesaplama)
-- `InvoiceForm.tsx`: "Fatura para birimi" (`currency`) alanı artık Ayarlar'daki Döviz Tipi'nde seçili para birimiyle önceden dolu geliyor (kilitli değil, değiştirilebilir)
+- Kalem birimi dropdown'u: `LineItemCard.tsx` → Birimler tanımlarından dinamik `<select>`, varsayılan birimi otomatik seç
+- Kalem KDV oranı dropdown'u: `LineItemCard.tsx` → KDV tanımlarından dinamik `<select>`, varsayılan KDV'yi otomatik seç
+- Müşteri kategorisi: tam-stack (migration + backend model/schema + frontend type/form), `CustomerFormModal.tsx`'te opsiyonel kategori dropdown
+- Fatura para birimi varsayılanı: Ayarlar'daki Döviz Tipi kullanılıyor (önceki görevde tamamlandı)
+- Vade seçimi: Ödeme Vadeleri tanımlarından, tarih otomatik hesaplama (önceki görevde tamamlandı)
 
 **Kalan görevler:**
-- Kalem birimlerini (line_items unit) KDV/Birimler definitions'tan seçebilir dropdown yapma
-- InvoiceForm'da KDV oranı alanını KDV definitions'tan seçebilir hale getirme
-- CustomerForm'da kategori seçimi definitions'tan yapma
-- InvoiceDetailPage'de banka hesabı seçimi yapma
-- Varsayılan seçimlerin (checkbox ile işaretlenmiş) forms'da ön dolmasını sağlama
+- InvoiceDetailPage'de banka hesabı seçimi (yarım: migration + backend model/schema eklendi, frontend components/integration yapılmadı)
+  - `BankAccountSection.tsx` oluşturma (AdditionalDetailsGrid.tsx patternini takip et)
+  - `InvoiceDetailPage.tsx`'te sidebar'da banka hesabı bölümü entegrasyonu
+  - PDF template'inde banka bilgilerini gösterme
+  - Frontend types (`InvoiceDetail`, `InvoiceUpdatePayload`) güncellenmesi
+  - `useUpdateInvoice` API call'ı (zaten var, otomatik çalışacak)
+- Test etme (migrations, formlar, PDF)
 
 **Sıra:** Normal
-**Tahmini:** Vade + Fatura para birimi ~1 saat tamamlandı; kalan ~8-10 saat
+**Tahmini:** Vade + Fatura Birimi + KDV Birimi + Müşteri Kategorisi (~3 saat tamamlandı); Banka Hesabı seçimi yarım (~2 saat geri kaldı)
 
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  

@@ -32,6 +32,7 @@ class CustomerCreatePayload(BaseModel):
     tax_number: str = Field(min_length=1, max_length=50)
     fax: str | None = Field(default=None, max_length=50)
     mersis_no: str | None = Field(default=None, max_length=50)
+    category_id: uuid.UUID | None = None
 
     @model_validator(mode="after")
     def validate_customer_type_fields(self):
@@ -76,6 +77,7 @@ class CustomerResponse(BaseModel):
     tax_number: str | None
     fax: str | None
     mersis_no: str | None
+    category_id: uuid.UUID | None
     is_active: bool
     contacts: list[CustomerContactResponse] = []
 

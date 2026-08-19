@@ -17,6 +17,8 @@ import { useExchangeRate } from '@/features/invoices/hooks/useExchangeRate'
 import { LineItemCard } from '@/features/invoices/components/LineItemCard'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
 import { usePaymentTerms } from '@/features/definitions/hooks/usePaymentTerms'
+import { useUnits } from '@/features/definitions/hooks/useUnits'
+import { useTaxRates } from '@/features/definitions/hooks/useTaxRates'
 import { useAuthStore } from '@/store/authStore'
 
 export interface InvoiceFormValues {
@@ -104,8 +106,28 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
   const { data: paymentTerms } = usePaymentTerms()
+  const { data: units } = useUnits()
+  const { data: taxRates } = useTaxRates()
 
   const exchangeRateQuery = useExchangeRate(paymentCurrency, currency, !isFixedRate)
+
+  useEffect(() => {
+    if (units && units.length > 0) {
+      const defaultUnit = units.find(u => u.is_default && u.is_active)
+      if (defaultUnit && !watch('line_items.0.unit')) {
+        setValue('line_items.0.unit', defaultUnit.name)
+      }
+    }
+  }, [units, setValue, watch])
+
+  useEffect(() => {
+    if (taxRates && taxRates.length > 0) {
+      const defaultTaxRate = taxRates.find(t => t.is_default && t.is_active)
+      if (defaultTaxRate && !watch('line_items.0.tax_rate')) {
+        setValue('line_items.0.tax_rate', defaultTaxRate.rate.toString())
+      }
+    }
+  }, [taxRates, setValue, watch])
 
   useEffect(() => {
     if (selectedPaymentTermId && paymentTerms) {
@@ -491,6 +513,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                 onRemove={() => remove(index)}
                 removeDisabled={lineItemFields.length === 1}
                 fieldErrors={errors.line_items?.[index]}
+                units={units}
+                taxRates={taxRates}
               />
             ))}
 
