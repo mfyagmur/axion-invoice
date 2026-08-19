@@ -49,14 +49,15 @@ eklenmeli.
 
 ### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu
 **Dosya:** `frontend/src/pages/dashboard/invoices/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
-**Durum:** Ertelenmiş (2026-08-17'de Sabit Tanımlar paneli tamamlandı, form entegrasyonu henüz yapılmadı)
+**Durum:** Ertelenmiş (2026-08-17'de Sabit Tanımlar paneli tamamlandı, 2026-08-19'de varsayılan seçim checkbox'ları eklendi, form entegrasyonu henüz yapılmadı)
 **Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
-Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel. Bunların fatura/müşteri/şablon formlarda 
-kullanılması gerekiyor: `InvoiceForm`'da kalem birimlerini, KDV oranlarını, ödeme vadelerini definitions'tan 
-çekmek; `CustomerForm`'da kategorileri seçmek; `InvoiceDetailPage`'de banka hesapları seçeneğini göstermek. 
+Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel ve KDV/Birimler/Sabit Açıklama için varsayılan seçim checkbox'ları var. 
+Bunların fatura/müşteri/şablon formlarda kullanılması gerekiyor: `InvoiceForm`'da kalem birimlerini, KDV oranlarını, ödeme vadelerini 
+definitions'tan çekmek (varsayılan seçili olanlar önceden dolmuş şekilde); `CustomerForm`'da kategorileri seçmek; 
+`InvoiceDetailPage`'de banka hesapları seçeneğini göstermek; `InvoiceDetailPage`'de varsayılan banka seçeneğini göstermek. 
 Şu an birçok alan hardcoded veya dropdown olmadan geçilip atlıyor.
 **Sıra:** Normal
-**Tahmini:** ~8-10 saat (forms'ı hook'larla veri bağlamak, dropdown'lar ekleme, validation)
+**Tahmini:** ~10-12 saat (forms'ı hook'larla veri bağlamak, dropdown'lar ekleme, validation, varsayılan değerler ile ön dolma)
 
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
