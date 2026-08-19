@@ -97,6 +97,15 @@
       </div>
     </div>
 
+    {% if bank_account %}
+    <div style="position: absolute; left: 15mm; bottom: 30mm; width: 180mm; font-size: 8pt; color: #333; border-top: 1px solid #ddd; padding-top: 2mm;">
+      <div style="font-weight: bold; margin-bottom: 1mm;">Ödeme Bilgileri:</div>
+      <div>{{ bank_account.bank_name }} — {{ bank_account.branch_name }} (Şube Kodu: {{ bank_account.branch_code }})</div>
+      <div style="font-family: monospace; margin: 1mm 0;">{{ bank_account.iban }}</div>
+      <div>Hesap No: {{ bank_account.account_number }} — {{ bank_account.currency }}</div>
+    </div>
+    {% endif %}
+
     {% if notes %}
     <div style="position: absolute; left: 15mm; bottom: 12mm; width: 180mm; font-size: 8pt; color: #333;">
       <div style="font-weight: bold; margin-bottom: 2mm;">Notlar:</div>

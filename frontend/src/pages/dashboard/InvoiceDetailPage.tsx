@@ -7,6 +7,7 @@ import { InvoiceActionHeader } from '@/features/invoices/components/InvoiceActio
 import { CompanyInfoSection } from '@/features/invoices/components/CompanyInfoSection'
 import { LineItemsTable } from '@/features/invoices/components/LineItemsTable'
 import { AdditionalDetailsGrid } from '@/features/invoices/components/AdditionalDetailsGrid'
+import { BankAccountSection } from '@/features/invoices/components/BankAccountSection'
 import { PaymentSummaryBox } from '@/features/invoices/components/PaymentSummaryBox'
 import { NetReceivableBox } from '@/features/invoices/components/NetReceivableBox'
 import { StatusTimeline } from '@/features/invoices/components/StatusTimeline'
@@ -55,6 +56,7 @@ export function InvoiceDetailPage() {
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+          <BankAccountSection invoiceId={invoice.id} status={invoice.status} bankAccount={invoice.bank_account ?? null} />
           <PaymentSummaryBox
             grandTotal={invoice.grand_total}
             subtotal={invoice.subtotal}

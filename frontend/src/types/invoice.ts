@@ -1,4 +1,5 @@
 import type { Customer } from '@/types/customer'
+import type { DefinitionBankAccount } from '@/types/definitions'
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
 export type InvoicePdfStatus = 'pending' | 'ready' | 'failed'
@@ -73,6 +74,8 @@ export interface InvoiceDetail extends InvoiceSummary {
   pdf_error: string | null
   notes: string | null
   due_at: string | null
+  bank_account_id: string | null
+  bank_account: DefinitionBankAccount | null
   recipient_contact_ids: string[]
   line_items: LineItem[]
   customer_snapshot: CustomerSnapshot | null
@@ -99,4 +102,5 @@ export interface InvoiceUpdatePayload {
   customer_snapshot?: Partial<CustomerSnapshot>
   notes?: string | null
   line_items?: LineItemPayload[]
+  bank_account_id?: string | null
 }

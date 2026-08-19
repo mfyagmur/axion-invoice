@@ -54,23 +54,23 @@ eklenmeli.
 Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel.
 
 **Tamamlanan (2026-08-19):**
-- Kalem birimi dropdown'u: `LineItemCard.tsx` → Birimler tanımlarından dinamik `<select>`, varsayılan birimi otomatik seç
-- Kalem KDV oranı dropdown'u: `LineItemCard.tsx` → KDV tanımlarından dinamik `<select>`, varsayılan KDV'yi otomatik seç
-- Müşteri kategorisi: tam-stack (migration + backend model/schema + frontend type/form), `CustomerFormModal.tsx`'te opsiyonel kategori dropdown
-- Fatura para birimi varsayılanı: Ayarlar'daki Döviz Tipi kullanılıyor (önceki görevde tamamlandı)
-- Vade seçimi: Ödeme Vadeleri tanımlarından, tarih otomatik hesaplama (önceki görevde tamamlandı)
+- ✅ Kalem birimi dropdown'u: `LineItemCard.tsx` → Birimler tanımlarından dinamik `<select>`, varsayılan birimi otomatik seç
+- ✅ Kalem KDV oranı dropdown'u: `LineItemCard.tsx` → KDV tanımlarından dinamik `<select>`, varsayılan KDV'yi otomatik seç
+- ✅ Müşteri kategorisi: tam-stack (migration + backend model/schema + frontend type/form), `CustomerFormModal.tsx`'te opsiyonel kategori dropdown
+- ✅ Fatura banka hesabı seçimi: tam-stack (2 migration oluşturuldu, backend model/schema güncellendi, frontend bileşen/types/i18n/PDF template tamamlandı)
+  - ✅ `BankAccountSection.tsx` oluşturdu (AdditionalDetailsGrid.tsx patternini takip)
+  - ✅ `InvoiceDetailPage.tsx`'te sidebar'da banka hesabı bölümü entegre edildi
+  - ✅ PDF template'inde banka bilgileri gösteriliyor (Ödeme Bilgileri bloğu)
+  - ✅ Frontend types (`InvoiceDetail`, `InvoiceUpdatePayload`) güncellendi
+  - ✅ i18n anahtarları eklendi (tr/en)
+- ✅ Fatura para birimi varsayılanı: Ayarlar'daki Döviz Tipi kullanılıyor (önceki görevde tamamlandı)
+- ✅ Vade seçimi: Ödeme Vadeleri tanımlarından, tarih otomatik hesaplama (önceki görevde tamamlandı)
 
 **Kalan görevler:**
-- InvoiceDetailPage'de banka hesabı seçimi (yarım: migration + backend model/schema eklendi, frontend components/integration yapılmadı)
-  - `BankAccountSection.tsx` oluşturma (AdditionalDetailsGrid.tsx patternini takip et)
-  - `InvoiceDetailPage.tsx`'te sidebar'da banka hesabı bölümü entegrasyonu
-  - PDF template'inde banka bilgilerini gösterme
-  - Frontend types (`InvoiceDetail`, `InvoiceUpdatePayload`) güncellenmesi
-  - `useUpdateInvoice` API call'ı (zaten var, otomatik çalışacak)
-- Test etme (migrations, formlar, PDF)
+- Test etme: migrations hatasız çalışıyor mu, formlar veri kaydediyor mu, PDF render'ında banka bilgileri gösteriliyor mu
 
 **Sıra:** Normal
-**Tahmini:** Vade + Fatura Birimi + KDV Birimi + Müşteri Kategorisi (~3 saat tamamlandı); Banka Hesabı seçimi yarım (~2 saat geri kaldı)
+**Tahmini:** Toplam ~5 saat (Vade + Fatura Birimi + KDV Birimi + Müşteri Kategorisi + Banka Hesabı tamamlandı)
 
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
