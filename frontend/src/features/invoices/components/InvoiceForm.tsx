@@ -472,8 +472,17 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                 )}
               />
               <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-slate-700">{t('invoices.form.dueTerm')}</label>
+                  {selectedPaymentTermId && dueAtValue && (
+                    <span className="text-xs text-slate-500">
+                      {i18n.language === 'tr'
+                        ? `Vade Tarihi: ${new Date(dueAtValue).toLocaleDateString('tr-TR', { year: 'numeric', month: '2-digit', day: '2-digit' })}`
+                        : `Due Date: ${new Date(dueAtValue).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}`}
+                    </span>
+                  )}
+                </div>
                 <Select
-                  label={t('invoices.form.dueTerm')}
                   value={selectedPaymentTermId}
                   onChange={(value) => setSelectedPaymentTermId(value)}
                   options={paymentTerms?.filter((pt) => pt.is_active).map((pt) => ({
@@ -482,13 +491,6 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                   })) || []}
                   placeholder={t('invoices.form.selectDueTerm')}
                 />
-                {selectedPaymentTermId && dueAtValue && (
-                  <span className="text-xs text-slate-500">
-                    {i18n.language === 'tr'
-                      ? `Vade Tarihi: ${new Date(dueAtValue).toLocaleDateString('tr-TR', { year: 'numeric', month: '2-digit', day: '2-digit' })}`
-                      : `Due Date: ${new Date(dueAtValue).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}`}
-                  </span>
-                )}
               </div>
             </div>
           </div>
