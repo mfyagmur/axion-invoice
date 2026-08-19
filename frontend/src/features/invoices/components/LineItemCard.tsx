@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronDown, Trash2 } from 'lucide-react'
 import { Input } from '@/components/Input'
 import type { InvoiceFormValues } from '@/features/invoices/components/InvoiceForm'
-import type { DefinitionUnit, DefinitionTaxRate } from '@/types/definitions'
+import type { DefinitionUnit } from '@/types/definitions'
 
 interface LineItemComputed {
   discountAmount: number
@@ -20,7 +20,6 @@ interface LineItemCardProps {
   removeDisabled: boolean
   fieldErrors?: { item_code?: { message?: string }; description?: { message?: string } }
   units?: DefinitionUnit[]
-  taxRates?: DefinitionTaxRate[]
 }
 
 export function LineItemCard({
@@ -32,7 +31,6 @@ export function LineItemCard({
   removeDisabled,
   fieldErrors,
   units = [],
-  taxRates = [],
 }: LineItemCardProps) {
   const { t } = useTranslation()
 
@@ -127,18 +125,16 @@ export function LineItemCard({
 
         <div className="relative flex-1 min-w-30">
           <label className="sr-only">{t('invoices.form.taxRate')}</label>
-          <select
-            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder={t('invoices.form.taxRate')}
+            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400"
+            aria-label={t('invoices.form.taxRate')}
             {...register(`line_items.${index}.tax_rate` as const, { valueAsNumber: true })}
-          >
-            <option value="">{t('invoices.form.taxRate')}</option>
-            {taxRates.filter(t => t.is_active).map((rate) => (
-              <option key={rate.id} value={rate.rate}>
-                {rate.label} ({rate.rate}%)
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={14} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400" />
+          />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
         </div>
 
         <div className="relative flex-1 min-w-37.5">
