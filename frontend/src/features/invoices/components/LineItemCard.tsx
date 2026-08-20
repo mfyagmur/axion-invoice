@@ -1,7 +1,9 @@
-import type { UseFormRegister } from 'react-hook-form'
+import type { UseFormRegister, Control } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { Input } from '@/components/Input'
+import { Select } from '@/components/Select'
 import type { InvoiceFormValues } from '@/features/invoices/components/InvoiceForm'
 import type { DefinitionUnit } from '@/types/definitions'
 
@@ -14,6 +16,7 @@ interface LineItemComputed {
 interface LineItemCardProps {
   index: number
   register: UseFormRegister<InvoiceFormValues>
+  control: Control<InvoiceFormValues>
   computed: LineItemComputed
   currency: string
   onRemove: () => void
@@ -25,6 +28,7 @@ interface LineItemCardProps {
 export function LineItemCard({
   index,
   register,
+  control,
   computed,
   currency,
   onRemove,
@@ -82,19 +86,22 @@ export function LineItemCard({
             {...register(`line_items.${index}.quantity` as const, { required: true, valueAsNumber: true })}
           />
           <div className="w-px bg-slate-300" />
-          <div className="relative flex-1">
-            <select
-              className="h-full w-full appearance-none border-0 bg-transparent py-2 pl-3 pr-7 text-sm text-slate-700 focus:outline-none focus:ring-0"
-              {...register(`line_items.${index}.unit` as const)}
-            >
-              {units.filter(u => u.is_active).map((unit) => (
-                <option key={unit.id} value={unit.name}>
-                  {unit.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400" />
-          </div>
+          <Controller
+            control={control}
+            name={`line_items.${index}.unit` as const}
+            render={({ field: { value, onChange } }) => (
+              <Select
+                value={value}
+                onChange={onChange}
+                options={units.filter(u => u.is_active).map((unit) => ({
+                  value: unit.name,
+                  label: unit.name,
+                }))}
+                placeholder={t('invoices.form.unit')}
+                className="flex-1"
+              />
+            )}
+          />
         </div>
 
         <div className="relative flex-1 min-w-37.5">

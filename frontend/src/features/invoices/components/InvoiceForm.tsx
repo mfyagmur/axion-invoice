@@ -54,7 +54,7 @@ export function emptyLineItem(): InvoiceFormValues['line_items'][number] {
     description: '',
     quantity: 1,
     unit_price: '' as any,
-    unit: 'adet',
+    unit: '',
     discount_rate: '' as any,
     tax_rate: '' as any,
     other_tax_amount: '' as any,
@@ -112,11 +112,18 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   useEffect(() => {
     if (units && units.length > 0) {
       const defaultUnit = units.find(u => u.is_default && u.is_active)
-      if (defaultUnit && !watch('line_items.0.unit')) {
-        setValue('line_items.0.unit', defaultUnit.name)
+      const fallbackUnit = units.find(u => u.is_active)
+      const unitToUse = defaultUnit || fallbackUnit
+
+      if (unitToUse) {
+        lineItems.forEach((item, idx) => {
+          if (!item.unit) {
+            setValue(`line_items.${idx}.unit`, unitToUse.name)
+          }
+        })
       }
     }
-  }, [units, setValue, watch])
+  }, [units, setValue, lineItems])
 
   useEffect(() => {
     if (selectedPaymentTermId && paymentTerms) {
@@ -499,6 +506,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                 key={field.id}
                 index={index}
                 register={register}
+                control={control}
                 computed={lineComputations[index] ?? { discountAmount: 0, taxAmount: 0, lineTotal: 0 }}
                 currency={currency}
                 onRemove={() => remove(index)}
