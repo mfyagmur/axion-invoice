@@ -407,6 +407,49 @@ değişim olduğunda gösterilir, başarılı kayıt sonrası otomatik.
 - `cd frontend && npx tsc --noEmit` → temiz derleme (exit 0).
 - Git commit: `68d3cb8` — "AxionOS - Dil Değişikliğine de Save/Cancel Butonu Ekleme".
 - **Bilinen sınırlık:** Dil değişiminin UI'da anlık yansımasının tarayıcıda doğrulanması gerekiyor:
+
+---
+
+## 2026-08-20 — Fatura Numarası Ön Eki ve Basamak Ayarının Backend'de Uygulanması
+
+**Bağlam:** Ayarlar → Tanımlar sekmesinde (`/dashboard/settings?tab=definitions`) "Fatura Ön Eki" 
+(`invoice_prefix`, örn. "INV2026") ve "Basamak" (`invoice_number_padding`, örn. 5) alanları kullanıcıya 
+sunulmakta ve backend'de kaydedilmektedir. Frontend Settings formunda önizleme doğru formülü 
+(`${prefix}${sequence:0{padding}d}`) göstermektedir. Ancak gerçek fatura oluşturma sırasında 
+`backend/app/services/invoice_service.py`'deki `next_invoice_number()` fonksiyonu bu ayarları hiç 
+kullanmamakta, sabit "INV-" önekini ve 4 haneli padding'i hardcode etmektedir. Sonuç: ayarlarla 
+gösterilen ön izlemeyle gerçek fatura numaraları uyuşmamaktadır.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/services/invoice_service.py` | Değiştirme | `next_invoice_number()` fonksiyonu güncellenmiştir (satırlar 44-48): hardcoded `"INV-"` ve `04d` yerine `prefix = user.invoice_prefix or ""` ve `return f"{prefix}{user.invoice_sequence:0{user.invoice_number_padding}d}"` formülü kullanılmaktadır. Prefix `None` olduğunda ("" kullanılarak) ayırıcı veya sabit metin eklenmez. Basamak sayısı dinamik olarak `user.invoice_number_padding` değerinden okunur (varsayılan 4). |
+| `backend/tests/test_invoices.py` | Ekleme | 3 yeni test eklendi: (1) `test_invoice_number_uses_prefix_and_padding` — kullanıcının `invoice_prefix="INV2026"` ve `invoice_number_padding=5` ayarlanmış fatura oluşturması, yanıtta `invoice_number="INV202600001"` doğrulaması. (2) `test_invoice_number_increments_with_custom_settings` — art arda iki fatura oluşturup sıra numarasının `FTR-0001`, `FTR-0002` gibi arttığını doğrulaması. (3) `test_invoice_number_default_format` — varsayılan ayarlarla (prefix boş, padding 4) fatura oluşturup `invoice_number="0001"` döndüğünü (eski `"INV-0001"` formatı artık üretilmiyor) doğrulaması. |
+
+**Doğrulama Planı:**
+1. Backend testleri: `cd backend && python -m pytest tests/test_invoices.py -v` — yeni 3 test ve mevcut 
+   testler (özellikle `test_create_invoice_success`) başarılı olmalıdır.
+2. Manuel, UI: Dashboard → Ayarlar → Tanımlar'da "Fatura Ön Eki" = "INV2026", "Basamak" = "5" 
+   ayarlanıp "Önizleme:" `INV202600001` gösterdiği doğrulanmalıdır.
+3. Manuel, fatura oluşturma: `/dashboard/invoices/new` sayfasında "Kaydet" butonuyla taslak fatura 
+   oluşturulup detay sayfasında `invoice_number` alanının `INV2026000XX` formatında olduğu 
+   doğrulanmalıdır.
+4. Art arda iki fatura oluşturup sıra numarasının `INV202600001`, `INV202600002` gibi arttığı 
+   doğrulanmalıdır.
+5. Prefix boş bırakılıp yeni fatura oluşturulup `invoice_number` yalnızca sayıdan (padding'e göre) 
+   oluştuğu doğrulanmalıdır.
+
+**Kapsam Kararları:**
+- `invoice_sequence` sayacı davranışı değişmez: kullanıcı başına artan tam sayı, prefix değiştiğinde 
+  sıfırlanmaz (mevcut davranış korundu).
+- `invoice_number` sütununda unique constraint **bu kapsamda eklenmemiştir** — şema zaten unique yoktu, 
+  sadece format düzeltilmiştir.
+- Prefix değiştiğinde eski faturalara dönüş yapılmaz — yeni oluşturulan faturalar yeni prefix ile 
+  düzeltilmiş formatta üretilir.
+
+**Kapsam Dışı (TODO'ya kaydedildi):**
+- Prefix değiştiğinde `invoice_sequence` resetleme (`/todo.md`'ye not düşülecek).
+- `invoice_number` unique constraint ekleme.
+- "Devam Et" butonu şu an disabled/işlevsiz kalıyor (`InvoiceForm.tsx`'te hardcoded `disabled`).
   dropdown'da Türkçe/İngilizce seç → "Kaydet"/"İptal" butonlarının göründüğünü, "Kaydet" tıklanınca
   hook onSuccess callback'i aracılığıyla `useLocaleStore.setLocale()` çağrılıp UI dilinin değiştiğini,
   meslek dropdown'unu da aynı pattern'i takip ettiğini teyit etmek: `http://localhost:5173/dashboard/settings?tab=profile`.

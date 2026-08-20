@@ -144,3 +144,51 @@ def test_download_pdf_ready_returns_file(
     response = client.get(f"/api/v1/invoices/{invoice_id}/download", headers=auth_headers)
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/pdf"
+
+
+def test_invoice_number_uses_prefix_and_padding(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer, test_user: User
+):
+    test_user.invoice_prefix = "INV2026"
+    test_user.invoice_number_padding = 5
+    db_session.commit()
+
+    response = client.post(
+        "/api/v1/invoices", json=_invoice_payload(str(test_customer.id)), headers=auth_headers
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["invoice_number"] == "INV202600001"
+
+
+def test_invoice_number_increments_with_custom_settings(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer, test_user: User
+):
+    test_user.invoice_prefix = "FTR-"
+    test_user.invoice_number_padding = 4
+    db_session.commit()
+
+    response1 = client.post(
+        "/api/v1/invoices", json=_invoice_payload(str(test_customer.id)), headers=auth_headers
+    )
+    assert response1.status_code == 201
+    assert response1.json()["invoice_number"] == "FTR-0001"
+
+    response2 = client.post(
+        "/api/v1/invoices", json=_invoice_payload(str(test_customer.id)), headers=auth_headers
+    )
+    assert response2.status_code == 201
+    assert response2.json()["invoice_number"] == "FTR-0002"
+
+
+def test_invoice_number_default_format(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer, test_user: User
+):
+    # Default: no prefix, 4-digit padding
+    response = client.post(
+        "/api/v1/invoices", json=_invoice_payload(str(test_customer.id)), headers=auth_headers
+    )
+    assert response.status_code == 201
+    body = response.json()
+    # Should be just the number with 4-digit padding (not "INV-0001" anymore)
+    assert body["invoice_number"] == "0001"

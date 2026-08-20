@@ -27,12 +27,50 @@ CRUD akışının diğer tanımlamalarla aynı şekilde çalıştığı, (5) var
 KDV, Ödeme Vadeleri, Kategoriler) fonksiyonel olarak bozulmadığı (regresyon).
 **Sıra:** Yüksek
 
+### 0.0 Fatura Ön Eki ve Basamak Ayarının Backend'de Uygulanması (Yapıldı — 2026-08-20)
+**Dosya:** `backend/app/services/invoice_service.py`, `backend/tests/test_invoices.py`
+**Durum:** ✅ Tamamlandı (2026-08-20)
+**Bağlam:** Ayarlar → Tanımlar sekmesindeki "Fatura Ön Eki" ve "Basamak" alanları Settings UI'da 
+doğru örnekle gösteriliyordu (`INV2026` + 5 basamak → `INV202600004` önizlemesi) fakat gerçek fatura 
+oluşturma sırasında backend hardcoded `"INV-"` ve 4 haneli padding kullanıyordu. Bug fix: 
+`next_invoice_number()` fonksiyonunun yapısı, frontend Settings formu ile birebir tutarlı olacak 
+şekilde `{prefix}{sequence:0{padding}d}` formülüne çevrildi. Yeni 3 unittest eklendi: prefix+padding 
+uygulaması, art arda artan sıra numaraları, boş prefix davranışı.
+**Sıra:** Tamamlandı
+
 ### 0.1 Fatura Sıra Numarasının Kullanıcı Tarafından Düzenlenmesi
 **Dosya:** `backend/app/models/user.py` (`invoice_sequence`), `backend/app/schemas/auth.py`, `frontend/src/pages/dashboard/settings/definitions/CompanyScalarSettingForm.tsx`
 **Durum:** Kapsam dışı bırakıldı (kullanıcı onayıyla)
 **Bağlam:** Fatura No ayarında şu an yalnızca prefix + basamak sayısı düzenlenebiliyor;
 `invoice_sequence` (asıl sayaç) hiç editlenemiyor. Kullanıcı manuel resetleme isterse, mevcut
 faturalarla numara çakışması riskine karşı geri gitmeme + çakışma kontrolü eklenmesi gerekiyor.
+**Sıra:** Düşük
+
+### 0.1a Fatura Numarasında Prefix Değiştiğinde Sayacı Sıfırlama
+**Dosya:** `backend/app/models/user.py`, `backend/app/schemas/auth.py`, `backend/app/api/v1/profile.py`
+**Durum:** Kapsam dışı bırakıldı (2026-08-20'de)
+**Bağlam:** Kullanıcı fatura ön ekini değiştirdiğinde (örn. "INV2026" → "2026"), `invoice_sequence` 
+sayacı otomatik olarak sıfırlanmalı mı yoksa devam mı etmeli? Şu an devam ediyor (örn. sayaç 5 
+seviyesindeyken ön ek değişirse sonraki fatura `2026000006` oluyor). Sayacı prefix değişiminde 
+sıfırlama, önceki ön ekle oluşturulan faturalarla numara çakışmasını (gerileme senaryosu: sayaç 
+sıfırlanıp eski prefix geri seçilirse) çözmesi gerekir.
+**Sıra:** Düşük
+
+### 0.1b Fatura Numarası Benzersizlik Kısıtı (Unique Constraint)
+**Dosya:** `backend/app/models/invoice.py`, `backend/alembic/versions/`
+**Durum:** Kapsam dışı bırakıldı (2026-08-20'de)
+**Bağlam:** `invoice_number` sütunu şu an benzersiz kısıtlaması olmayan bir string alanı. Aynı 
+kullanıcıda aynı numarayla iki fatura oluşturulmasa da (sayaç otomatik arttığı için), önceki 
+fatura silinip sayaç manüel resetlenirse numara çakışması yapabilir. Gelişim: `(user_id, invoice_number)` 
+üzerinde unique index eklenebilir.
+**Sıra:** Düşük
+
+### 0.1c "Devam Et" Butonu İşlevselliğinin Tamamlanması
+**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
+**Durum:** Ertelenmiş (2026-08-20'de tespit edildi)
+**Bağlam:** Fatura oluşturma formundaki "Devam Et" (Devam Et) butonu şu an hardcoded `disabled` 
+durumda — onClick handler'ı yok. Tasarım amacı "Kaydet (taslak)" ve "Devam Et (taslak + müşteriye gönder)" 
+olmacak gibi düşünülüyor ama hangi akış/API endpoint desteklemeleri gerektiği henüz belirlenmedi.
 **Sıra:** Düşük
 
 ### 0.2 Banka Hesabı IBAN Tam Checksum Doğrulaması

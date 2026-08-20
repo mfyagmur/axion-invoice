@@ -44,7 +44,8 @@ def compute_totals(
 def next_invoice_number(db: Session, user: User) -> str:
     user.invoice_sequence += 1
     db.flush()
-    return f"INV-{user.invoice_sequence:04d}"
+    prefix = user.invoice_prefix or ""
+    return f"{prefix}{user.invoice_sequence:0{user.invoice_number_padding}d}"
 
 
 def _get_visible_template(db: Session, template_id: uuid.UUID, user: User) -> InvoiceTemplate:
