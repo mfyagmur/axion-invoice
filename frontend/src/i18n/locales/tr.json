@@ -377,6 +377,13 @@
       "customerInfoOption": "Müşteri Bilgisi",
       "notes": "Fatura Açıklaması",
       "notesPlaceholder": "Faturaya eklenecek notlarınızı buraya yazın...",
+      "itemCodeTooltip": "Ürüne veya hizmete ait stok/ürün kodu",
+      "descriptionTooltip": "Satılan ürün veya hizmetin açıklaması",
+      "quantityTooltip": "Satılan ürün veya hizmetin miktarı",
+      "unitPriceTooltip": "Ürünün birim başına satış fiyatı",
+      "discountRateTooltip": "Ürüne uygulanacak iskonto oranı (%)",
+      "taxRateTooltip": "Ürüne uygulanacak KDV/vergi oranı (%)",
+      "otherTaxesTooltip": "Ürüne eklenecek diğer vergi tutarı (ÖTV, damga vergisi vb.)",
       "insertFixedNote": "Sabit Açıklamayı Getir",
       "noDefaultNote": "Varsayılan sabit açıklama bulunamadı. Lütfen Ayarlar > Tanımlar sekmesinden bir açıklamayı varsayılan olarak işaretleyin.",
       "errors": {

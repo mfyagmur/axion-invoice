@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Trash2 } from 'lucide-react'
 import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
+import { InfoTooltip } from '@/components/InfoTooltip'
 import type { InvoiceFormValues } from '@/features/invoices/components/InvoiceForm'
 import type { DefinitionUnit } from '@/types/definitions'
 
@@ -54,37 +55,61 @@ export function LineItemCard({
       </div>
 
       <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2">
-        <Input
-          hideLabel
-          label={t('invoices.form.itemCode')}
-          placeholder={t('invoices.form.itemCode')}
-          maxLength={255}
-          error={fieldErrors?.item_code ? t('invoices.form.errors.itemCodeRequired') : undefined}
-          {...register(`line_items.${index}.item_code` as const, { required: true })}
-        />
+        <div className="relative">
+          <Input
+            hideLabel
+            label={t('invoices.form.itemCode')}
+            placeholder={t('invoices.form.itemCode')}
+            maxLength={255}
+            error={fieldErrors?.item_code ? t('invoices.form.errors.itemCodeRequired') : undefined}
+            {...register(`line_items.${index}.item_code` as const, { required: true })}
+          />
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+            <InfoTooltip
+              title={t('invoices.form.itemCode')}
+              description={t('invoices.form.itemCodeTooltip')}
+            />
+          </div>
+        </div>
 
-        <Input
-          hideLabel
-          label={t('invoices.form.description')}
-          placeholder={t('invoices.form.description')}
-          maxLength={255}
-          error={fieldErrors?.description ? t('invoices.form.errors.descriptionRequired') : undefined}
-          {...register(`line_items.${index}.description` as const, { required: true })}
-        />
+        <div className="relative">
+          <Input
+            hideLabel
+            label={t('invoices.form.description')}
+            placeholder={t('invoices.form.description')}
+            maxLength={255}
+            error={fieldErrors?.description ? t('invoices.form.errors.descriptionRequired') : undefined}
+            {...register(`line_items.${index}.description` as const, { required: true })}
+          />
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+            <InfoTooltip
+              title={t('invoices.form.description')}
+              description={t('invoices.form.descriptionTooltip')}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-nowrap items-start gap-3 overflow-x-auto">
-        <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden">
-          <label className="sr-only">{t('invoices.form.quantity')}</label>
-          <input
-            type="number"
-            //step="0.01"
-            min="0"
-            placeholder={t('invoices.form.quantity')}
-            className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400"
-            aria-label={t('invoices.form.quantity')}
-            {...register(`line_items.${index}.quantity` as const, { required: true, valueAsNumber: true })}
-          />
+        <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden relative">
+          <div className="relative">
+            <label className="sr-only">{t('invoices.form.quantity')}</label>
+            <input
+              type="number"
+              //step="0.01"
+              min="0"
+              placeholder={t('invoices.form.quantity')}
+              className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400"
+              aria-label={t('invoices.form.quantity')}
+              {...register(`line_items.${index}.quantity` as const, { required: true, valueAsNumber: true })}
+            />
+            <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+              <InfoTooltip
+                title={t('invoices.form.quantity')}
+                description={t('invoices.form.quantityTooltip')}
+              />
+            </div>
+          </div>
           <div className="w-px bg-slate-300" />
           <Controller
             control={control}
@@ -115,6 +140,12 @@ export function LineItemCard({
             {...register(`line_items.${index}.unit_price` as const, { required: true, valueAsNumber: true })}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+            <InfoTooltip
+              title={t('invoices.form.unitPrice')}
+              description={t('invoices.form.unitPriceTooltip')}
+            />
+          </div>
         </div>
 
         <div className="relative w-26 shrink-0">
@@ -128,6 +159,12 @@ export function LineItemCard({
             {...register(`line_items.${index}.discount_rate` as const, { valueAsNumber: true })}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+            <InfoTooltip
+              title={t('invoices.form.discountRate')}
+              description={t('invoices.form.discountRateTooltip')}
+            />
+          </div>
         </div>
 
         <div className="relative w-24 shrink-0">
@@ -142,6 +179,12 @@ export function LineItemCard({
             {...register(`line_items.${index}.tax_rate` as const, { valueAsNumber: true })}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+            <InfoTooltip
+              title={t('invoices.form.taxRate')}
+              description={t('invoices.form.taxRateTooltip')}
+            />
+          </div>
         </div>
 
         <div className="relative flex-1 min-w-37.5">
@@ -155,6 +198,12 @@ export function LineItemCard({
             {...register(`line_items.${index}.other_tax_amount` as const, { valueAsNumber: true })}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+            <InfoTooltip
+              title={t('invoices.form.otherTaxes')}
+              description={t('invoices.form.otherTaxesTooltip')}
+            />
+          </div>
         </div>
 
         <div className="relative flex-1 min-w-35">

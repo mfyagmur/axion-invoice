@@ -377,6 +377,13 @@
       "customerInfoOption": "Customer Info",
       "notes": "Invoice Notes",
       "notesPlaceholder": "Write notes to include on the invoice...",
+      "itemCodeTooltip": "Product or service stock/item code",
+      "descriptionTooltip": "Description of the product or service sold",
+      "quantityTooltip": "Quantity of the product or service sold",
+      "unitPriceTooltip": "Sales price per unit of the product",
+      "discountRateTooltip": "Discount rate applied to the product (%)",
+      "taxRateTooltip": "VAT/tax rate applied to the product (%)",
+      "otherTaxesTooltip": "Other tax amount added to the product (excise duty, stamp tax, etc.)",
       "insertFixedNote": "Insert Fixed Note",
       "noDefaultNote": "No default fixed note found. Please mark one as default under Settings > Definitions.",
       "errors": {
