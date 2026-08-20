@@ -7,6 +7,37 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
+### 0. A4 Şablon Tasarımcısının Tarayıcıda Görsel Teyidi
+**Dosya:** `frontend/src/pages/dashboard/TemplateEditorPage.tsx` ve `frontend/src/features/invoice-editor/` altındaki yeni bileşenler
+**Durum:** Ertelenmiş (tarayıcı otomasyon aracı yoktu) — eklendi 2026-08-20
+**Bağlam:** `dashboard/templates/new` tamamen yeniden yazıldı (bkz. `docs/PROJECT_DESING.md` §
+2026-08-20 — A4 Şablon Tasarımcısı Yeniden Yazımı). Backend `pytest` (35/35) ve frontend
+`tsc --noEmit`/`vite build` ile doğrulandı ama gerçek tarayıcıda hiç açılmadı. Kontrol edilmesi
+gerekenler: (1) sürükle-bırak ile tüm element tiplerinin (metin/başlık/çizgi/dikdörtgen/logo/
+resim/QR/imza/dinamik alan/tablo/banka hesabı) A4 sayfasına bırakılabildiği, (2) resize
+handle'larının 8 yönde de doğru çalıştığı, (3) çoklu seçim (marquee + shift-click) ve grup halinde
+taşımanın snap ile birlikte doğru davrandığı, (4) undo/redo (Ctrl+Z/Y) ve klavye kısayollarının
+(Delete, Ctrl+C/V/D, ok tuşları) çalıştığı, (5) katmanlar panelinde sürükle-sırala + kilit/gizle,
+(6) kaydedilen bir v2 şablonla fatura oluşturup üretilen PDF'in editördeki görünümle örtüştüğü,
+(7) eski 3 sistem şablonunun (hâlâ `layout_version=1`) editörde açılınca legacy adapter üzerinden
+düzgün yüklendiği ve kaydedilince v2'ye geçtiği, (8) admin panelinden (`/dashboard/admin/templates`)
+XSLT şablon oluşturmanın hâlâ çalıştığı, kullanıcı ekranında "XSLT Şablonu Oluştur" butonunun
+artık görünmediği.
+**Sıra:** Yüksek
+
+### 0.1 Şablon Tasarımcısı — Ertelenen Alt Özellikler
+**Durum:** Bilinçli olarak kapsam dışı bırakıldı — eklendi 2026-08-20
+**Bağlam:** `docs/A4_Invoice_template.md`'nin ana maddeleri teslim edildi ama şu detaylar düşük
+değer/yüksek efor nedeniyle ertelendi:
+- **Equal-spacing snap:** 3+ eleman arasında eşit boşluk tespiti (`canvasGeometry.ts` şu an sadece
+  grid/kenar/merkez/sayfa-merkezi snap destekliyor).
+- **`GET /templates/{id}/preview-data`:** Editördeki "Önizle" modu şu an sadece element
+  etiketlerini/placeholder'larını gösteriyor, gerçek bir faturanın verisiyle doldurmuyor.
+- **Gerçek asset storage:** `image` elemanı seçilen dosyayı base64 data URL olarak `layout_json`
+  içine gömüyor (backend'deki logo upload akışıyla aynı diske-yazma deseni kullanılmıyor) — büyük
+  görsellerde JSONB satırını şişirebilir.
+**Sıra:** Düşük
+
 ### 0. Fatura Detayında Vade Tarihi Gösterimi
 **Dosya:** `frontend/src/features/invoices/components/InvoiceActionHeader.tsx`
 **Durum:** ✅ Tamamlandı (2026-08-19)

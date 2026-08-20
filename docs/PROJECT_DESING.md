@@ -6,6 +6,69 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-20 — A4 Şablon Tasarımcısı Yeniden Yazımı + XSLT Şablonu Oluşturmayı Admin-Only Yapmak
+
+**Bağlam:** `dashboard/templates/new` sadece 12 sabit alanı sürükleyip bırakabilen basit bir
+editördü (dnd-kit tabanlı, resize/undo-redo/layers/snap yok, fatura formundaki müşteri/banka
+hesabı/kalem tablosu gibi alanları desteklemiyordu). Ayrıca kullanıcı ekranındaki
+"XSLT Şablonu Oluştur" butonu her kullanıcıya (plana göre) açıktı; kullanıcı bunu tamamen
+admin-only yapılmasını, `dashboard/templates/new`'in ise `dashboard/invoices/new` formundaki tüm
+alan/section'ları (Firma Ayrıntıları, Ödeme Detayları, Fatura Detayları, Fatura Açıklaması,
+kalemler, banka hesabı 1-3) sürükle-bırak ile A4 sayfasına yerleştirilebilen; resize,
+snap/alignment, layers, undo/redo, tablo sütun yönetimi, logo/QR/imza destekli profesyonel bir
+tasarımcıya (`docs/A4_Invoice_template.md`) çevrilmesini istedi. `docs/A4_Invoice_template.md`
+dokümanının 40 maddesinin tamamı tek seferde teslim edildi.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/api/v1/templates.py` | Değiştirme/Çıkarma | Kullanıcı-facing `POST /templates/xslt` endpoint'i kaldırıldı (XSLT şablonu artık sadece `admin_templates.py`'deki admin-only `POST /admin/templates/xslt` üzerinden oluşturulabiliyor). `create_template`/`update_template` yeni v2 element listesi (`TemplateSavePayload.layout_json: list[Element]`) ve `orientation` alanını işleyecek şekilde güncellendi; `_dynamic_field_keys()` yardımcı fonksiyonu sadece `dynamic-field` tipi elemanlardan `reconcile_fields` için anahtar seti çıkarıyor. `duplicate_template` artık `layout_version`/`orientation`'ı da kopyalıyor. |
+| `backend/app/services/subscription_service.py` | Çıkarma | Artık kullanılmayan `check_can_create_xslt_template()` silindi (tek çağrı yeri kaldırılan endpoint'ti). |
+| `backend/app/models/template.py` | Ekleme | `InvoiceTemplate`'e `layout_version: int` (default 2, `server_default='1'` — mevcut satırlar geriye dönük v1 olarak işaretlendi) ve `orientation: str` (default 'portrait') kolonları eklendi. |
+| `backend/app/models/invoice.py` | Ekleme | `Invoice.user: Mapped["User"] = relationship()` eklendi — v2 şablon render'ının `company.*` alanlarını (fatura sahibinin `User` kaydından) okuyabilmesi için gerekliydi, önceden sadece `user_id` FK vardı, ilişki tanımlı değildi. |
+| `backend/alembic/versions/f0a1b2c3d4e5_add_layout_version_orientation_to_templates.py` | Ekleme | Yeni migration: `invoice_templates` tablosuna `layout_version` (`server_default='1'`) ve `orientation` (`server_default='portrait'`) kolonları. Dev DB'ye uygulandı. |
+| `backend/app/schemas/template.py` | Değiştirme (kapsamlı) | `LayoutFieldEntry` (v1, korunuyor) yanına yeni discriminated union `Element` eklendi: `TextElement`, `LineElement`, `RectangleElement`, `LogoElement`, `ImageElement`, `QrCodeElement`, `SignatureElement`, `DynamicFieldElement`, `InvoiceTableElement` (+ `TableColumn`), `BankAccountElement` — hepsi ortak `BaseElement` (x/y/width/height_mm, rotation, z_index, locked, hidden) üzerine kurulu, `type` alanıyla ayrışıyor. `TemplateSavePayload`'a `orientation` ve `layout_json: list[Element]` eklendi. `TemplateDetailResponse.layout_json` tipi `list[dict]`'e düşürüldü (v1/v2 karışık okuma güvenli olsun diye — bkz. dosya içi yorum). |
+| `backend/app/services/template_field_resolver.py` | Ekleme (yeni dosya) | `resolve_field(field_key, invoice)` — `invoice.*`, `company.*` (User'dan), `customer.*`, `recipient.contact_N.*`, `payment.bank_account_N.*`, `totals.*` namespace'lerini invoice/customer/user/bank_account nesnelerinden okuyup string'e çeviriyor. Sadece v2 render yolunda kullanılıyor, v1 legacy yol dokunulmadı. |
+| `backend/app/services/pdf_service.py` | Değiştirme | `_render_visual_v2_html()` (yeni) — `template.layout_json`'daki her elementi `template_designer_base.html` ile render ediyor; `dynamic-field`/`bank-account`/`qrcode` elemanları `template_field_resolver` ile çözülüyor, `logo` elemanı kullanıcının `logo_url`'inden diskten okunup base64 data URI olarak gömülüyor (Playwright `set_content` relative URL çözemediği için). `render_invoice_html()` artık `template.layout_version >= 2` ise v2 yoluna, değilse eski `_render_visual_html()`'e yönlendiriyor — v1 şablonlar hiç değişmeden çalışmaya devam ediyor. `_collect_render_data()`'daki `line_items` sözlüğüne `unit` alanı eklendi (v2 tablo elemanı için, eski Jinja şablonu bu alanı hiç kullanmadığı için zararsız). |
+| `backend/app/templates_html/template_designer_base.html` | Ekleme (yeni dosya) | v2 element listesini mutlak konumlu `<div>`'ler olarak render eden Jinja şablonu — editördeki `CanvasElement.tsx` render mantığıyla aynı CSS kurallarını paylaşıyor (font/border/padding). `table` elemanı için seçili/sıralı kolonlarla tam tablo, `bank-account`/`logo`/`qrcode`/`signature` için özel bloklar içeriyor. |
+| `backend/requirements.txt` | Ekleme | `qrcode[pil]==8.0` — QR kod elemanının PDF'te PNG olarak render edilmesi için. |
+| `backend/tests/test_templates.py` | Ekleme (yeni dosya) | 7 yeni test: v2 şablon oluşturma (karma element tipleriyle), v2 şablon güncelleme, duplicate'in `layout_version`/`orientation`'ı koruması, kullanıcı-facing XSLT endpoint'inin kaldırıldığının doğrulanması (405), admin XSLT endpoint'inin hâlâ çalıştığının doğrulanması, v2 şablonun dinamik alanları/banka hesabını/kalem tablosunu doğru render ettiğinin doğrulanması, eski `layout_version=1` sistem şablonunun hâlâ hatasız render edildiğinin doğrulanması (regresyon koruması). |
+| `frontend/src/pages/dashboard/TemplatesPage.tsx` | Çıkarma | "XSLT Şablonu Oluştur" butonu ve ilgili plan-gate/upgrade-toast mantığı kaldırıldı. |
+| `frontend/src/pages/dashboard/XsltTemplateCreatePage.tsx` | Çıkarma | Dosya tamamen silindi (kullanıcı-facing XSLT oluşturma akışı artık yok). |
+| `frontend/src/routes/index.tsx` | Çıkarma | `/dashboard/templates/new-xslt` route'u kaldırıldı. `/dashboard/admin/templates` (admin XSLT paneli) dokunulmadı. |
+| `frontend/src/features/invoice-editor/hooks/useCreateXsltTemplate.ts`, `.../api/templatesApi.ts` (`createXslt`) | Çıkarma | Artık kullanılmayan kullanıcı-facing XSLT create hook/API metodu kaldırıldı. Admin-templates feature'ındaki ayrı `useCreateXsltTemplate`/`adminTemplatesApi.createXslt` dokunulmadı. |
+| `frontend/src/types/template.ts` | Değiştirme | `Orientation` tipi, `TemplateSummary`/`TemplateDetail`'e `orientation`/`layout_version` eklendi, `TemplateSavePayload.layout_json` artık `CanvasElementData[]`. |
+| `frontend/src/features/invoice-editor/types/element.ts` | Ekleme (yeni dosya) | Backend'deki Pydantic union'ın TS karşılığı — `TextElement`/`LineElement`/`RectangleElement`/`LogoElement`/`ImageElement`/`QrCodeElement`/`SignatureElement`/`DynamicFieldElement`/`InvoiceTableElement`/`BankAccountElement` discriminated union'ı (`CanvasElementData`). |
+| `frontend/src/features/invoice-editor/constants/fieldCatalog.ts` | Değiştirme (kapsamlı) | Eski 12 alanlık `BUILTIN_FIELD_CATALOG` yerine, `invoices/new` formundaki tüm alanları kapsayan kategorili katalog: Fatura/Firma Ayrıntıları/Müşteri (+alıcı kontakları)/Tutarlar — her `field_key` backend resolver'ının namespace'leriyle birebir eşleşiyor. Ayrıca kalem tablosu için `DEFAULT_TABLE_COLUMNS`. |
+| `frontend/src/features/invoice-editor/constants/elementDefaults.ts` | Ekleme (yeni dosya) | `createDefaultElement(type, x, y, z)` — her element tipi için canvas'a bırakıldığında kullanılacak varsayılan boyut/stil değerleri. |
+| `frontend/src/features/invoice-editor/store/editorStore.ts` | Değiştirme (kapsamlı) | Tek-tip `layoutEntries`/`selectedFieldKey` yerine: `elements: CanvasElementData[]`, çoklu seçim (`selectedIds`), undo/redo history (`past`/`future` stack, `commit()`/`undo()`/`redo()`), layer sıralama (`bringToFront`/`sendToBack`/`moveLayerUp/Down`/`reorderLayers`), `toggleLock`/`toggleHidden`, `duplicateElements`, canlı sürükle/resize güncellemeleri için commit'siz `updateElementLive`/`updateElementsLive` (drag/resize bitince tek `commit()`). |
+| `frontend/src/features/invoice-editor/utils/legacyLayoutAdapter.ts` | Ekleme (yeni dosya) | `layout_version=1` şablonları açılışta `DynamicFieldElement[]`'e çeviriyor (eski `field_key`'ler yeni namespace'lere map'leniyor, ör. `customer_name` → `customer.name`); kullanıcı kaydedince otomatik olarak `layout_version=2` yazılıyor. |
+| `frontend/src/features/invoice-editor/utils/clipboard.ts` | Ekleme (yeni dosya) | Ctrl+C/V için modül seviyesinde basit pano — kopyalanan elemanları klonlayıp +5mm offsetle yapıştırıyor. |
+| `frontend/src/features/invoice-editor/components/A4Canvas/{A4Page,CanvasElement,ResizeHandles,SnapGuides}.tsx` | Ekleme (yeni dosyalar, eski `Canvas.tsx`/`PlacedField.tsx` yerine) | `A4Page` — grid arka planlı sayfa yüzeyi, marquee (rubber-band) çoklu seçim, önizleme modunda salt-okunur render. `CanvasElement` — tipe göre (text/line/rectangle/logo/image/qrcode/signature/dynamic-field/table/bank-account) render + dnd-kit sürükleme. `ResizeHandles` — 8 handle'lı pointer-event tabanlı mm-aware resize. `SnapGuides` — kenar/merkez/sayfa hizalama çizgileri. |
+| `frontend/src/features/invoice-editor/components/{ElementPanel,PropertiesPanel,TableColumnEditor,LayersPanel,EditorToolbar}.tsx` | Ekleme (yeni dosyalar, eski `FieldPalette.tsx`/`StylePanel.tsx` yerine) | `ElementPanel` — kategorili sol panel (Temel/Görsel/Fatura/Dinamik Alanlar/Özel). `PropertiesPanel` — seçili elementin tipine göre dinamik form (tipografi/konum/border/tablo sütunları). `TableColumnEditor` — kalem tablosu sütun görünürlük/genişlik/sıra yönetimi. `LayersPanel` — sürükle-sırala katman listesi, kilit/gizle. `EditorToolbar` — kaydet/önizle, undo/redo, zoom (%50-150), sayfa yönü. |
+| `frontend/src/features/invoice-editor/hooks/useKeyboardShortcuts.ts` | Ekleme (yeni dosya) | Delete/Backspace, Ctrl+C/V/D, Ctrl+Z/Y (Shift+Z=redo), ok tuşları (1mm, Shift+ok 5mm) — input/textarea odaklıyken devre dışı. |
+| `frontend/src/pages/dashboard/TemplateEditorPage.tsx` | Değiştirme (yeniden yazım) | Artık sadece yukarıdaki bileşenleri birleştiren ince bir sayfa — element sürükle-bırak (palet/element/özel alan), grup halinde snap'li taşıma, önizleme modu, kaydetme payload'ı yeni v2 şemaya göre kuruluyor. |
+| `frontend/src/i18n/locales/{tr,en}.json` | Ekleme (kapsamlı) | `editor.*` altında ~90 yeni anahtar: genişletilmiş `field.*` kataloğu, `palette.*` (kategoriler+element tipleri), `properties.*`, `table.*`/`tableColumn.*`, `elementType.*`, `layers.*`, `actions.*` (orientation/preview). |
+
+**Kapsam dışı bırakılan / bilinçli sınırlamalar:** Snap sistemi grid+kenar+merkez+sayfa-merkezi
+destekliyor; "equal spacing" (3+ eleman arası eşit boşluk tespiti) uygulanmadı — düşük değer/yüksek
+efor, `docs/todo.md`'ye not düşüldü. `GET /templates/{id}/preview-data` (gerçek fatura verisiyle
+önizleme) endpoint'i planın kendisinde "opsiyonel" işaretliydi, bu turda atlandı — editördeki
+önizleme modu şu an sadece element etiketlerini/placeholder'larını gösteriyor, gerçek fatura
+verisiyle doldurmuyor. Resim/logo elemanları için gerçek bir asset-storage entegrasyonu yok,
+`image` elemanı `<input type=file>` ile seçilen dosyayı doğrudan base64 data URL olarak
+`layout_json` içine gömüyor (küçük ikon/damga gibi kullanımlar için yeterli, büyük dosyalarda
+JSONB satırını şişirir).
+
+**Doğrulama:** Backend `docker exec backend-backend-1 python -m pytest tests/ -q` → 35/35 geçti
+(28 mevcut + 7 yeni). Migration `alembic upgrade head` dev DB'ye temiz uygulandı. Frontend
+`npx tsc --noEmit -p .` temiz. `npm run build`'da görülen 4 hata (`Checkbox.tsx`, `navigation.ts`,
+`CustomerFormModal.tsx`, `ProfileTab.tsx`) bu değişiklikten önce de mevcut, bu dosyalara hiç
+dokunulmadı — doğrulandı (`git status` boş dönüyor bu dosyalar için). Konteynerler yeniden
+başlatıldı, temiz `Application startup complete` logu alındı. Tarayıcıda görsel doğrulama bu
+oturumda yapılamadı (tarayıcı aracı yok) — kullanıcının manuel teyidi gerekiyor.
+
+---
+
 ## 2026-08-17 — Kullanıcı Bazlı Oturum (Idle) Zaman Aşımı
 
 **Bağlam:** Hareketsizlik sonrası otomatik çıkış (idle-logout) önceden tüm kullanıcılar için

@@ -1,9 +1,13 @@
+import type { CanvasElementData } from '@/features/invoice-editor/types/element'
+
 export type FieldType = 'text' | 'number' | 'date' | 'currency' | 'custom'
 export type Align = 'left' | 'center' | 'right'
 export type PageSize = 'a4'
+export type Orientation = 'portrait' | 'landscape'
 export type TemplateEngine = 'visual' | 'xslt'
 export type TemplateFormat = 'generic' | 'e_fatura' | 'international' | 'e_irsaliye_arsiv'
 
+/** @deprecated layout_version=1 shape, kept only to read legacy templates. */
 export interface LayoutFieldEntry {
   field_key: string
   x_mm: number
@@ -38,6 +42,8 @@ export interface TemplateSummary {
   is_system_template: boolean
   is_active: boolean
   page_size: PageSize
+  orientation: Orientation
+  layout_version: number
   engine: TemplateEngine
   target_format: TemplateFormat
   min_plan_key: string | null
@@ -45,7 +51,7 @@ export interface TemplateSummary {
 }
 
 export interface TemplateDetail extends TemplateSummary {
-  layout_json: LayoutFieldEntry[]
+  layout_json: LayoutFieldEntry[] | CanvasElementData[]
   fields: TemplateField[]
   xslt_content: string | null
 }
@@ -53,7 +59,8 @@ export interface TemplateDetail extends TemplateSummary {
 export interface TemplateSavePayload {
   name: string
   page_size: PageSize
-  layout_json: LayoutFieldEntry[]
+  orientation: Orientation
+  layout_json: CanvasElementData[]
   fields: Record<string, FieldMeta>
 }
 

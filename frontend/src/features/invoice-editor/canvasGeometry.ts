@@ -4,6 +4,14 @@ export const PX_PER_MM = 3.7795
 /** 1 point (typographic, as used by `font_size`) in millimeters. */
 export const MM_PER_PT = 0.3528
 
+export const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5] as const
+
+export function pageDimensionsMm(orientation: 'portrait' | 'landscape'): { width: number; height: number } {
+  return orientation === 'landscape'
+    ? { width: A4_HEIGHT_MM, height: A4_WIDTH_MM }
+    : { width: A4_WIDTH_MM, height: A4_HEIGHT_MM }
+}
+
 export function mmToPx(mm: number, scale: number): number {
   return mm * scale
 }

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.definitions import DefinitionBankAccount
+from app.models.user import User
 
 
 class InvoiceStatus(str, Enum):
@@ -135,6 +136,7 @@ class Invoice(Base):
     )
 
     customer: Mapped["InvoiceCustomer"] = relationship()
+    user: Mapped["User"] = relationship()
     bank_account: Mapped["DefinitionBankAccount | None"] = relationship(foreign_keys=[bank_account_id])
     bank_account_2: Mapped["DefinitionBankAccount | None"] = relationship(foreign_keys=[bank_account_id_2])
     bank_account_3: Mapped["DefinitionBankAccount | None"] = relationship(foreign_keys=[bank_account_id_3])

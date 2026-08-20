@@ -1,11 +1,14 @@
+import base64
+import io
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.constants import COMPUTED_FIELD_KEYS
+from app.core.config import settings
 from app.models.invoice import Invoice
 from app.models.template import InvoiceTemplate, TemplateEngine
-from app.services import xslt_service
+from app.services import template_field_resolver, xslt_service
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates_html"
 
@@ -47,6 +50,7 @@ def _collect_render_data(invoice: Invoice) -> tuple[dict[str, str], list[dict], 
             "item_code": item.item_code or "",
             "description": item.description,
             "quantity": item.quantity,
+            "unit": item.unit,
             "unit_price": _money(item.unit_price),
             "discount_rate": item.discount_rate,
             "discount_amount": _money(item.discount_amount),
@@ -120,11 +124,83 @@ def _render_visual_html(invoice: Invoice, template: InvoiceTemplate, show_waterm
     )
 
 
+def _logo_data_uri(invoice: Invoice) -> str | None:
+    logo_url = invoice.user.logo_url
+    if not logo_url:
+        return None
+    file_path = Path(settings.logo_storage_dir) / Path(logo_url).name
+    if not file_path.exists():
+        return None
+    ext = file_path.suffix.lstrip(".").lower() or "png"
+    mime = f"image/{'jpeg' if ext in ('jpg', 'jpeg') else ext}"
+    return f"data:{mime};base64,{base64.b64encode(file_path.read_bytes()).decode('ascii')}"
+
+
+def _qr_data_uri(value: str) -> str | None:
+    if not value:
+        return None
+    import qrcode
+
+    image = qrcode.make(value)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode('ascii')}"
+
+
+def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
+    _, line_items, _ = _collect_render_data(invoice)
+
+    resolved_text: dict[str, str] = {}
+    for element in template.layout_json:
+        element_id = element.get("id")
+        element_type = element.get("type")
+        if element_type == "dynamic-field":
+            value = template_field_resolver.resolve_field(element["field_key"], invoice)
+            resolved_text[element_id] = value or element.get("default_value") or ""
+        elif element_type == "bank-account":
+            slot = element.get("slot", 1)
+            prefix = f"payment.bank_account_{slot}"
+            fields = ["bank_name", "branch_name", "branch_code", "iban", "account_number", "currency"]
+            values = [template_field_resolver.resolve_field(f"{prefix}.{f}", invoice) for f in fields]
+            bank_name, branch_name, branch_code, iban, account_number, currency = values
+            if not bank_name:
+                resolved_text[element_id] = ""
+            else:
+                resolved_text[element_id] = (
+                    f"{bank_name} — {branch_name} (Şube Kodu: {branch_code})\n"
+                    f"{iban}\n"
+                    f"Hesap No: {account_number} — {currency}"
+                )
+        elif element_type == "qrcode":
+            if element.get("data_source") == "static":
+                value = element.get("static_value") or ""
+            else:
+                value = invoice.invoice_number
+            resolved_text[element_id] = _qr_data_uri(value) or ""
+
+    orientation = getattr(template, "orientation", "portrait")
+    page_width_mm, page_height_mm = (297, 210) if orientation == "landscape" else (210, 297)
+
+    jinja_template = _env.get_template("template_designer_base.html")
+    return jinja_template.render(
+        elements=template.layout_json,
+        resolved_text=resolved_text,
+        line_items=line_items,
+        logo_data_uri=_logo_data_uri(invoice),
+        page_width_mm=page_width_mm,
+        page_height_mm=page_height_mm,
+        show_watermark=show_watermark,
+    )
+
+
 def render_invoice_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool = False) -> str:
     if template.engine == TemplateEngine.XSLT:
         field_values, line_items, totals = _collect_render_data(invoice)
         html = xslt_service.render_xslt_html(template.xslt_content, invoice, field_values, line_items, totals)
         return _apply_watermark(html, show_watermark)
+
+    if template.layout_version >= 2:
+        return _render_visual_v2_html(invoice, template, show_watermark)
 
     return _render_visual_html(invoice, template, show_watermark)
 

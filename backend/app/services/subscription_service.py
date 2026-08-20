@@ -108,15 +108,6 @@ def check_min_plan(db: Session, user: User, template: InvoiceTemplate) -> None:
         )
 
 
-def check_can_create_xslt_template(db: Session, user: User) -> None:
-    plan = get_active_plan(db, user)
-    if not plan.allows_custom_xslt_templates:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Planınız özel XSLT şablonu oluşturmaya izin vermiyor. Planınızı yükseltin.",
-        )
-
-
 def sync_subscription_from_stripe_object(db: Session, stripe_subscription: dict) -> None:
     user_id = (stripe_subscription.get("metadata") or {}).get("user_id")
     if not user_id:

@@ -90,8 +90,6 @@ export function TemplatesPage() {
   const { t } = useTranslation()
   const { data: templates, isLoading, isError, refetch } = useTemplates()
   const { data: subscription } = useMySubscription()
-  const pushToast = useToastStore((state) => state.push)
-  const canCreateXslt = subscription?.plan.allows_custom_xslt_templates ?? false
 
   const systemTemplates = templates?.filter((template) => template.is_system_template && template.is_active !== false) ?? []
   const ownTemplates = templates?.filter((template) => !template.is_system_template) ?? []
@@ -101,23 +99,6 @@ export function TemplatesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900">{t('nav.templates')}</h1>
         <div className="flex gap-2">
-          {canCreateXslt ? (
-            <Link to="/dashboard/templates/new-xslt">
-              <Button variant="secondary">
-                <Plus size={16} className="mr-1" />
-                XSLT Şablonu Oluştur
-              </Button>
-            </Link>
-          ) : (
-            <Button
-              variant="secondary"
-              className="opacity-60"
-              onClick={() => pushToast('Planınız özel XSLT şablonu oluşturmaya izin vermiyor. Planınızı yükseltin.')}
-            >
-              <Plus size={16} className="mr-1" />
-              XSLT Şablonu Oluştur
-            </Button>
-          )}
           <Link to="/dashboard/templates/new">
             <Button>
               <Plus size={16} className="mr-1" />

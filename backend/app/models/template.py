@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,6 +47,8 @@ class InvoiceTemplate(Base):
         SAEnum(PageSize, name="page_size"), nullable=False, default=PageSize.A4
     )
     layout_json: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    layout_version: Mapped[int] = mapped_column(Integer, nullable=False, default=2, server_default="1")
+    orientation: Mapped[str] = mapped_column(String(20), nullable=False, default="portrait", server_default="portrait")
     engine: Mapped[TemplateEngine] = mapped_column(
         SAEnum(TemplateEngine, name="template_engine"), nullable=False, default=TemplateEngine.VISUAL
     )

@@ -8,18 +8,15 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_not_demo
-from app.models.template import InvoiceTemplate, InvoiceTemplateField, TemplateEngine
+from app.models.template import InvoiceTemplate, InvoiceTemplateField
 from app.models.user import User
 from app.schemas.template import (
     TemplateDetailResponse,
     TemplateSavePayload,
     TemplateSummaryResponse,
-    XsltTemplateSavePayload,
 )
-from app.services import xslt_service
-from app.services.subscription_service import check_can_create_xslt_template, check_min_plan, check_template_limit
+from app.services.subscription_service import check_min_plan, check_template_limit
 from app.services.template_service import reconcile_fields
-from app.services.xslt_service import XsltValidationError
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -69,6 +66,10 @@ def get_template(
     return _get_visible_template(db, template_id, current_user)
 
 
+def _dynamic_field_keys(layout_json: list) -> set[str]:
+    return {entry.field_key for entry in layout_json if entry.type == "dynamic-field"}
+
+
 @router.post("", response_model=TemplateDetailResponse, status_code=status.HTTP_201_CREATED)
 def create_template(
     payload: TemplateSavePayload,
@@ -81,46 +82,14 @@ def create_template(
         name=payload.name,
         is_system_template=False,
         page_size=payload.page_size,
+        orientation=payload.orientation,
+        layout_version=2,
         layout_json=[entry.model_dump() for entry in payload.layout_json],
     )
     db.add(template)
     db.flush()
 
-    field_keys = {entry.field_key for entry in payload.layout_json}
-    reconcile_fields(db, template.id, field_keys, payload.fields)
-
-    db.commit()
-    db.refresh(template)
-    return template
-
-
-@router.post("/xslt", response_model=TemplateDetailResponse, status_code=status.HTTP_201_CREATED)
-def create_xslt_template(
-    payload: XsltTemplateSavePayload,
-    current_user: Annotated[User, Depends(require_not_demo)],
-    db: Annotated[Session, Depends(get_db)],
-) -> InvoiceTemplate:
-    check_can_create_xslt_template(db, current_user)
-    check_template_limit(db, current_user)
-    try:
-        xslt_service.validate_xslt(payload.xslt_content)
-    except XsltValidationError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-    template = InvoiceTemplate(
-        user_id=current_user.id,
-        name=payload.name,
-        is_system_template=False,
-        engine=TemplateEngine.XSLT,
-        target_format=payload.target_format,
-        xslt_content=payload.xslt_content,
-        layout_json=[],
-        min_plan_key=None,
-    )
-    db.add(template)
-    db.flush()
-
-    reconcile_fields(db, template.id, set(payload.fields.keys()), payload.fields)
+    reconcile_fields(db, template.id, _dynamic_field_keys(payload.layout_json), payload.fields)
 
     db.commit()
     db.refresh(template)
@@ -138,10 +107,11 @@ def update_template(
 
     template.name = payload.name
     template.page_size = payload.page_size
+    template.orientation = payload.orientation
+    template.layout_version = 2
     template.layout_json = [entry.model_dump() for entry in payload.layout_json]
 
-    field_keys = {entry.field_key for entry in payload.layout_json}
-    reconcile_fields(db, template.id, field_keys, payload.fields)
+    reconcile_fields(db, template.id, _dynamic_field_keys(payload.layout_json), payload.fields)
 
     db.commit()
     db.refresh(template)
@@ -180,6 +150,8 @@ def duplicate_template(
         name=f"{original.name} (kopya)",
         is_system_template=False,
         page_size=original.page_size,
+        orientation=original.orientation,
+        layout_version=original.layout_version,
         layout_json=list(original.layout_json),
         engine=original.engine,
         target_format=original.target_format,

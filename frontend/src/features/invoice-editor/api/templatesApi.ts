@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient'
-import type { TemplateDetail, TemplateSavePayload, TemplateSummary, XsltTemplateSavePayload } from '@/types/template'
+import type { TemplateDetail, TemplateSavePayload, TemplateSummary } from '@/types/template'
 
 export const templatesApi = {
   list: () => apiClient.get<TemplateSummary[]>('/templates').then((res) => res.data),
@@ -8,9 +8,6 @@ export const templatesApi = {
 
   create: (payload: TemplateSavePayload) =>
     apiClient.post<TemplateDetail>('/templates', payload).then((res) => res.data),
-
-  createXslt: (payload: XsltTemplateSavePayload) =>
-    apiClient.post<TemplateDetail>('/templates/xslt', payload).then((res) => res.data),
 
   update: (id: string, payload: TemplateSavePayload) =>
     apiClient.put<TemplateDetail>(`/templates/${id}`, payload).then((res) => res.data),
