@@ -90,7 +90,7 @@ export function LineItemCard({
         </div>
       </div>
 
-      <div className="flex flex-nowrap items-start gap-3 overflow-x-auto">
+      <div className="flex flex-nowrap items-start gap-3 overflow-x-auto pt-1">
         <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden relative">
           <div className="relative">
             <label className="sr-only">{t('invoices.form.quantity')}</label>
