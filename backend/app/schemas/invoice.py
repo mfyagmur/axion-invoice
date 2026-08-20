@@ -37,12 +37,16 @@ class InvoiceUpdatePayload(BaseModel):
     notes: str | None = Field(default=None, max_length=2000)
     line_items: list[LineItemPayload] | None = Field(default=None, min_length=1)
     bank_account_id: uuid.UUID | None = None
+    bank_account_id_2: uuid.UUID | None = None
+    bank_account_id_3: uuid.UUID | None = None
 
 
 class InvoiceCreatePayload(BaseModel):
     template_id: uuid.UUID
     customer_id: uuid.UUID
     bank_account_id: uuid.UUID | None = None
+    bank_account_id_2: uuid.UUID | None = None
+    bank_account_id_3: uuid.UUID | None = None
     currency: str = Field(default="TRY", min_length=3, max_length=3)
     payment_currency: str = Field(default="TRY", min_length=3, max_length=3)
     exchange_rate: Decimal | None = Field(default=None, gt=0)
@@ -104,6 +108,10 @@ class InvoiceSummaryResponse(BaseModel):
     customer: CustomerResponse
     bank_account_id: uuid.UUID | None
     bank_account: BankAccountResponse | None
+    bank_account_id_2: uuid.UUID | None
+    bank_account_2: BankAccountResponse | None
+    bank_account_id_3: uuid.UUID | None
+    bank_account_3: BankAccountResponse | None
 
     model_config = {"from_attributes": True}
 

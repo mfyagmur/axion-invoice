@@ -293,3 +293,54 @@ def test_render_invoice_html_includes_bank_account(
 
     html = pdf_service.render_invoice_html(invoice, template)
     assert bank_account.iban in html
+
+
+def test_create_invoice_with_three_bank_accounts(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer, test_user: User
+):
+    bank_account_1 = _create_bank_account(db_session, test_user)
+    bank_account_2 = _create_bank_account(db_session, test_user)
+    bank_account_3 = _create_bank_account(db_session, test_user)
+
+    response = client.post(
+        "/api/v1/invoices",
+        json=_invoice_payload(
+            str(test_customer.id),
+            bank_account_id=str(bank_account_1.id),
+            bank_account_id_2=str(bank_account_2.id),
+            bank_account_id_3=str(bank_account_3.id),
+        ),
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["bank_account"]["iban"] == bank_account_1.iban
+    assert body["bank_account_2"]["iban"] == bank_account_2.iban
+    assert body["bank_account_3"]["iban"] == bank_account_3.iban
+
+
+def test_render_invoice_html_includes_all_three_bank_accounts(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    bank_account_1 = _create_bank_account(db_session, test_user)
+    bank_account_2 = _create_bank_account(db_session, test_user)
+    bank_account_3 = _create_bank_account(db_session, test_user)
+
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+
+    payload = InvoiceCreatePayload(
+        template_id=uuid.UUID(SYSTEM_TEMPLATE_ID),
+        customer_id=test_customer.id,
+        bank_account_id=bank_account_1.id,
+        bank_account_id_2=bank_account_2.id,
+        bank_account_id_3=bank_account_3.id,
+        line_items=[LineItemPayload(description="Hizmet", quantity="1", unit_price="100")],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+    template = db_session.get(InvoiceTemplate, uuid.UUID(SYSTEM_TEMPLATE_ID))
+
+    html = pdf_service.render_invoice_html(invoice, template)
+    assert bank_account_1.iban in html
+    assert bank_account_2.iban in html
+    assert bank_account_3.iban in html

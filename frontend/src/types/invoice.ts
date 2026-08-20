@@ -76,6 +76,10 @@ export interface InvoiceDetail extends InvoiceSummary {
   due_at: string | null
   bank_account_id: string | null
   bank_account: DefinitionBankAccount | null
+  bank_account_id_2: string | null
+  bank_account_2: DefinitionBankAccount | null
+  bank_account_id_3: string | null
+  bank_account_3: DefinitionBankAccount | null
   recipient_contact_ids: string[]
   line_items: LineItem[]
   customer_snapshot: CustomerSnapshot | null
@@ -85,6 +89,8 @@ export interface InvoiceCreatePayload {
   template_id: string
   customer_id: string
   bank_account_id?: string
+  bank_account_id_2?: string
+  bank_account_id_3?: string
   currency: string
   payment_currency: string
   exchange_rate?: string
@@ -104,4 +110,6 @@ export interface InvoiceUpdatePayload {
   notes?: string | null
   line_items?: LineItemPayload[]
   bank_account_id?: string | null
+  bank_account_id_2?: string | null
+  bank_account_id_3?: string | null
 }

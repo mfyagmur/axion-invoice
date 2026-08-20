@@ -91,16 +91,18 @@ def _apply_watermark(html: str, show_watermark: bool) -> str:
 def _render_visual_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
     field_values, line_items, totals = _collect_render_data(invoice)
 
-    bank_account_dict = None
-    if invoice.bank_account:
-        bank_account_dict = {
-            'bank_name': invoice.bank_account.bank_name,
-            'branch_name': invoice.bank_account.branch_name,
-            'branch_code': invoice.bank_account.branch_code,
-            'iban': invoice.bank_account.iban,
-            'account_number': invoice.bank_account.account_number,
-            'currency': invoice.bank_account.currency,
+    bank_accounts = [
+        {
+            'bank_name': bank_account.bank_name,
+            'branch_name': bank_account.branch_name,
+            'branch_code': bank_account.branch_code,
+            'iban': bank_account.iban,
+            'account_number': bank_account.account_number,
+            'currency': bank_account.currency,
         }
+        for bank_account in (invoice.bank_account, invoice.bank_account_2, invoice.bank_account_3)
+        if bank_account is not None
+    ]
 
     jinja_template = _env.get_template("invoice_base.html")
     return jinja_template.render(
@@ -113,7 +115,7 @@ def _render_visual_html(invoice: Invoice, template: InvoiceTemplate, show_waterm
         grand_total=totals["grand_total"],
         currency=totals["currency"],
         notes=invoice.notes or '',
-        bank_account=bank_account_dict,
+        bank_accounts=bank_accounts,
         show_watermark=show_watermark,
     )
 

@@ -56,7 +56,11 @@ export function InvoiceDetailPage() {
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-          <BankAccountSection invoiceId={invoice.id} status={invoice.status} bankAccount={invoice.bank_account ?? null} />
+          <BankAccountSection
+            invoiceId={invoice.id}
+            status={invoice.status}
+            bankAccounts={[invoice.bank_account ?? null, invoice.bank_account_2 ?? null, invoice.bank_account_3 ?? null]}
+          />
           <PaymentSummaryBox
             grandTotal={invoice.grand_total}
             subtotal={invoice.subtotal}

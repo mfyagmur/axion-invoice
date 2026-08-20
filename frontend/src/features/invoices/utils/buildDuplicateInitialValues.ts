@@ -5,6 +5,9 @@ export function buildDuplicateInitialValues(invoice: InvoiceDetail): InvoiceForm
   return {
     template_id: invoice.template_id,
     customer_id: invoice.customer.id,
+    bank_account_id: invoice.bank_account_id ?? '',
+    bank_account_id_2: invoice.bank_account_id_2 ?? '',
+    bank_account_id_3: invoice.bank_account_id_3 ?? '',
     currency: invoice.currency,
     payment_currency: invoice.payment_currency,
     exchange_rate: invoice.exchange_rate ?? '',

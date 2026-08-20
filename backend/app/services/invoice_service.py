@@ -77,10 +77,11 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         if contact is None:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Geçerli olmayan kişi seçimi")
 
-    if payload.bank_account_id is not None:
-        bank_account = db.get(DefinitionBankAccount, payload.bank_account_id)
-        if bank_account is None or bank_account.user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banka hesabı bulunamadı")
+    for bank_account_id in (payload.bank_account_id, payload.bank_account_id_2, payload.bank_account_id_3):
+        if bank_account_id is not None:
+            bank_account = db.get(DefinitionBankAccount, bank_account_id)
+            if bank_account is None or bank_account.user_id != user.id:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banka hesabı bulunamadı")
 
     subtotal, tax_total, grand_total, line_computations = compute_totals(payload.line_items)
 
@@ -104,6 +105,8 @@ def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> In
         invoice_number=next_invoice_number(db, user),
         customer_id=customer.id,
         bank_account_id=payload.bank_account_id,
+        bank_account_id_2=payload.bank_account_id_2,
+        bank_account_id_3=payload.bank_account_id_3,
         currency=payload.currency,
         payment_currency=payload.payment_currency,
         exchange_rate=payload.exchange_rate,
@@ -162,14 +165,15 @@ def update_invoice(db: Session, user: User, invoice_id: uuid.UUID, payload: Invo
         invoice.notes = update_fields["notes"]
         content_changed = True
 
-    if "bank_account_id" in update_fields:
-        bank_account_id = update_fields["bank_account_id"]
-        if bank_account_id is not None:
-            bank_account = db.get(DefinitionBankAccount, bank_account_id)
-            if bank_account is None or bank_account.user_id != user.id:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banka hesabı bulunamadı")
-        invoice.bank_account_id = bank_account_id
-        content_changed = True
+    for field_name in ("bank_account_id", "bank_account_id_2", "bank_account_id_3"):
+        if field_name in update_fields:
+            bank_account_id = update_fields[field_name]
+            if bank_account_id is not None:
+                bank_account = db.get(DefinitionBankAccount, bank_account_id)
+                if bank_account is None or bank_account.user_id != user.id:
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banka hesabı bulunamadı")
+            setattr(invoice, field_name, bank_account_id)
+            content_changed = True
 
     if "line_items" in update_fields:
         line_items_payload = [LineItemPayload(**item) for item in update_fields["line_items"]]

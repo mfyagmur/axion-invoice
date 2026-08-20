@@ -28,6 +28,8 @@ export interface InvoiceFormValues {
   template_id: string
   customer_id: string
   bank_account_id: string
+  bank_account_id_2: string
+  bank_account_id_3: string
   currency: string
   payment_currency: string
   exchange_rate: string
@@ -86,6 +88,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
       template_id: '',
       customer_id: '',
       bank_account_id: '',
+      bank_account_id_2: '',
+      bank_account_id_3: '',
       currency: user?.default_currency ?? 'TRY',
       payment_currency: 'TRY',
       exchange_rate: '',
@@ -230,6 +234,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
       template_id: values.template_id,
       customer_id: values.customer_id,
       bank_account_id: values.bank_account_id || undefined,
+      bank_account_id_2: values.bank_account_id_2 || undefined,
+      bank_account_id_3: values.bank_account_id_3 || undefined,
       currency: values.currency,
       payment_currency: values.payment_currency,
       exchange_rate: values.exchange_rate || undefined,
@@ -387,22 +393,27 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
               />
             </div>
 
-            <Controller
-              name="bank_account_id"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  label={t('invoices.form.bankAccount')}
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={bankAccounts?.filter((b) => b.is_active).map((b) => ({
-                    value: b.id,
-                    label: `${b.bank_name} — ${b.iban} (${b.currency})`,
-                  })) || []}
-                  placeholder={t('invoices.form.selectBankAccount')}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {(['bank_account_id', 'bank_account_id_2', 'bank_account_id_3'] as const).map((fieldName, index) => (
+                <Controller
+                  key={fieldName}
+                  name={fieldName}
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label={`${t('invoices.form.bankAccount')} - ${index + 1}`}
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={bankAccounts?.filter((b) => b.is_active).map((b) => ({
+                        value: b.id,
+                        label: `${b.bank_name} — ${b.branch_name} ${b.account_number} (${b.currency})`,
+                      })) || []}
+                      placeholder={t('invoices.form.selectBankAccount')}
+                    />
+                  )}
                 />
-              )}
-            />
+              ))}
+            </div>
 
             {paymentCurrency !== currency && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
