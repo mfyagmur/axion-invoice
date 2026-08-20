@@ -91,30 +91,40 @@ eklemek isterse, `formatIban` util'i genişletilip model/form'a ülke kodu alan�
 eklenmeli.
 **Sıra:** Düşük
 
-### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu
-**Dosya:** `frontend/src/pages/dashboard/invoices/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
-**Durum:** ~60% tamamlandı (2026-08-19'de Vade, Fatura Para Birimi, Kalem Birimi/KDV dropdown'ları, Müşteri Kategorisi eklendi; Fatura Banka Hesabı seçimi yarım kaldı)
+### 0.3a Fatura Banka Hesabı — Para Birimi Uyumu Doğrulaması
+**Dosya:** `backend/app/services/invoice_service.py` (`create_invoice`/`update_invoice`)
+**Durum:** Kapsam dışı bırakıldı (2026-08-20)
+**Bağlam:** Banka hesabı seçiminde, seçilen hesabın `currency` alanı ile faturanın `currency`/
+`payment_currency` alanları arasında bir uyum kontrolü/uyarı yok — kullanıcı örneğin EUR fatura
+için TRY banka hesabı seçebilir. Şu an backend/frontend bunu engellemiyor veya uyarmıyor.
+**Sıra:** Düşük
+
+### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu (Yapıldı — 2026-08-20)
+**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
+**Durum:** ✅ Tamamlandı
 **Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
 Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel.
 
-**Tamamlanan (2026-08-19):**
-- ✅ Kalem birimi dropdown'u: `LineItemCard.tsx` → Birimler tanımlarından dinamik `<select>`, varsayılan birimi otomatik seç
-- ✅ Kalem KDV oranı dropdown'u: `LineItemCard.tsx` → KDV tanımlarından dinamik `<select>`, varsayılan KDV'yi otomatik seç
-- ✅ Müşteri kategorisi: tam-stack (migration + backend model/schema + frontend type/form), `CustomerFormModal.tsx`'te opsiyonel kategori dropdown
-- ✅ Fatura banka hesabı seçimi: tam-stack (2 migration oluşturuldu, backend model/schema güncellendi, frontend bileşen/types/i18n/PDF template tamamlandı)
-  - ✅ `BankAccountSection.tsx` oluşturdu (AdditionalDetailsGrid.tsx patternini takip)
-  - ✅ `InvoiceDetailPage.tsx`'te sidebar'da banka hesabı bölümü entegre edildi
-  - ✅ PDF template'inde banka bilgileri gösteriliyor (Ödeme Bilgileri bloğu)
-  - ✅ Frontend types (`InvoiceDetail`, `InvoiceUpdatePayload`) güncellendi
-  - ✅ i18n anahtarları eklendi (tr/en)
-- ✅ Fatura para birimi varsayılanı: Ayarlar'daki Döviz Tipi kullanılıyor (önceki görevde tamamlandı)
-- ✅ Vade seçimi: Ödeme Vadeleri tanımlarından, tarih otomatik hesaplama (önceki görevde tamamlandı)
+**Önemli düzeltme (2026-08-20):** Bu maddenin önceki notu "Fatura banka hesabı seçimi: tam-stack
+tamamlandı" diyordu, ancak gerçek doğrulamada (kullanıcının "PDF formatına eklenip eklenmediğini
+kontrol eder misin" sorusu üzerine) özelliğin **uçtan uca kırık** olduğu ortaya çıktı: `Invoice`
+modelinde `bank_account` SQLAlchemy `relationship()`'i hiç tanımlanmamıştı (bu yüzden PDF üretimi
+her seferinde `AttributeError` ile çöküyordu), `update_invoice()` `bank_account_id` alanını hiç
+işlemiyordu, `InvoiceCreatePayload`'da bu alan yoktu, API response'ları banka bilgisini hiç
+döndürmüyordu ve fatura oluşturma formunda seçim UI'ı yoktu. Tüm zincir 2026-08-20'de düzeltildi
+ve 4 yeni backend testiyle doğrulandı — detaylar için `docs/PROJECT_DESING.md` § "2026-08-20 —
+Banka Bilgilerinin Fatura PDF'ine Uçtan Uca Bağlanması"ya bakınız.
 
-**Kalan görevler:**
-- Test etme: migrations hatasız çalışıyor mu, formlar veri kaydediyor mu, PDF render'ında banka bilgileri gösteriliyor mu
+**Tamamlanan:**
+- ✅ Kalem birimi dropdown'u, kalem KDV oranı dropdown'u, müşteri kategorisi, fatura para birimi
+  varsayılanı, vade seçimi (2026-08-19'da tamamlandı)
+- ✅ Fatura banka hesabı seçimi (2026-08-20'de gerçekten tamamlandı): `Invoice.bank_account`
+  relationship'i, `create_invoice`/`update_invoice`'ta ownership doğrulamalı işleme, response
+  şemalarında `bank_account`, fatura oluşturma formunda Select alanı, XSLT şablonlarına da
+  `<BankAccount>` XML elementi eklendi (görsel/Jinja şablon zaten render ediyordu)
 
-**Sıra:** Normal
-**Tahmini:** Toplam ~5 saat (Vade + Fatura Birimi + KDV Birimi + Müşteri Kategorisi + Banka Hesabı tamamlandı)
+**Sıra:** —
+**Tahmini:** Tamamlandı
 
 ### 1. Kurumsal Alanları Register Ekranına Taşıma
 **Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  

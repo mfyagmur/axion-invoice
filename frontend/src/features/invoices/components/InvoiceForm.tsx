@@ -19,6 +19,7 @@ import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
 import { usePaymentTerms } from '@/features/definitions/hooks/usePaymentTerms'
 import { useUnits } from '@/features/definitions/hooks/useUnits'
 import { useNotes } from '@/features/definitions/hooks/useNotes'
+import { useBankAccounts } from '@/features/definitions/hooks/useBankAccounts'
 import { useDateFormat } from '@/hooks/useDateFormat'
 import { useAuthStore } from '@/store/authStore'
 import { useToastStore } from '@/store/toastStore'
@@ -26,6 +27,7 @@ import { useToastStore } from '@/store/toastStore'
 export interface InvoiceFormValues {
   template_id: string
   customer_id: string
+  bank_account_id: string
   currency: string
   payment_currency: string
   exchange_rate: string
@@ -83,6 +85,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
     defaultValues: initialValues ?? {
       template_id: '',
       customer_id: '',
+      bank_account_id: '',
       currency: user?.default_currency ?? 'TRY',
       payment_currency: 'TRY',
       exchange_rate: '',
@@ -111,6 +114,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { data: paymentTerms } = usePaymentTerms()
   const { data: units } = useUnits()
   const { data: notes } = useNotes()
+  const { data: bankAccounts } = useBankAccounts()
   const pushToast = useToastStore((state) => state.push)
 
   const exchangeRateQuery = useExchangeRate(paymentCurrency, currency, !isFixedRate)
@@ -225,6 +229,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
     createInvoice.mutate({
       template_id: values.template_id,
       customer_id: values.customer_id,
+      bank_account_id: values.bank_account_id || undefined,
       currency: values.currency,
       payment_currency: values.payment_currency,
       exchange_rate: values.exchange_rate || undefined,
@@ -381,6 +386,23 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                 )}
               />
             </div>
+
+            <Controller
+              name="bank_account_id"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label={t('invoices.form.bankAccount')}
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={bankAccounts?.filter((b) => b.is_active).map((b) => ({
+                    value: b.id,
+                    label: `${b.bank_name} — ${b.iban} (${b.currency})`,
+                  })) || []}
+                  placeholder={t('invoices.form.selectBankAccount')}
+                />
+              )}
+            />
 
             {paymentCurrency !== currency && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

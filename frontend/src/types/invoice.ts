@@ -84,6 +84,7 @@ export interface InvoiceDetail extends InvoiceSummary {
 export interface InvoiceCreatePayload {
   template_id: string
   customer_id: string
+  bank_account_id?: string
   currency: string
   payment_currency: string
   exchange_rate?: string

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, computed_field
 
 from app.models.invoice import CommissionPayer, InvoicePdfStatus, InvoiceScenario, InvoiceStatus, InvoiceType
 from app.schemas.customer import CustomerResponse
+from app.schemas.definitions import BankAccountResponse
 
 
 class LineItemPayload(BaseModel):
@@ -41,6 +42,7 @@ class InvoiceUpdatePayload(BaseModel):
 class InvoiceCreatePayload(BaseModel):
     template_id: uuid.UUID
     customer_id: uuid.UUID
+    bank_account_id: uuid.UUID | None = None
     currency: str = Field(default="TRY", min_length=3, max_length=3)
     payment_currency: str = Field(default="TRY", min_length=3, max_length=3)
     exchange_rate: Decimal | None = Field(default=None, gt=0)
@@ -100,6 +102,8 @@ class InvoiceSummaryResponse(BaseModel):
     issued_at: date | None
     created_at: datetime
     customer: CustomerResponse
+    bank_account_id: uuid.UUID | None
+    bank_account: BankAccountResponse | None
 
     model_config = {"from_attributes": True}
 

@@ -90,6 +90,18 @@ def build_invoice_xml(
     }.items():
         etree.SubElement(customer_el, tag).text = value or ""
 
+    if invoice.bank_account is not None:
+        bank_el = etree.SubElement(root, "BankAccount")
+        for tag, value in {
+            "BankName": invoice.bank_account.bank_name,
+            "BranchName": invoice.bank_account.branch_name,
+            "BranchCode": invoice.bank_account.branch_code,
+            "Iban": invoice.bank_account.iban,
+            "AccountNumber": invoice.bank_account.account_number,
+            "Currency": invoice.bank_account.currency,
+        }.items():
+            etree.SubElement(bank_el, tag).text = value or ""
+
     etree.SubElement(root, "Notes").text = invoice.notes or ""
 
     return root

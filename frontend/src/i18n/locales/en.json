@@ -329,6 +329,8 @@
       "additionalContact1": "Additional Contact (1)",
       "additionalContact2": "Additional Contact (2)",
       "paymentDetails": "Payment Details",
+      "bankAccount": "Bank Account",
+      "selectBankAccount": "Select a bank account",
       "paymentCurrency": "Payment Currency",
       "invoiceCurrency": "Invoice Currency",
       "exchangeRate": "Current Exchange Rate",

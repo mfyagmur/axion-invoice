@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.models.definitions import DefinitionBankAccount
 
 
 class InvoiceStatus(str, Enum):
@@ -128,6 +129,7 @@ class Invoice(Base):
     )
 
     customer: Mapped["InvoiceCustomer"] = relationship()
+    bank_account: Mapped["DefinitionBankAccount | None"] = relationship()
     line_items: Mapped[list["InvoiceLineItem"]] = relationship(
         back_populates="invoice", cascade="all, delete-orphan"
     )

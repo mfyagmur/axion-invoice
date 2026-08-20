@@ -1,8 +1,9 @@
-import type { InvoiceStatus } from '@/types/invoice'
+import type { InvoicePdfStatus, InvoiceStatus } from '@/types/invoice'
 
 export interface InvoiceRow {
   id: string
   invoiceNumber: string
+  pdfStatus: InvoicePdfStatus
   customerName: string
   customerCompanyName: string
   customerEmail: string | null

@@ -5,6 +5,7 @@ export function mapInvoiceToRow(invoice: InvoiceSummary): InvoiceRow {
   return {
     id: invoice.id,
     invoiceNumber: invoice.invoice_number,
+    pdfStatus: invoice.pdf_status,
     customerName: [invoice.customer.first_name, invoice.customer.last_name].filter(Boolean).join(' ') || invoice.customer.name,
     customerCompanyName: invoice.customer.company_name || invoice.customer.name,
     customerEmail: invoice.customer.email ?? null,

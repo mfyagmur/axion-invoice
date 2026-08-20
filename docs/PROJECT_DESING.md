@@ -456,6 +456,53 @@ gösterilen ön izlemeyle gerçek fatura numaraları uyuşmamaktadır.
 
 ---
 
+## 2026-08-20 — Banka Bilgilerinin Fatura PDF'ine Uçtan Uca Bağlanması (Kritik Bug Fix)
+
+**Bağlam:** Kullanıcı, Ayarlar → Tanımlar sekmesindeki "Banka Bilgileri" tanımlarının fatura
+PDF'ine eklenip eklenmediğini sordu. İnceleme sonucu özellik **kısmen kodlanmış ama uçtan uca
+kırık** çıktı — en kritiği, `Invoice.bank_account_id` FK sütunu var olduğu halde karşılık gelen
+SQLAlchemy `relationship()` hiç tanımlanmamıştı; buna rağmen `pdf_service.py` bu ilişkiye
+`invoice.bank_account` üzerinden erişmeye çalışıyordu. SQLAlchemy'de tanımsız bir ORM attribute'una
+erişmek `AttributeError` fırlatır — yani **görsel (Jinja) şablonla PDF üreten her fatura, banka
+hesabı seçili olsun ya da olmasın, PDF üretim aşamasında hata veriyordu** (`generate_invoice_pdf_task`
+ve `/invoices/{id}/preview` uçları). Ayrıca `update_invoice()` fonksiyonu `bank_account_id` alanını
+hiç işlemiyordu (fatura detayındaki `BankAccountSection` bileşeni üzerinden seçim yapılsa bile
+veritabanına yazılmıyordu), `InvoiceCreatePayload`'da bu alan hiç yoktu, API response şemaları
+banka bilgisini hiç döndürmüyordu ve fatura oluşturma formunda banka hesabı seçimi için UI yoktu.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/models/invoice.py` | Değiştirme (kritik bug fix) | `DefinitionBankAccount` importu eklendi; `Invoice` sınıfına `bank_account: Mapped["DefinitionBankAccount \| None"] = relationship()` eklendi (mevcut `bank_account_id` FK'sinden örtük çıkarım, migration gerekmedi). Bu, `pdf_service.py`'de daha önce her PDF üretiminde oluşan `AttributeError`'ı giderir. |
+| `backend/app/schemas/invoice.py` | Değiştirme | `InvoiceCreatePayload`'a `bank_account_id: uuid.UUID \| None = None` eklendi. `InvoiceSummaryResponse`'a `bank_account_id` ve `bank_account: BankAccountResponse \| None` alanları eklendi (`BankAccountResponse` `schemas/definitions.py`'den import edilerek nest edildi; `InvoiceDetailResponse` bu şemayı extend ettiği için otomatik kapsanıyor). |
+| `backend/app/services/invoice_service.py` | Değiştirme | `create_invoice()`'da: `bank_account_id` verilmişse kullanıcıya ait olup olmadığı doğrulanıyor (yoksa/başkasınınsa 404), `Invoice(...)` constructor'ına `bank_account_id` geçiliyor. `update_invoice()`'da: `bank_account_id` alanı artık işleniyor — sahiplik doğrulanıp `invoice.bank_account_id` güncelleniyor ve `content_changed = True` set ediliyor (bu, mevcut "PDF içerik değişince yeniden üret" mekanizmasını otomatik tetikliyor). |
+| `backend/app/services/xslt_service.py` | Değiştirme | `build_invoice_xml()`'e, `invoice.bank_account` doluysa `<BankAccount>` XML elementi (BankName/BranchName/BranchCode/Iban/AccountNumber/Currency) eklendi — özel XSLT şablonu yazan kullanıcılar artık banka verisine XPath ile erişebilir (görsel/Jinja şablon zaten `invoice_base.html:100-107`'de bu bloğu render ediyordu, sorun sadece veri bağlantısındaydı). |
+| `backend/tests/test_invoices.py` | Ekleme | 4 yeni test: (1) `test_create_invoice_with_bank_account` — banka hesabıyla fatura oluşturup response'ta doğru döndüğünü doğrular. (2) `test_create_invoice_with_foreign_bank_account_returns_404` — başka kullanıcının banka hesabıyla oluşturma denemesi 404 döner. (3) `test_update_invoice_sets_bank_account` — PATCH ile banka hesabı set edilince kaydedildiğini ve `pdf_status`'un `pending`'e döndüğünü doğrular. (4) `test_render_invoice_html_includes_bank_account` — `pdf_service.render_invoice_html()`'in artık `AttributeError` fırlatmadığını ve IBAN'ın render edilen HTML'de geçtiğini doğrular (regresyon testi). |
+| `frontend/src/types/invoice.ts` | Değiştirme | `InvoiceCreatePayload` interface'ine `bank_account_id?: string` eklendi. |
+| `frontend/src/features/invoices/components/InvoiceForm.tsx` | Değiştirme | `useBankAccounts` hook'u import edildi; `InvoiceFormValues`'a `bank_account_id: string` eklendi; "Ödeme Detayları" kartına, mevcut `payment_currency`/`currency` Select'leriyle aynı `Controller`+`Select` pattern'inde bir "Banka Hesabı" seçimi eklendi (zorunlu değil — `BankAccountSection.tsx`'teki options mapping'i birebir tekrar kullanıldı); `onSubmit` payload'ına `bank_account_id` eklendi. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Ekleme | `invoices.form.bankAccount` / `invoices.form.selectBankAccount` çeviri anahtarları eklendi (detay sayfasındaki `invoices.detail.*` karşılıklarıyla aynı metinler). |
+
+**Doğrulama Planı:**
+1. Backend testleri: `docker compose exec backend python -m pytest -v` — 26 test (15'i
+   `test_invoices.py`, 4'ü yeni banka hesabı testleri dahil) çalıştırıldı, **hepsi geçti**.
+   Özellikle `test_render_invoice_html_includes_bank_account` daha önceki `AttributeError`
+   regresyonunun giderildiğini kanıtlıyor.
+2. Frontend: `npx tsc --noEmit` ile tip kontrolü hatasız geçti.
+3. Manuel (kullanıcı tarafından teyit edilmeli): Ayarlar → Tanımlar → Banka Bilgileri'nde hesap
+   oluşturup `/dashboard/invoices/new`'de yeni Select'ten seçip fatura oluşturmak, detay
+   sayfasında `BankAccountSection`'ın göründüğünü ve indirilen PDF'te "Ödeme Bilgileri" bloğunun
+   banka adı/IBAN/hesap no ile çıktığını doğrulamak.
+
+**Kapsam Kararları:**
+- Banka hesabı seçimi fatura oluşturma formunda **zorunlu değil** — banka hesabı tanımlamamış
+  kullanıcılar fatura oluşturmaya devam edebilmeli (mevcut `{% if bank_account %}` davranışı
+  korunuyor, banka bloğu seçilmemişse PDF'te hiç görünmüyor).
+- Mevcut sistem XSLT şablonlarının içeriği **değiştirilmedi** — sadece XML ağacına veri eklendi,
+  şablon yazarları isterse kullanır.
+- Banka hesabının para birimiyle fatura para birimi arasında bir doğrulama/uyarı **eklenmedi**
+  (kapsam dışı, `docs/todo.md`'ye not düşüldü).
+
+---
+
 ## 2026-08-14 — Güvenlik Ayarları Sayfası Yeniden Tasarımı (2FA / Şifre / Oturumlar)
 
 **Bağlam:** `/dashboard/settings?tab=security` (`SecurityTab.tsx`) zaten vardı ve şifre değiştirme

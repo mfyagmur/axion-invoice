@@ -1,5 +1,6 @@
 from celery import Celery
 
+import app.models  # noqa: F401 - ensures all SQLAlchemy models are registered before mappers configure
 from app.core.config import settings
 
 celery_app = Celery(

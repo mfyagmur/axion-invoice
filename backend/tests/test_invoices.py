@@ -2,8 +2,12 @@ import uuid
 from pathlib import Path
 
 from app.core.config import settings
+from app.core.security import hash_password
+from app.models.definitions import DefinitionBankAccount
 from app.models.invoice import InvoiceCustomer
-from app.models.user import User
+from app.models.template import InvoiceTemplate
+from app.models.user import AccountType, User
+from app.services import pdf_service
 
 SYSTEM_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001"
 
@@ -192,3 +196,100 @@ def test_invoice_number_default_format(
     body = response.json()
     # Should be just the number with 4-digit padding (not "INV-0001" anymore)
     assert body["invoice_number"] == "0001"
+
+
+def _create_bank_account(db_session, user: User) -> DefinitionBankAccount:
+    bank_account = DefinitionBankAccount(
+        user_id=user.id,
+        bank_name="Test Bank",
+        branch_name="Merkez Şubesi",
+        branch_code="001",
+        currency="TRY",
+        account_number="123456789",
+        iban="TR330006100519786457841326",
+    )
+    db_session.add(bank_account)
+    db_session.commit()
+    db_session.refresh(bank_account)
+    return bank_account
+
+
+def test_create_invoice_with_bank_account(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer, test_user: User
+):
+    bank_account = _create_bank_account(db_session, test_user)
+
+    response = client.post(
+        "/api/v1/invoices",
+        json=_invoice_payload(str(test_customer.id), bank_account_id=str(bank_account.id)),
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["bank_account_id"] == str(bank_account.id)
+    assert body["bank_account"]["iban"] == bank_account.iban
+
+
+def test_create_invoice_with_foreign_bank_account_returns_404(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer
+):
+    other_user = User(
+        email=f"{uuid.uuid4()}@example.com",
+        password_hash=hash_password("testpassword123"),
+        full_name="Other User",
+        account_type=AccountType.BIREYSEL,
+    )
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+    other_bank_account = _create_bank_account(db_session, other_user)
+
+    response = client.post(
+        "/api/v1/invoices",
+        json=_invoice_payload(str(test_customer.id), bank_account_id=str(other_bank_account.id)),
+        headers=auth_headers,
+    )
+    assert response.status_code == 404
+
+
+def test_update_invoice_sets_bank_account(
+    client, db_session, auth_headers: dict[str, str], test_customer: InvoiceCustomer, test_user: User
+):
+    bank_account = _create_bank_account(db_session, test_user)
+
+    create_response = client.post(
+        "/api/v1/invoices", json=_invoice_payload(str(test_customer.id)), headers=auth_headers
+    )
+    invoice_id = create_response.json()["id"]
+    assert create_response.json()["bank_account_id"] is None
+
+    response = client.patch(
+        f"/api/v1/invoices/{invoice_id}",
+        json={"bank_account_id": str(bank_account.id)},
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["bank_account_id"] == str(bank_account.id)
+    assert body["pdf_status"] == "pending"
+
+
+def test_render_invoice_html_includes_bank_account(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    bank_account = _create_bank_account(db_session, test_user)
+
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+
+    payload = InvoiceCreatePayload(
+        template_id=uuid.UUID(SYSTEM_TEMPLATE_ID),
+        customer_id=test_customer.id,
+        bank_account_id=bank_account.id,
+        line_items=[LineItemPayload(description="Hizmet", quantity="1", unit_price="100")],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+    template = db_session.get(InvoiceTemplate, uuid.UUID(SYSTEM_TEMPLATE_ID))
+
+    html = pdf_service.render_invoice_html(invoice, template)
+    assert bank_account.iban in html

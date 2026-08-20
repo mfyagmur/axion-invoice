@@ -10,6 +10,7 @@ import { useCancelInvoice } from '@/features/invoices/hooks/useCancelInvoice'
 import { useRestoreInvoice } from '@/features/invoices/hooks/useRestoreInvoice'
 import { useArchiveInvoice } from '@/features/invoices/hooks/useArchiveInvoice'
 import { useUnarchiveInvoice } from '@/features/invoices/hooks/useUnarchiveInvoice'
+import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 
 interface InvoiceRowActionsProps {
   row: InvoiceRow
@@ -33,7 +34,9 @@ export function InvoiceRowActions({ row, disableView = false }: InvoiceRowAction
   const restoreMutation = useRestoreInvoice()
   const archiveMutation = useArchiveInvoice()
   const unarchiveMutation = useUnarchiveInvoice()
+  const downloadPdf = useDownloadInvoicePdf()
 
+  const isPdfReady = row.pdfStatus === 'ready'
   const isCancelled = row.status === 'cancelled'
   const isArchived = row.archived
   const isCancellable =
@@ -183,25 +186,12 @@ export function InvoiceRowActions({ row, disableView = false }: InvoiceRowAction
         </button>
         <button
           type="button"
-          onClick={async () => {
-            try {
-              const response = await fetch(`/api/invoices/${invoiceId}/pdf`)
-              if (!response.ok) throw new Error('PDF indirilemedi')
-              const blob = await response.blob()
-              const url = window.URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = `fatura-${invoiceId}.pdf`
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-              window.URL.revokeObjectURL(url)
-              setIsOpen(false)
-            } catch (error) {
-              console.error('PDF indirme hatası:', error)
-            }
+          disabled={!isPdfReady || downloadPdf.isPending}
+          onClick={() => {
+            setIsOpen(false)
+            downloadPdf.mutate({ id: invoiceId, filename: row.invoiceNumber })
           }}
-          className={activeItemClass}
+          className={isPdfReady ? activeItemClass : disabledItemClass}
         >
           {t('invoices.actions.downloadPdf')}
         </button>

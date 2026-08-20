@@ -329,6 +329,8 @@
       "additionalContact1": "Ek İletişim Bilgisi (1)",
       "additionalContact2": "Ek İletişim Bilgisi (2)",
       "paymentDetails": "Ödeme Detayları",
+      "bankAccount": "Banka Hesabı",
+      "selectBankAccount": "Banka hesabı seçin",
       "paymentCurrency": "Ödemeyi alacağın para birimi",
       "invoiceCurrency": "Fatura para birimi",
       "exchangeRate": "Güncel Döviz Kuru",
