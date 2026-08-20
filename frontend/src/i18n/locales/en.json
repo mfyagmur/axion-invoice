@@ -377,6 +377,8 @@
       "customerInfoOption": "Customer Info",
       "notes": "Invoice Notes",
       "notesPlaceholder": "Write notes to include on the invoice...",
+      "insertFixedNote": "Insert Fixed Note",
+      "noDefaultNote": "No default fixed note found. Please mark one as default under Settings > Definitions.",
       "errors": {
         "templateRequired": "Template selection is required.",
         "customerRequired": "Company name selection is required.",

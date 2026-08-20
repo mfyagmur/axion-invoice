@@ -377,6 +377,8 @@
       "customerInfoOption": "Müşteri Bilgisi",
       "notes": "Fatura Açıklaması",
       "notesPlaceholder": "Faturaya eklenecek notlarınızı buraya yazın...",
+      "insertFixedNote": "Sabit Açıklamayı Getir",
+      "noDefaultNote": "Varsayılan sabit açıklama bulunamadı. Lütfen Ayarlar > Tanımlar sekmesinden bir açıklamayı varsayılan olarak işaretleyin.",
       "errors": {
         "templateRequired": "Şablon seçimi zorunludur.",
         "customerRequired": "Şirket adı seçimi zorunludur.",

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { List, Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User } from 'lucide-react'
+import { List, Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Select } from '@/components/Select'
@@ -18,7 +18,9 @@ import { LineItemCard } from '@/features/invoices/components/LineItemCard'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
 import { usePaymentTerms } from '@/features/definitions/hooks/usePaymentTerms'
 import { useUnits } from '@/features/definitions/hooks/useUnits'
+import { useNotes } from '@/features/definitions/hooks/useNotes'
 import { useAuthStore } from '@/store/authStore'
+import { useToastStore } from '@/store/toastStore'
 
 export interface InvoiceFormValues {
   template_id: string
@@ -106,6 +108,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
   const { data: paymentTerms } = usePaymentTerms()
   const { data: units } = useUnits()
+  const { data: notes } = useNotes()
+  const pushToast = useToastStore((state) => state.push)
 
   const exchangeRateQuery = useExchangeRate(paymentCurrency, currency, !isFixedRate)
 
@@ -204,6 +208,15 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   function handleAppend() {
     append(emptyLineItem())
+  }
+
+  function handleInsertFixedNote() {
+    const defaultNote = notes?.find((n) => n.is_default)
+    if (!defaultNote) {
+      pushToast(t('invoices.form.noDefaultNote'))
+      return
+    }
+    setValue('notes', defaultNote.content)
   }
 
   const onSubmit = handleSubmit((values) => {
@@ -527,7 +540,21 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
           </div>
         </Card>
 
-        <Card icon={<FileText size={20} />} title={t('invoices.form.notes')}>
+        <Card
+          icon={<FileText size={20} />}
+          title={t('invoices.form.notes')}
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              className="gap-1 px-2 py-1 text-xs"
+              onClick={handleInsertFixedNote}
+            >
+              <ClipboardList size={14} />
+              {t('invoices.form.insertFixedNote')}
+            </Button>
+          }
+        >
           <Textarea
             label={t('invoices.form.notes')}
             placeholder={t('invoices.form.notesPlaceholder')}
