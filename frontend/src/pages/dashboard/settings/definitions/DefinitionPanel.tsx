@@ -279,6 +279,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
                     label={t('settings.definitions.bankName')}
                     placeholder="e.g., Ziraat Bankası"
                     value={values.bank_name ?? ''}
+                    className="w-[35ch]"
                     onChange={(e) => setValue('bank_name', e.target.value)}
                   />
                   <Input
@@ -291,6 +292,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
                     label={t('settings.definitions.branchCode')}
                     placeholder="e.g., 001"
                     value={values.branch_code ?? ''}
+                    className="w-[20ch]"
                     onChange={(e) => setValue('branch_code', e.target.value)}
                   />
                   <Select
@@ -310,6 +312,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
                     placeholder="TR00 0000 0000 0000 0000 0000 00"
                     autoComplete="off"
                     maxLength={32}
+                    className="w-[35ch]"
                     value={values.iban ?? ''}
                     onChange={(e) => setValue('iban', formatIban(e.target.value))}
                   />
