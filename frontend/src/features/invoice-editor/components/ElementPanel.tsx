@@ -61,7 +61,7 @@ export function ElementPanel() {
   const { t } = useTranslation()
 
   return (
-    <div className="flex w-full flex-col gap-4 overflow-y-auto lg:w-64 lg:shrink-0">
+    <div className="flex w-full flex-col gap-4 overflow-y-auto lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
       <h2 className="text-sm font-semibold text-slate-900">{t('editor.palette.title')}</h2>
 
       <Section title={t('editor.palette.sectionBasic')}>
