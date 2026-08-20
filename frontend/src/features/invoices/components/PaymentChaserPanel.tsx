@@ -6,7 +6,8 @@ import { Drawer } from '@/components/Drawer'
 import { Button } from '@/components/Button'
 import { InvoiceStatusBadge } from '@/features/invoices/components/InvoiceStatusBadge'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
-import { addDays, formatDateDisplay } from '@/features/invoices/utils/dateHelpers'
+import { addDays } from '@/features/invoices/utils/dateHelpers'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { usePaymentReminder } from '@/features/invoices/hooks/usePaymentReminder'
 
 interface PaymentChaserPanelProps {
@@ -23,6 +24,7 @@ const REMINDER_STEPS = [
 
 export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelProps) {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const [activatedMessage, setActivatedMessage] = useState(false)
   const [cancelledMessage, setCancelledMessage] = useState(false)
@@ -100,7 +102,7 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
 
             <div className="mt-4 flex items-start justify-between gap-2">
               <div className="flex flex-col">
-                <span className="text-sm text-slate-900">{formatDateDisplay(createdAt)}</span>
+                <span className="text-sm text-slate-900">{formatDate(createdAt)}</span>
                 {row.customerEmail && <span className="text-xs text-slate-500">{row.customerEmail}</span>}
               </div>
               <div className="flex flex-col items-end text-right">
@@ -128,8 +130,8 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
                         {t('invoices.paymentChaser.emailLabel', { n: index + 1 })}
                       </span>
                       <span className="text-xs font-medium text-slate-500">
-                        {/* ({t(`invoices.paymentChaser.${step.ruleKey}`)}) {formatDateDisplay(date)} */}
-                        {formatDateDisplay(date)}
+                        {/* ({t(`invoices.paymentChaser.${step.ruleKey}`)}) {formatDate(date)} */}
+                        {formatDate(date)}
                       </span>
                     </div>
                     {isExpanded ? (

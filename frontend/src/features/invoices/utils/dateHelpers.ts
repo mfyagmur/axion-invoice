@@ -150,8 +150,3 @@ export function getDateRangePresets(): DateRangePreset[] {
 export function formatMonthYear(date: Date): string {
   return new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(date)
 }
-
-export function formatDateDisplay(date: Date | null): string {
-  if (!date) return ''
-  return new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}

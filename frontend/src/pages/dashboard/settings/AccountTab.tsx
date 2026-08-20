@@ -6,7 +6,7 @@ import { Card } from '@/components/Card'
 import { Input } from '@/components/Input'
 import { useAuthStore } from '@/store/authStore'
 import { useUpdateAccount } from '@/features/profile/hooks/useUpdateAccount'
-import { useLocaleStore } from '@/store/localeStore'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { LogoUpload } from '@/features/profile/components/LogoUpload'
 import { InvoiceLogoPreviewExample } from '@/features/profile/components/InvoiceLogoPreviewExample'
 
@@ -32,7 +32,7 @@ function InfoRow({
 
 export function AccountTab() {
   const { t } = useTranslation()
-  const { locale } = useLocaleStore()
+  const { formatDateVerbal } = useDateFormat()
   const user = useAuthStore((state) => state.user)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -55,11 +55,7 @@ export function AccountTab() {
 
   const notSpecified = t('settings.account.companyProfile.notSpecified')
   const registrationDate = user.created_at
-    ? new Date(user.created_at).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+    ? formatDateVerbal(user.created_at, { month: 'long' })
     : notSpecified
 
   const handleChange = (field: keyof typeof formData, value: string) => {

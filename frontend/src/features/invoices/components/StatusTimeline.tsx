@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { twMerge } from 'tailwind-merge'
 import { Card } from '@/components/Card'
-import { formatDateDisplay } from '@/features/invoices/utils/dateHelpers'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import type { InvoiceStatus } from '@/types/invoice'
 
 interface StatusTimelineProps {
@@ -12,6 +12,7 @@ interface StatusTimelineProps {
 
 export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTimelineProps) {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
 
   // NOTE: backend'de ayrı bir "ödeme alındı" durumu yok, bu yüzden
   // "Ödeme Alındı" ve "Ödendi" adımları status === 'paid' olduğunda birlikte tamamlanmış sayılıyor.
@@ -20,17 +21,17 @@ export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTime
   const steps = [
     {
       label: t('invoices.detail.timelineCreated'),
-      date: formatDateDisplay(new Date(createdAt)),
+      date: formatDate(createdAt),
       done: true,
     },
     {
       label: t('invoices.detail.timelinePaymentReceived'),
-      date: isPaid ? formatDateDisplay(new Date(createdAt)) : null,
+      date: isPaid ? formatDate(createdAt) : null,
       done: isPaid,
     },
     {
       label: t('invoices.detail.timelinePaid'),
-      date: isPaid ? formatDateDisplay(new Date(createdAt)) : null,
+      date: isPaid ? formatDate(createdAt) : null,
       done: isPaid,
     },
   ]

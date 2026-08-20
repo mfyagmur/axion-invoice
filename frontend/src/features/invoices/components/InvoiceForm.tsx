@@ -19,6 +19,7 @@ import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
 import { usePaymentTerms } from '@/features/definitions/hooks/usePaymentTerms'
 import { useUnits } from '@/features/definitions/hooks/useUnits'
 import { useNotes } from '@/features/definitions/hooks/useNotes'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { useAuthStore } from '@/store/authStore'
 import { useToastStore } from '@/store/toastStore'
 
@@ -69,6 +70,7 @@ interface InvoiceFormProps {
 
 export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { t, i18n } = useTranslation()
+  const { formatDate } = useDateFormat()
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
   const user = useAuthStore((state) => state.user)
@@ -486,8 +488,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                   {selectedPaymentTermId && dueAtValue && (
                     <span className="text-xs text-slate-500">
                       {i18n.language === 'tr'
-                        ? `Vade Tarihi: ${new Date(dueAtValue).toLocaleDateString('tr-TR', { year: 'numeric', month: '2-digit', day: '2-digit' })}`
-                        : `Due Date: ${new Date(dueAtValue).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}`}
+                        ? `Vade Tarihi: ${formatDate(dueAtValue)}`
+                        : `Due Date: ${formatDate(dueAtValue)}`}
                     </span>
                   )}
                 </div>

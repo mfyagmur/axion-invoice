@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { InvoiceStatusBadge } from '@/features/invoices/components/InvoiceStatusBadge'
 import { InvoiceRowActions } from '@/features/invoices/components/InvoiceRowActions'
-import { formatDateDisplay } from '@/features/invoices/utils/dateHelpers'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 import type { InvoiceDetail } from '@/types/invoice'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
@@ -17,6 +17,7 @@ interface InvoiceActionHeaderProps {
 
 export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser }: InvoiceActionHeaderProps) {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
   const downloadPdf = useDownloadInvoicePdf()
   const isPdfReady = invoice.pdf_status === 'ready' && !!invoice.pdf_url
   const isCancelled = invoice.status === 'cancelled'
@@ -38,10 +39,10 @@ export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser 
             <InvoiceStatusBadge status={invoice.status} />
           </div>
           <div className="flex flex-col gap-1 text-sm text-slate-500">
-            <span>{formatDateDisplay(new Date(invoice.created_at))}</span>
+            <span>{formatDate(invoice.created_at)}</span>
             {invoice.due_at && (
               <span className="font-medium text-slate-700">
-                {t('invoices.detail.dueDate')}: {formatDateDisplay(new Date(invoice.due_at))}
+                {t('invoices.detail.dueDate')}: {formatDate(invoice.due_at)}
               </span>
             )}
           </div>

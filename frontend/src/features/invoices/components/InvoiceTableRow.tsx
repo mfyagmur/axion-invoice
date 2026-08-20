@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CalendarClock, ExternalLink, FileText, ClockPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { InvoiceStatusBadge } from './InvoiceStatusBadge'
 import { InvoiceRowActions } from './InvoiceRowActions'
 import { PaymentChaserPanel } from './PaymentChaserPanel'
@@ -13,11 +14,8 @@ interface InvoiceTableRowProps {
 export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
   const navigate = useNavigate()
   const [isPaymentChaserOpen, setIsPaymentChaserOpen] = useState(false)
-  const formattedDate = new Date(row.createdAt).toLocaleDateString('tr-TR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+  const { formatDateVerbal } = useDateFormat()
+  const formattedDate = formatDateVerbal(row.createdAt, { month: 'short' })
 
   return (
     <tr

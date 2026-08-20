@@ -10,6 +10,7 @@ import { EditableField } from '@/components/EditableField'
 import { Input } from '@/components/Input'
 import { Modal } from '@/components/Modal'
 import { Tabs } from '@/components/Tabs'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { useCustomer } from '@/features/customers/hooks/useCustomer'
 import { getCustomerBaseName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { CustomerTypeBadge } from '@/features/customers/components/CustomerTypeBadge'
@@ -40,6 +41,7 @@ type ContactFormValues = z.infer<typeof contactSchema>
 
 export function CustomerDetailPage() {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const { data: customer, isLoading } = useCustomer(id)
@@ -230,7 +232,7 @@ export function CustomerDetailPage() {
                     {Number(invoice.grand_total).toFixed(2)} {invoice.currency}
                   </span>
                   <span className="text-slate-400">
-                    {invoice.issued_at ? new Date(invoice.issued_at).toLocaleDateString() : '—'}
+                    {invoice.issued_at ? formatDate(invoice.issued_at) : '—'}
                   </span>
                 </div>
               </Link>

@@ -7,12 +7,14 @@ import { Input } from '@/components/Input'
 import { Badge } from '@/components/Badge'
 import { Switch } from '@/components/Switch'
 import { useAuthStore } from '@/store/authStore'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import { useChangePassword } from '@/features/profile/hooks/useChangePassword'
 import { useSessions, useRevokeSession, useRevokeOtherSessions } from '@/features/sessions/hooks'
 import type { UserSession } from '@/types/session'
 
 export function SecurityTab() {
   const { t } = useTranslation()
+  const { formatDateVerbal } = useDateFormat()
   const user = useAuthStore((state) => state.user)
   const changePassword = useChangePassword()
   const { data: sessions, isLoading: isSessionsLoading } = useSessions()
@@ -81,16 +83,6 @@ export function SecurityTab() {
     else if (ua.includes('safari')) browser = 'Safari'
 
     return { label: browser ? `${os} - ${browser}` : os, isMobile }
-  }
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString(user.locale === 'tr' ? 'tr-TR' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
   }
 
   return (
@@ -196,7 +188,7 @@ export function SecurityTab() {
                       <p className="text-xs text-slate-500">
                         {session.is_current
                           ? t('settings.security.thisBrowser')
-                          : `${t('settings.security.lastUsed')}: ${formatDate(session.last_used_at)}`}
+                          : `${t('settings.security.lastUsed')}: ${formatDateVerbal(session.last_used_at, { month: 'long', includeTime: true })}`}
                       </p>
                     </div>
                   </div>
