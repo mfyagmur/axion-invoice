@@ -78,7 +78,7 @@ export function LineItemCard({
           <label className="sr-only">{t('invoices.form.quantity')}</label>
           <input
             type="number"
-            step="0.01"
+            //step="0.01"
             min="0"
             placeholder={t('invoices.form.quantity')}
             className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400"
@@ -117,7 +117,7 @@ export function LineItemCard({
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
         </div>
 
-        <div className="relative flex-1 min-w-37.5">
+        <div className="relative w-26 shrink-0">
           <label className="sr-only">{t('invoices.form.discountRate')}</label>
           <input
             type="number"
@@ -130,7 +130,7 @@ export function LineItemCard({
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
         </div>
 
-        <div className="relative flex-1 min-w-30">
+        <div className="relative w-24 shrink-0">
           <label className="sr-only">{t('invoices.form.taxRate')}</label>
           <input
             type="number"
