@@ -1,5 +1,6 @@
 import type { CanvasElementData, ElementType } from '@/features/invoice-editor/types/element'
 import { DEFAULT_TABLE_COLUMNS } from '@/features/invoice-editor/constants/fieldCatalog'
+import i18n from '@/i18n/config'
 
 export function generateElementId(): string {
   return `el_${crypto.randomUUID().slice(0, 8)}`
@@ -37,7 +38,7 @@ export function createDefaultElement(type: ElementType, x_mm: number, y_mm: numb
     case 'table':
       return {
         id, type, x_mm, y_mm, width_mm: 180, height_mm: 60, ...BASE, z_index: zIndex,
-        columns: DEFAULT_TABLE_COLUMNS.map((c) => ({ key: c.key, label: c.key, visible: true, width_mm: c.default_width_mm, align: 'left' as const })),
+        columns: DEFAULT_TABLE_COLUMNS.map((c) => ({ key: c.key, label: i18n.t(c.labelKey), visible: true, width_mm: c.default_width_mm, align: 'left' as const })),
         header_font_size: 8, header_bg_color: '#f1f5f9', header_text_color: '#1a1a1a',
         row_font_size: 8, row_height_mm: 6, border_color: '#cccccc', border_width: 0.2,
         zebra_striping: false, currency_format: '#,##0.00', number_format: '#,##0.##',

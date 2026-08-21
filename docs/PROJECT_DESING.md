@@ -6,6 +6,33 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — A4 Şablon Editörü ↔ Gerçek Render Tutarsızlıkları Düzeltildi
+
+**Bağlam:** Kullanıcı, bir önceki oturumda eklenen fatura önizleme özelliğini ve şablon
+editörünü/fatura oluşturma akışını tekrar gözden geçirmemi ve kendi tespit ettiği hataları
+düzeltmemi istedi. Editör canvas'ı (`CanvasElement.tsx`, `PropertiesPanel.tsx`) ile gerçek
+render kaynağı (`backend/app/templates_html/template_designer_base.html`,
+`pdf_service._render_visual_v2_html`) satır satır karşılaştırılarak iki gerçek tutarsızlık
+bulundu — ikisi de "editörde ne görürsen faturada da o çıkar" ilkesini bozuyordu.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoice-editor/components/A4Canvas/CanvasElement.tsx` | Değiştirme | `text` ve `dynamic-field` elemanlarının canlı canvas render'ına eksik olan `letterSpacing` stili eklendi (`${element.letter_spacing}mm`). `PropertiesPanel.tsx`'te "Harf Aralığı" alanı kullanıcı tarafından değiştirilebiliyordu ve backend render'ında (`template_designer_base.html` satır 58) gerçekten uygulanıyordu, ama editör canvas'ı bu stili hiç göstermiyordu — kullanıcı değeri değiştirdiğinde editörde hiçbir görsel değişiklik olmuyordu, sadece PDF/fatura önizlemesinde ortaya çıkıyordu. |
+| `frontend/src/features/invoice-editor/constants/elementDefaults.ts` | Değiştirme | Yeni bir tablo elemanı canvas'a sürüklenip bırakıldığında sütun başlıklarının varsayılan `label` değeri, `fieldCatalog.ts`'teki çevrilebilir `labelKey` (örn. `editor.tableColumn.unit_price` → "Birim Fiyat") yerine ham `key` (`"unit_price"`) olarak atanıyordu. Bu sadece editör kozmetiği değil, gerçek fatura/PDF çıktısını da etkiliyordu çünkü `template_designer_base.html` sütun başlıklarını doğrudan `column.label`'dan basıyor. Paylaşılan `@/i18n/config` instance'ı üzerinden `i18n.t(c.labelKey)` ile düzeltildi — kullanıcı isterse `TableColumnEditor.tsx` üzerinden yine elle değiştirebiliyor, bu sadece varsayılanı düzeltiyor. |
+
+**Not:** Denetim sırasında incelenip **hata bulunmayan** alanlar: `InvoiceDocumentPreview.tsx`
+(iframe ölçekleme/sandbox mantığı), `invoicesApi.ts`/`useDownloadInvoicePdf.ts`/
+`useInvoicePreview.ts`, `TemplateEditorPage.tsx` (autosave/undo-redo/dnd akışı),
+`legacyLayoutAdapter.ts`, `LayersPanel.tsx`, `InvoiceForm.tsx` (fatura oluşturma formu —
+mevcut `disabled` önizleme butonu zaten bilinen ve `docs/todo.md`'de kayıtlı bir ertelenmiş
+iş, yeni bir hata değil).
+
+**Doğrulama:** `npx tsc --noEmit` ve `npx eslint` (değiştirilen iki dosya için) hatasız geçti.
+Gerçek tarayıcıda görsel teyit bu ortamda yapılamadı (tarayıcı aracı yok) — kullanıcı kendisi
+test edecek.
+
+---
+
 ## 2026-08-21 — Fatura Önizleme, PDF ile Aynı Renderer'a Bağlandı
 
 **Bağlam:** Kullanıcı, A4 Şablon Editörü'nde (`dashboard/templates/:id/edit`) tasarlanan

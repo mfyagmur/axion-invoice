@@ -26,6 +26,7 @@ function ElementContent({ element }: { element: CanvasElementData }) {
             backgroundColor: element.background_color ?? undefined,
             textAlign: element.text_align,
             lineHeight: element.line_height,
+            letterSpacing: `${element.letter_spacing}mm`,
           }}
         >
           {element.content || <span className="text-slate-400">Metin</span>}
@@ -42,6 +43,7 @@ function ElementContent({ element }: { element: CanvasElementData }) {
             color: element.color,
             textAlign: element.text_align,
             lineHeight: element.line_height,
+            letterSpacing: `${element.letter_spacing}mm`,
           }}
         >
           {element.label || element.field_key || 'Dinamik Alan'}
