@@ -17,7 +17,7 @@ function ElementContent({ element }: { element: CanvasElementData }) {
     case 'text':
       return (
         <div
-          className="h-full w-full overflow-hidden whitespace-pre-wrap break-words"
+          className="h-full w-full overflow-hidden whitespace-pre-wrap wrap-break-word"
           style={{
             fontSize: `${element.font_size}pt`,
             fontWeight: element.font_weight,
@@ -34,7 +34,7 @@ function ElementContent({ element }: { element: CanvasElementData }) {
     case 'dynamic-field':
       return (
         <div
-          className="h-full w-full overflow-hidden whitespace-pre-wrap break-words"
+          className="h-full w-full overflow-hidden whitespace-pre-wrap wrap-break-word"
           style={{
             fontSize: `${element.font_size}pt`,
             fontWeight: element.font_weight,
