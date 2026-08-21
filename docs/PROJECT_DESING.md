@@ -6,6 +6,28 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — A4 Şablon Tasarımcısı Sağ Panele Sticky Scroll + Modern Scrollbar
+
+**Bağlam:** Editörün sol paneli (`ElementPanel`, element paleti) `position: sticky` ile ekranda
+sabit duruyor ve sayfa kaydırıldığında A4 canvas'ı görünür tutuyordu; sağ panel (Özellikler +
+Katmanlar) aynı davranışa sahip değildi — sayfa kaydırıldığında canvas'la birlikte kayıp seçili
+elementin özelliklerini/katman listesini görünmez kılıyordu. Kullanıcı aynı sticky mekanizmasının
+sağ panele de eklenmesini, ayrıca tarayıcının standart scrollbar'ı yerine ince/modern görünümlü
+bir scrollbar istedi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/index.css` | Ekleme | `.axion-scrollbar` utility class'ı eklendi (thin, yuvarlak köşeli, slate tonlu, hover efektli; `::-webkit-scrollbar` + Firefox `scrollbar-width`/`scrollbar-color` fallback'i ile). |
+| `frontend/src/features/invoice-editor/components/ElementPanel.tsx` | Değiştirme | Kök div'e `axion-scrollbar` class'ı eklendi (mevcut sticky/overflow davranışı korundu) — sol panelin default scrollbar'ı da modernleşti. |
+| `frontend/src/pages/dashboard/TemplateEditorPage.tsx` | Değiştirme | Sağ taraf sarmalayıcı div'ine (`PropertiesPanel` + `LayersPanel`'i saran) sol panelle birebir aynı desen eklendi: `overflow-y-auto lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] axion-scrollbar`. |
+| `frontend/src/features/invoice-editor/components/PropertiesPanel.tsx` | Değiştirme | Kök div'deki redundant `overflow-y-auto` kaldırıldı — scroll artık tek konteynerde (dış sarmalayıcı) yönetiliyor, iç içe çift scrollbar oluşması engellendi. |
+
+**Doğrulama:** `npx tsc --noEmit` hatasız geçti. Gerçek tarayıcıda "sağ panel sabit kalıp içinde
+kayıyor mu" görsel teyidi, mevcut genel v2 designer tarayıcı-doğrulama borcuyla aynı kapsamda
+(`docs/todo.md` §0) — bu değişiklik için ayrı bir yeni madde açılmadı.
+
+---
+
 ## 2026-08-21 — A4 Şablon Tasarımcısı "Tutarlar" Grubuna 3 Yeni Alan
 
 **Bağlam:** `docs/A4_Invoice_template.md` ve `docs/PROJECT_DESING.md` incelendikten sonra,

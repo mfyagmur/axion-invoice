@@ -326,7 +326,7 @@ export function TemplateEditorPage() {
           </div>
 
           {!isPreview && (
-            <div className="flex w-full flex-col gap-4 lg:w-72 lg:shrink-0">
+            <div className="axion-scrollbar flex w-full flex-col gap-4 overflow-y-auto lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:w-72 lg:shrink-0">
               <PropertiesPanel />
               <div className="rounded-lg border border-slate-200 p-3">
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{t('editor.layers.title')}</h3>

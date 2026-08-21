@@ -81,7 +81,7 @@ export function PropertiesPanel() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-4 overflow-y-auto lg:w-72 lg:shrink-0">
+    <div className="flex w-full flex-col gap-4 lg:w-72 lg:shrink-0">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-slate-900">{t(`editor.elementType.${element.type}`)}</h2>
         <div className="flex gap-1">
