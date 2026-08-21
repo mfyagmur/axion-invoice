@@ -6,6 +6,42 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — Sayfa Altı Sabit İçerik (Banka Hesabı/Açıklama) Reflow İle Birlikte Aşağı Kaymasın Diye Mesafe Eşiği Eklendi
+
+**Bağlam:** Bir önceki reflow düzeltmesi (font metrikleri tabanlı taşma hesabı) tablo↔toplamlar
+overlap'ini çözdü, ama kullanıcı yeni bir yan etki bildirdi: tablonun altında, toplamlardan çok
+daha aşağıda, **sayfanın en altına sabitlenmesi gereken** bağımsız bir "footer" bandı
+(3 adet Banka Hesabı elemanı + bir "Açıklama"/not kutusu, gerçek şablonda y≈245-286mm) da aynı
+taşma miktarı kadar aşağı kayıyordu. Bu hem toplamlar ile footer arasında anlamsız büyük bir boşluk
+bırakıyor hem de (tablo çok büyüdüğünde) bu footer'ı A4 sayfa sınırının (297mm) dışına itip
+**içeriğin istenmeden ikinci bir sayfaya taşmasına** yol açabiliyordu — kullanıcının "diğer sayfaya
+kaymaktadır" ifadesi tam olarak buydu.
+
+Kök sebep: `_reflow_elements_below_table`, tablonun orijinal alt sınırının aşağısındaki **her**
+elementi (mesafesi ne olursa olsun) itiyordu. Gerçek şablonlarda toplamlar tabloya hemen bitişik
+tasarlanır (birkaç mm boşlukla), ama banka hesabı/not gibi bağımsız footer içerikleri sayfanın en
+altına, tablodan onlarca mm uzağa sabit olarak yerleştirilir — bunlar tabloyla birlikte "akması"
+gereken bir blok değil, sayfanın kendi footer bandıdır.
+
+Yeni bir `_FOLLOW_GAP_THRESHOLD_MM = 50.0` eşiği eklendi: sadece tablonun orijinal alt sınırına
+**50mm'den yakın** konumlanmış elementler (tipik olarak toplamlar bloğu) itiliyor; daha uzaktaki
+elementler (gerçek şablonda toplamlar bloğunun bitişi ile banka hesabı arası ~37mm boşluk var,
+banka hesabının kendisi tablo alt sınırından ~127mm uzakta — aralarında çok net bir ayrım var)
+**hiç dokunulmadan** olduğu yerde kalıyor.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/services/pdf_service.py` | Değiştirme | `_FOLLOW_GAP_THRESHOLD_MM` sabiti eklendi; `_reflow_elements_below_table()`'daki itme koşulu artık `-0.5 <= (element_y - tablo_alt_sınırı) <= 50.0` aralığına sıkıştırıldı — sadece tabloya bitişik toplamlar bloğu itiliyor, sayfa altındaki bağımsız footer içerikleri (banka hesabı, açıklama/not) sabit kalıyor. |
+
+**Doğrulama:** Kullanıcının gerçek şablonu (`INV202600011`, 10 kalem) tekrar test edildi: tablo
+105.9mm→173.0mm'ye büyüyor, toplamlar bloğu hemen ardından 177.9mm'de başlayıp 208.9mm'de bitiyor
+(overlap yok), banka hesabı (y=245.7/250.7/255.7) ve "Açıklama" (y=263.3) elemanları **orijinal
+konumlarında değişmeden** kalıyor — artık sayfa dışına taşmıyorlar. Faturanın diskteki PDF'i
+gerçek Celery task'ı (`generate_invoice_pdf_task`) ile yeniden üretildi. `docker exec ... python -c
+"import app.services.pdf_service"` ile modül hatasız import edildi.
+
+---
+
 ## 2026-08-21 — Reflow Hesabı, Deklare Edilen `row_height_mm` Yerine Gerçek Font Metriklerini Kullanacak Şekilde Düzeltildi
 
 **Bağlam:** Bir önceki reflow düzeltmesi (`_reflow_elements_below_table`) kullanıcının gerçek

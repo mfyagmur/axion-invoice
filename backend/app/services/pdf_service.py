@@ -162,14 +162,20 @@ def _natural_row_height_mm(font_size_pt: float) -> float:
     return font_size_pt * _PT_TO_MM * _LINE_HEIGHT_FACTOR + _CELL_VERTICAL_PADDING_MM
 
 
+_FOLLOW_GAP_THRESHOLD_MM = 50.0  # how close below the table an element must originally sit to be
+# considered part of its "summary block" (totals) and get pushed down with it. Elements further
+# away (bank account details, footer notes, signature, etc.) are treated as independently
+# page-anchored content and are deliberately left in place — see docstring below.
+
+
 def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -> list[dict]:
-    """Push elements positioned below the items table down by however much the table's
-    real content (header + one row per line item + optional totals footer) overflows its
-    designed height_mm. The renderer positions every element with fixed x/y/height mm
+    """Push elements positioned directly below the items table down by however much the
+    table's real content (header + one row per line item + optional totals footer) overflows
+    its designed height_mm. The renderer positions every element with fixed x/y/height mm
     coordinates (no real CSS document flow), so once the table is allowed to grow past its
-    designed box (see `.el-table { height: auto }`), anything placed below it in the template
-    (a separate totals box, notes, signature, etc.) must be shifted down to avoid overlapping
-    the table's own rows — this recomputes that shift at render time without mutating the
+    designed box (see `.el-table { height: auto }`), anything placed right after it in the
+    template (typically a totals/summary box) must be shifted down to avoid overlapping the
+    table's own rows — this recomputes that shift at render time without mutating the
     template's stored layout_json.
 
     Row heights are estimated from font metrics (`_natural_row_height_mm`), not just the
@@ -178,6 +184,13 @@ def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -
     the declared value alone under-estimates overflow and leaves residual overlap. A small
     safety margin is added on top since text wrapping (long descriptions) can grow rows further
     than a single-line estimate predicts.
+
+    Only elements within `_FOLLOW_GAP_THRESHOLD_MM` of the table's *original* bottom edge are
+    pushed — real invoice templates place other independent content (bank account details,
+    payment notes, signature) far below the totals block, anchored near the bottom of the fixed
+    A4 page. Pushing those too would shove them past the page boundary and spill them onto an
+    unintended second page; keeping them in place matches how a designer actually laid out the
+    page (totals flow with the table, the footer band stays put).
     """
     elements = copy.deepcopy(elements)
     for table_el in elements:
@@ -196,7 +209,8 @@ def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -
         for other_el in elements:
             if other_el is table_el:
                 continue
-            if other_el.get("y_mm", 0) >= table_bottom_mm - 0.5:
+            gap_mm = other_el.get("y_mm", 0) - table_bottom_mm
+            if -0.5 <= gap_mm <= _FOLLOW_GAP_THRESHOLD_MM:
                 other_el["y_mm"] = other_el.get("y_mm", 0) + overflow_mm
     return elements
 
