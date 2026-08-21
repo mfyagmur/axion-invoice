@@ -80,6 +80,9 @@ export const FIELD_CATALOG: FieldCatalogCategory[] = [
       { field_key: 'totals.other_tax', labelKey: 'editor.field.other_tax', field_type: 'currency', default_width_mm: 35, default_height_mm: 6, default_font_size: 10 },
       { field_key: 'totals.grand_total', labelKey: 'editor.field.grand_total', field_type: 'currency', default_width_mm: 35, default_height_mm: 7, default_font_size: 12 },
       { field_key: 'totals.net_receivable', labelKey: 'editor.field.net_receivable', field_type: 'currency', default_width_mm: 35, default_height_mm: 6, default_font_size: 10 },
+      { field_key: 'totals.items_total', labelKey: 'editor.field.items_total', field_type: 'currency', default_width_mm: 35, default_height_mm: 6, default_font_size: 10 },
+      { field_key: 'totals.tax_ex_amount', labelKey: 'editor.field.tax_ex_amount', field_type: 'currency', default_width_mm: 35, default_height_mm: 6, default_font_size: 10 },
+      { field_key: 'totals.total_tax', labelKey: 'editor.field.total_tax', field_type: 'currency', default_width_mm: 35, default_height_mm: 6, default_font_size: 10 },
     ],
   },
 ]

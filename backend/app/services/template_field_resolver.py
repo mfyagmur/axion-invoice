@@ -38,6 +38,14 @@ def _bank_account_field(bank_account: DefinitionBankAccount | None, attr: str) -
 def _totals(invoice: Invoice) -> dict[str, Decimal]:
     discount = sum((item.discount_amount for item in invoice.line_items), Decimal("0"))
     other_tax = sum((item.other_tax_amount for item in invoice.line_items), Decimal("0"))
+    items_total = sum(
+        (
+            item.quantity * item.unit_price - item.discount_amount + item.tax_amount + item.other_tax_amount
+            for item in invoice.line_items
+        ),
+        Decimal("0"),
+    )
+    tax_ex_amount = sum((item.quantity * item.unit_price for item in invoice.line_items), Decimal("0"))
     net_receivable = (
         invoice.grand_total / invoice.exchange_rate
         if invoice.exchange_rate and invoice.currency != invoice.payment_currency
@@ -50,6 +58,9 @@ def _totals(invoice: Invoice) -> dict[str, Decimal]:
         "other_tax": other_tax,
         "grand_total": invoice.grand_total,
         "net_receivable": net_receivable,
+        "items_total": items_total,
+        "tax_ex_amount": tax_ex_amount,
+        "total_tax": invoice.tax_total,
     }
 
 

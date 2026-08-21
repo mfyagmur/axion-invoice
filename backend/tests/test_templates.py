@@ -243,6 +243,51 @@ def test_render_v2_template_resolves_dynamic_fields_and_bank_account(
     assert "Danışmanlık Hizmeti" in html
 
 
+def test_render_v2_template_resolves_new_totals_fields(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+
+    template = InvoiceTemplate(
+        user_id=test_user.id,
+        name="V2 Totals Test Template",
+        is_system_template=False,
+        layout_version=2,
+        orientation="portrait",
+        layout_json=[
+            _text_element("el_1", "totals.items_total", "Toplam Tutar", y=10),
+            _text_element("el_2", "totals.tax_ex_amount", "Toplam Vergisiz Tutar", y=20),
+            _text_element("el_3", "totals.total_tax", "Toplam Vergiler", y=30),
+            _table_element("el_4"),
+        ],
+    )
+    db_session.add(template)
+    db_session.flush()
+    db_session.commit()
+    db_session.refresh(template)
+
+    payload = InvoiceCreatePayload(
+        template_id=template.id,
+        customer_id=test_customer.id,
+        line_items=[
+            LineItemPayload(
+                description="Danışmanlık Hizmeti",
+                quantity="2",
+                unit_price="100",
+                discount_rate="10",
+                tax_rate="18",
+            )
+        ],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+
+    html = pdf_service.render_invoice_html(invoice, template)
+    assert "212.40" in html  # totals.items_total: (200 - 20) + 32.4
+    assert "200.00" in html  # totals.tax_ex_amount: quantity*unit_price before discount/tax
+    assert "32.40" in html  # totals.total_tax: tax_amount + other_tax_amount
+
+
 def test_legacy_layout_version_1_system_template_still_renders(
     db_session, test_customer: InvoiceCustomer, test_user: User
 ):

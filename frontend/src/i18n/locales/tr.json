@@ -170,6 +170,9 @@
       "other_tax": "Diğer Vergi",
       "grand_total": "Genel Toplam",
       "net_receivable": "Net Alacak",
+      "items_total": "Toplam Tutar",
+      "tax_ex_amount": "Toplam Vergisiz Tutar",
+      "total_tax": "Toplam Vergiler",
       "custom_blank": "Boş Alan"
     },
     "palette": {

@@ -6,6 +6,30 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — A4 Şablon Tasarımcısı "Tutarlar" Grubuna 3 Yeni Alan
+
+**Bağlam:** `docs/A4_Invoice_template.md` ve `docs/PROJECT_DESING.md` incelendikten sonra,
+`dashboard/templates/new`/`.../edit` editörünün sol panelindeki "TUTARLAR" grubunda kullanıcının
+istediği 5 alandan (Toplam Tutar, Toplam Vergisiz Tutar, Toplam İskonto, Toplam Vergiler,
+Hesaplanan KDV) 2'sinin (Toplam İskonto, Hesaplanan KDV) zaten mevcut İskonto/KDV alanlarıyla
+birebir aynı değeri ürettiği tespit edildi (kullanıcıyla netleştirildi, AskUserQuestion) — bu
+yüzden sadece gerçekten eksik olan 3 alan eklendi. Değer hesaplama sadece backend PDF render
+anında (`template_field_resolver.resolve_field`) yapıldığından ve `field_key` serbest string
+olduğundan DB/migration değişikliği gerekmedi.
+
+| Dosya | İşlem | Özet |
+|---|---|---|
+| `backend/app/services/template_field_resolver.py` | Değiştirme | `_totals()` içine 3 yeni hesaplanan key eklendi: `items_total` (Σ kalem `line_total`, iskonto+vergi sonrası kalem tutarlarının toplamı), `tax_ex_amount` (Σ `quantity*unit_price`, iskonto/vergi öncesi brüt tutar — mevcut `subtotal`'dan farklı çünkü `subtotal` iskonto sonrası), `total_tax` (`invoice.tax_total` — KDV + Diğer Vergi'nin toplamı, tek alan olarak). |
+| `frontend/src/features/invoice-editor/constants/fieldCatalog.ts` | Değiştirme | `totals` kategorisine `totals.items_total`, `totals.tax_ex_amount`, `totals.total_tax` field catalog girişleri eklendi (diğer tutar alanlarıyla aynı `currency` tipi ve boyut deseninde). |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Değiştirme | `editor.field.items_total` ("Toplam Tutar"/"Items Total"), `.tax_ex_amount` ("Toplam Vergisiz Tutar"/"Tax-Exclusive Total"), `.total_tax` ("Toplam Vergiler"/"Total Taxes") label key'leri eklendi. |
+| `backend/tests/test_templates.py` | Ekleme | `test_render_v2_template_resolves_new_totals_fields` — 3 yeni alanın bir v2 şablonda doğru hesaplanıp PDF HTML'ine yansıdığını doğruluyor (qty=2, unit_price=100, discount_rate=10, tax_rate=18 ile: items_total=212.40, tax_ex_amount=200.00, total_tax=32.40). |
+
+**Doğrulama:** Backend `pytest -k template` → 8/8 geçti (yeni test dahil). Frontend
+`tsc --noEmit` → hatasız. Editörde 3 yeni alanın "Tutarlar" grubunda göründüğü/sürüklenebildiği
+gerçek tarayıcıda teyit edilmedi (bkz. `docs/todo.md` § 0 — mevcut genel tarayıcı-teyit borcu).
+
+---
+
 ## 2026-08-20 — A4 Şablon Tasarımcısı Yeniden Yazımı + XSLT Şablonu Oluşturmayı Admin-Only Yapmak
 
 **Bağlam:** `dashboard/templates/new` sadece 12 sabit alanı sürükleyip bırakabilen basit bir

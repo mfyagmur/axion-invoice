@@ -170,6 +170,9 @@
       "other_tax": "Other Tax",
       "grand_total": "Grand Total",
       "net_receivable": "Net Receivable",
+      "items_total": "Items Total",
+      "tax_ex_amount": "Tax-Exclusive Total",
+      "total_tax": "Total Taxes",
       "custom_blank": "Blank Field"
     },
     "palette": {
