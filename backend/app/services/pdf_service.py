@@ -1,4 +1,5 @@
 import base64
+import copy
 import io
 from pathlib import Path
 
@@ -147,6 +148,59 @@ def _qr_data_uri(value: str) -> str | None:
     return f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode('ascii')}"
 
 
+_PT_TO_MM = 0.3528
+_CELL_VERTICAL_PADDING_MM = 2.0  # `.el-table th/td { padding: 1mm ... }` — top + bottom
+_LINE_HEIGHT_FACTOR = 1.35  # browser default line-height for table cells is ~1.2-1.4x font size
+
+
+def _natural_row_height_mm(font_size_pt: float) -> float:
+    """A CSS `<tr style="height:Xmm">` is a *minimum* — the browser still grows the row to
+    fit its content (font line-height + cell padding) if that's taller than X. Template
+    authors often set `row_height_mm` far below what an 8pt font actually needs, so this
+    estimates the real minimum a browser will render, independent of the declared value.
+    """
+    return font_size_pt * _PT_TO_MM * _LINE_HEIGHT_FACTOR + _CELL_VERTICAL_PADDING_MM
+
+
+def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -> list[dict]:
+    """Push elements positioned below the items table down by however much the table's
+    real content (header + one row per line item + optional totals footer) overflows its
+    designed height_mm. The renderer positions every element with fixed x/y/height mm
+    coordinates (no real CSS document flow), so once the table is allowed to grow past its
+    designed box (see `.el-table { height: auto }`), anything placed below it in the template
+    (a separate totals box, notes, signature, etc.) must be shifted down to avoid overlapping
+    the table's own rows — this recomputes that shift at render time without mutating the
+    template's stored layout_json.
+
+    Row heights are estimated from font metrics (`_natural_row_height_mm`), not just the
+    declared `row_height_mm`, because the declared value is frequently smaller than what the
+    browser actually renders (a `height` on a table row is a floor, not a fixed size) — using
+    the declared value alone under-estimates overflow and leaves residual overlap. A small
+    safety margin is added on top since text wrapping (long descriptions) can grow rows further
+    than a single-line estimate predicts.
+    """
+    elements = copy.deepcopy(elements)
+    for table_el in elements:
+        if table_el.get("type") != "table":
+            continue
+        row_height_mm = max(table_el.get("row_height_mm", 6), _natural_row_height_mm(table_el.get("row_font_size", 8)))
+        header_height_mm = max(table_el.get("row_height_mm", 6), _natural_row_height_mm(table_el.get("header_font_size", 8)))
+        totals_height_mm = row_height_mm * 3 if table_el.get("show_totals") else 0
+        content_height_mm = (header_height_mm + row_height_mm * len(line_items) + totals_height_mm) * 1.05
+        designed_height_mm = table_el.get("height_mm", 0)
+        overflow_mm = content_height_mm - designed_height_mm
+        if overflow_mm <= 0:
+            continue
+        table_bottom_mm = table_el.get("y_mm", 0) + designed_height_mm
+        table_el["height_mm"] = content_height_mm
+        for other_el in elements:
+            if other_el is table_el:
+                continue
+            if other_el.get("y_mm", 0) >= table_bottom_mm - 0.5:
+                other_el["y_mm"] = other_el.get("y_mm", 0) + overflow_mm
+    return elements
+
+
 def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
     _, line_items, totals = _collect_render_data(invoice)
 
@@ -183,7 +237,7 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
 
     jinja_template = _env.get_template("template_designer_base.html")
     return jinja_template.render(
-        elements=template.layout_json,
+        elements=_reflow_elements_below_table(template.layout_json, line_items),
         resolved_text=resolved_text,
         line_items=line_items,
         totals=totals,

@@ -6,6 +6,89 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — Reflow Hesabı, Deklare Edilen `row_height_mm` Yerine Gerçek Font Metriklerini Kullanacak Şekilde Düzeltildi
+
+**Bağlam:** Bir önceki reflow düzeltmesi (`_reflow_elements_below_table`) kullanıcının gerçek
+şablonuyla test edildiğinde hâlâ overlap gösterdi (ekran görüntüsüyle bildirdi). Kök sebep
+bulundu: fonksiyon taşma miktarını hesaplarken tablonun **deklare edilen** `row_height_mm`
+değerini kullanıyordu, ama bu değer sadece CSS `<tr style="height:Xmm">`'in bir **alt sınırı**
+(minimum) — tarayıcı, hücre içeriği (font satır yüksekliği + `padding: 1mm`) bunu aşarsa satırı
+otomatik büyütüyor. Kullanıcının gerçek şablonunda `row_height_mm: 2.0` olarak kayıtlıydı ama
+8pt fontla gerçek render edilen satır yüksekliği ~5.8mm'ye çıkıyordu — yani hesaplanan taşma
+(9mm) gerçek taşmanın (~50mm) çok altında kalıyor, toplamlar kutusu yetersiz itilip tablonun
+ortasında kalmaya devam ediyordu.
+
+`_natural_row_height_mm(font_size_pt)` adında yeni bir yardımcı eklendi: `font_size_pt × 0.3528
+(pt→mm) × 1.35 (satır yüksekliği çarpanı) + 2.0mm (üst+alt hücre padding'i)` formülüyle
+tarayıcının gerçekte render edeceği minimum satır yüksekliğini tahmin ediyor. Taşma hesabı artık
+`max(deklare_edilen_row_height_mm, gerçek_font_tabanlı_yükseklik)` kullanıyor, ayrıca metin
+sarma (uzun açıklamalar) gibi öngörülemeyen büyümelere karşı %5'lik bir güvenlik payı eklendi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/services/pdf_service.py` | Değiştirme | `_natural_row_height_mm()` eklendi; `_reflow_elements_below_table()` artık satır/başlık yüksekliğini `row_height_mm`/`header_font_size` yerine gerçek font metriklerinden hesaplıyor, `content_height_mm`'e %5 güvenlik payı eklendi. |
+
+**Doğrulama:** Kullanıcının bildirdiği gerçek fatura (`INV202600011`, 10 kalem, `row_height_mm:
+2.0` olan gerçek şablon) DB'den çekilip doğrudan `render_invoice_html()` ile render edildi:
+tablo artık 105.86mm→172.97mm (67.1mm) yüksekliğinde, tüm toplam etiketleri (Ara Toplam/İskonto/
+KDV/Genel Toplam/Net Alacak) 177mm'den başlıyor — tablonun altında ~5mm boşlukla, **hiç overlap
+yok**. Bu faturanın diskteki eski (hatalı) PDF'i, gerçek Celery task'ı (`generate_invoice_pdf_task`)
+doğrudan çağrılarak yeniden üretildi — kullanıcı tekrar indirdiğinde/önizlediğinde güncel render'ı
+görecek.
+
+**Bilinen yan etki / sınırlama:** Bu şablonda tablonun tasarlanan yüksekliği (12.9mm, ~1 satır için)
+gerçek ihtiyaçtan (10 kalemle 67mm) çok küçük olduğu için itme miktarı da büyük (~54mm) oluyor.
+Sayfanın en altına yakın konumlanmış, tablodan bağımsız görünen bir "Açıklama" alanı bu itmeyle
+A4 sayfa sınırının (297mm) dışına taşabiliyor — bu, önceden bilinen "tek sabit sayfa, çok sayfalı
+fatura desteği yok" sınırlamasının (bkz. `docs/todo.md`) doğal bir sonucu; tablo+toplamlar
+overlap'i çözüldükçe, tasarımda tabloya çok az yer ayrılmış şablonlarda sayfanın geri kalanı
+sıkışabilir. Kullanıcıya önerim: şablon editöründe tablonun `row_height_mm`/`height_mm` değerini
+gerçekçi bir kalem sayısına göre büyütmesi (örn. beklenen maksimum kalem sayısı × ~6mm), bu hem
+editörde hem gerçek render'da daha tutarlı bir başlangıç noktası sağlar.
+
+---
+
+## 2026-08-21 — Büyüyen Kalemler Tablosunun Alttaki Elementlerle Üst Üste Binmesi (Overlap) Düzeltildi
+
+**Bağlam:** Bir önceki düzeltme (`.el-table { height:auto; overflow:visible }`) kalemler tablosunun
+artık taşan satırları kırpmamasını sağladı, ama render motoru **gerçek CSS document flow**
+kullanmıyor — her element (tablo dahil) `layout_json`'da kayıtlı sabit `x_mm`/`y_mm` koordinatına
+`position:absolute` ile oturuyor. Bu yüzden tablo büyüdükçe altında konumlandırılmış hiçbir element
+(ayrı bir toplamlar kutusu, not, imza vb.) aşağı itilmiyordu — kullanıcı bunu tablonun satırlarının
+altındaki toplamlar kutusuyla **üst üste binmesi** olarak gördü ("tabloyu takip etmedi, tablonun
+içinde/üstünde kaldı").
+
+Gerçek bir flexbox/document-flow motoruna geçmek (elementlerin serbest x/y konumlandırma modelini
+bozar) yerine, render zamanında **sunucu tarafında bir "reflow" hesaplaması** eklendi:
+`pdf_service._reflow_elements_below_table()` — kalemler tablosunun gerçek içerik yüksekliğini
+(başlık + `satır_sayısı × row_height_mm` + varsa toplamlar `tfoot`'u) tasarlanan `height_mm` ile
+karşılaştırır; taşma varsa (a) tablonun kendi kutusunu bu yüksekliğe büyütür, (b) tablonun **orijinal**
+alt sınırının aşağısında konumlanmış (yani tasarımda ondan sonra gelmesi amaçlanan) her elementin
+`y_mm`'sini aynı miktarda aşağı kaydırır. Bu, `template.layout_json`'ın bir **derin kopyası**
+üzerinde yapılır — DB'deki kayıtlı şablon hiçbir zaman mutasyona uğramaz, sadece o anki render
+çıktısı etkilenir.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/services/pdf_service.py` | Değiştirme | Yeni `_reflow_elements_below_table(elements, line_items)` fonksiyonu eklendi (`copy.deepcopy` ile şablonu mutasyondan korur). `_render_visual_v2_html`, Jinja'ya artık ham `template.layout_json` yerine bu fonksiyondan dönen reflow edilmiş kopyayı geçiriyor. |
+
+**Doğrulama:** Docker konteyner içinde üç senaryo doğrudan test edildi: (1) 10 kalemli tablo + ayrı
+sabit-konumlu bir toplam metni — toplam metni tablonun yeni alt sınırının hemen altına kaydı, overlap
+kalmadı (tam Jinja render çıktısıyla doğrulandı: tablo 60mm→126mm, toplam kutusu 82mm→128mm'ye
+kaydı). (2) İçerik tasarlanan yüksekliğe sığdığında (2 kalem, 60mm'lik kutu) hiçbir kayma
+olmadığı — gereksiz itme yok. (3) `show_totals=true` olan bir tabloda `tfoot` yüksekliği de taşma
+hesabına dahil edildiği doğrulandı. `docker exec ... python -c "import app.services.pdf_service"` ile
+modül hatasız import edildi.
+
+**Bilinen sınırlama:** Bu itme, yalnızca tablonun **orijinal** alt sınırının aşağısında kalan
+elementleri etkiler; tablonun yanına (aynı y aralığında, farklı x'te) konumlandırılmış elementler
+kasıtlı olarak etkilenmez (örn. tablonun sağında duran ayrı bir logo/not kutusu kaymaz — bu doğru
+davranıştır, çünkü onlar tabloyla aynı satırda tasarlanmıştır). Çok satırlı bir taşmada, tablonun
+tasarlanan kutusundan çok daha uzun olduğu (ör. sayfa sınırını aşan) durumlarda hâlâ bilinen
+"çok sayfalı fatura desteği yok" sınırlaması geçerlidir (bkz. `docs/todo.md`).
+
+---
+
 ## 2026-08-21 — Kalemler Tablosu Sabit Yükseklik Kırpması ve Toplamların Tabloyu Takip Etmemesi Düzeltildi
 
 **Bağlam:** Kullanıcı gerçek fatura render'ında (önizleme + PDF, ikisi de aynı kaynaktan:
