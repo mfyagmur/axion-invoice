@@ -33,6 +33,56 @@ test edecek.
 
 ---
 
+## 2026-08-21 — Fatura Detayına "PDF'i Yeniden Oluştur" Butonu Eklendi
+
+**Bağlam:** Bir önceki tablo satır-yüksekliği düzeltmesi sırasında ortaya çıktı ki PDF dosyaları
+faturada **bir kez** üretilip diskte statik olarak saklanıyor (`generated_pdfs/{id}.pdf`); "İndir"
+butonu her seferinde yeniden render etmiyor, var olan dosyayı gönderiyor. Bu yüzden bir şablon
+sonradan düzeltilse/güncellense bile, o şablonu kullanan **mevcut** faturaların PDF'i otomatik
+güncellenmiyor — kullanıcı bunu güncellemenin bir yolu olmadığını fark etti. İnceleme sonucu
+backend'de `POST /invoices/{id}/retry-pdf` endpoint'i ve frontend'de `useRetryInvoicePdf` hook'u
+zaten mevcuttu ama hiçbir UI butonuna bağlı değildi — `i18n`'de de `pdfFailed`/`retryPdf` anahtarları
+tanımlı ama hiç render edilmiyordu. Kullanıcı onayıyla bu eksik uçtan uca tamamlandı.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoices/components/InvoiceActionHeader.tsx` | Değiştirme | "Önizle"/"İndir" butonlarının arasına `RefreshCw` ikonlu bir buton eklendi; `useRetryInvoicePdf` (var olan hook) ile `POST /invoices/{id}/retry-pdf`'i tetikliyor. Buton, `pdf_status === 'pending'` veya mutation `isPending` iken devre dışı kalıp ikonu döndürüyor ve etiketi `pdfRegenerating`'e çeviriyor; `pdf_status === 'failed'` iken etiket/başlık `retryPdf` ("Tekrar Dene"), aksi halde `regeneratePdf` ("PDF'i Yeniden Oluştur") oluyor. Yanına, ne işe yaradığını açıklayan (`regeneratePdfHint`) mevcut paylaşılan `InfoTooltip` bileşeni eklendi. Fatura numarasının altına, `pdf_status === 'failed'` olduğunda daha önce hiç gösterilmeyen `pdfFailed` ("PDF üretilemedi.") uyarısı eklendi. `useInvoice.ts`'teki mevcut `refetchInterval` (`pdf_status === 'pending'` iken 2 sn'de bir) zaten var olduğu için, mutation `onSuccess`'te durumu `pending`'e çevirince UI otomatik olarak Celery işi bitene kadar polling yapıp `ready` olunca butonu tekrar aktif ediyor — ek bir polling mantığı yazılmadı. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Değiştirme | Yeni anahtarlar: `invoices.detail.regeneratePdf`, `invoices.detail.regeneratePdfHint`, `invoices.detail.pdfRegenerating`. Var olan `pdfFailed`/`retryPdf` anahtarları ilk defa gerçekten kullanılır hale geldi. |
+
+**Not:** `retry-pdf` endpoint'i backend'de `require_not_demo` ile korunuyor (demo kullanıcı için
+403 döner) — bu, uygulamadaki diğer yazma-işlemi endpoint'leriyle (`send-email`,
+`payment-reminder/*` vb.) aynı, mevcut ve önceden de frontend'de özel olarak ele alınmayan bir
+davranış; bu değişiklik kapsamında yeni bir demo-mod kontrolü eklenmedi, tutarlılık korundu.
+
+**Doğrulama:** `npx tsc --noEmit` ve `npx eslint` (değiştirilen dosya için) hatasız geçti.
+
+---
+
+## 2026-08-21 — Tablo Elemanında Az Kalemli Faturalarda Satır Yüksekliği Esneme Hatası
+
+**Bağlam:** Kullanıcı, `InvoiceTableElement`'in (fatura kalem tablosu) az sayıda kalemli
+faturalarda (örn. 3 kalem) şablonda ayarlanan `row_height_mm` değerinden çok daha büyük satır
+aralıklarıyla render edildiğini bildirdi. Kök neden `backend/app/templates_html/
+template_designer_base.html`'deki `.el-table table { height: 100%; }` kuralıydı: tablo,
+`.el` konteynerinin (canvas'ta ayarlanan sabit `height_mm`) tamamını doldurmaya zorlanıyordu;
+kalem sayısı azken toplam satır yüksekliği konteyner yüksekliğinden az kalıyor ve tarayıcı/
+Playwright bu farkı satırlara **eşit dağıtarak** her satırı `row_height_mm`'den büyük gösteriyordu
+— yani gerçek fatura sayısı arttıkça/azaldıkça satır yüksekliği değişiyordu, ki bu tam olarak
+"editörde ayarlanan satır yüksekliği fatura çıktısında sabit kalmalı" beklentisini bozuyordu.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/templates_html/template_designer_base.html` | Değiştirme | `.el-table table` kuralında `height: 100%` → `height: auto` yapıldı. Böylece tablo, `.el` konteynerinin tamamını değil sadece header + gerçek satır sayısı × `row_height_mm` kadar yer kaplıyor; kalan boşluk (varsa) konteynerin altında boş kalıyor, satırlara dağıtılmıyor. `table-layout: fixed` korunduğu için sütun genişlikleri (`colgroup`) etkilenmedi. Çok kalemli faturalarda (mevcut sabit A4 sayfası + `overflow:hidden` sınırlaması, bkz. `docs/todo.md` çok sayfalı fatura maddesi) davranış değişmedi — taşan kısım önceden olduğu gibi kesiliyor. |
+| `frontend/src/features/invoice-editor/components/A4Canvas/CanvasElement.tsx` | Değiştirme | Editördeki tablo elemanı mockup'ı (`case 'table':`, kullanıcının işaret ettiği satırlar) `h-full` tek blok konteynerden `flex flex-col` yapısına çevrildi; header ve yer tutucu metin `shrink-0` ile doğal yüksekliklerinde sabitlendi, en alta kullanıcının istediği gibi `flex-1` bir boşluk doldurucu (spacer) `div` eklendi. Editördeki tablo önizlemesi gerçek kalemleri değil sabit bir yer tutucu metni gösterdiği için görsel olarak önceden de "esneme" belirtisi yoktu, ama yapı artık backend'deki gerçek düzeltmeyle aynı mantığı (sabit üst içerik + esneyen alt boşluk) izliyor — ileride editöre gerçek kalem satırları eklenirse aynı hatayı tekrar üretmeyecek. |
+
+**Doğrulama:** `npx tsc --noEmit` ve `npx eslint` (değiştirilen dosya için) hatasız geçti. Backend
+tarafında bu HTML'i doğrudan assert eden bir test yok (`backend/tests` içinde arama yapıldı,
+eşleşme çıkmadı), bu yüzden `pytest` regresyon riski taşımıyor. Gerçek tarayıcıda az kalemli bir
+faturanın PDF/önizlemesinin artık sabit `row_height_mm` ile render edildiğinin görsel teyidi bu
+ortamda yapılamadı — kullanıcı kendisi test edecek.
+
+---
+
 ## 2026-08-21 — Fatura Önizleme, PDF ile Aynı Renderer'a Bağlandı
 
 **Bağlam:** Kullanıcı, A4 Şablon Editörü'nde (`dashboard/templates/:id/edit`) tasarlanan

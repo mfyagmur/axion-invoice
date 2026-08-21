@@ -87,15 +87,16 @@ function ElementContent({ element }: { element: CanvasElementData }) {
       )
     case 'table':
       return (
-        <div className="h-full w-full overflow-hidden border border-slate-300 bg-white">
-          <div className="flex" style={{ backgroundColor: element.header_bg_color, color: element.header_text_color, fontSize: `${element.header_font_size}pt` }}>
+        <div className="flex h-full w-full flex-col overflow-hidden border border-slate-300 bg-white">
+          <div className="flex shrink-0" style={{ backgroundColor: element.header_bg_color, color: element.header_text_color, fontSize: `${element.header_font_size}pt` }}>
             {element.columns.filter((c) => c.visible).map((c) => (
               <div key={c.key} className="truncate border-r border-slate-200 px-1 py-0.5 last:border-r-0" style={{ flexBasis: `${c.width_mm}mm`, textAlign: c.align }}>
                 {c.label || c.key}
               </div>
             ))}
           </div>
-          <div className="px-1 py-2 text-center text-[7pt] text-slate-400">Kalemler (fatura oluşturulunca doldurulur)</div>
+          <div className="shrink-0 px-1 py-2 text-center text-[7pt] text-slate-400">Kalemler (fatura oluşturulunca doldurulur)</div>
+          <div className="flex-1" />
         </div>
       )
   }
