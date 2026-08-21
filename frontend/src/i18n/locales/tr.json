@@ -289,6 +289,8 @@
     "actions": {
       "save": "Kaydet",
       "templateName": "Şablon Adı",
+      "savedIndicator": "Kaydedildi",
+      "savedToast": "Şablon başarıyla kaydedildi",
       "untitled": "İsimsiz Şablon",
       "orientation": "Yön",
       "orientation_portrait": "Dikey",
@@ -656,9 +658,13 @@
     "preferences": {
       "notifications": "Bildirim Tercihleri",
       "invoiceReminders": "Fatura hatırlatıcı bildirimleri",
+      "durations": "Süreler",
       "sessionTimeout": "Oturum Açık Kalma Süresi",
       "sessionTimeoutHint": "Bu süre boyunca işlem yapılmazsa otomatik olarak çıkış yapılır.",
-      "sessionTimeoutOption": "{{count}} dakika"
+      "sessionTimeoutOption": "{{count}} dakika",
+      "autosaveInterval": "Şablon Otomatik Kaydetme Süresi",
+      "autosaveIntervalHint": "Şablon tasarımcısında değişiklikler bu süre aralığında otomatik olarak kaydedilir.",
+      "autosaveIntervalOption": "{{count}} dakika"
     },
     "security": {
       "changePassword": "Şifreyi Değiştir",

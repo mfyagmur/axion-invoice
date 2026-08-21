@@ -28,12 +28,14 @@ import { PropertiesPanel } from '@/features/invoice-editor/components/Properties
 import { createDefaultElement, generateElementId } from '@/features/invoice-editor/constants/elementDefaults'
 import type { PaletteDragData } from '@/features/invoice-editor/dndTypes'
 import { getTemplateErrorKey } from '@/features/invoice-editor/getTemplateErrorKey'
+import { useAutoSaveTemplate } from '@/features/invoice-editor/hooks/useAutoSaveTemplate'
 import { useCreateTemplate } from '@/features/invoice-editor/hooks/useCreateTemplate'
 import { useKeyboardShortcuts } from '@/features/invoice-editor/hooks/useKeyboardShortcuts'
 import { useTemplate } from '@/features/invoice-editor/hooks/useTemplate'
 import { useUpdateTemplate } from '@/features/invoice-editor/hooks/useUpdateTemplate'
 import { useEditorStore } from '@/features/invoice-editor/store/editorStore'
 import type { CanvasElementData, DynamicFieldElement } from '@/features/invoice-editor/types/element'
+import { useAuthStore } from '@/store/authStore'
 import type { FieldType } from '@/types/template'
 
 interface PendingCustomDrop {
@@ -90,28 +92,71 @@ export function TemplateEditorPage() {
 
   const createTemplate = useCreateTemplate()
   const updateTemplate = useUpdateTemplate(id ?? '')
+  const autoSaveTemplate = useAutoSaveTemplate()
+  const autosaveIntervalMinutes = useAuthStore((state) => state.user?.template_autosave_interval_minutes ?? 5)
 
   const isOwnedExisting = !!id && !isFromSystemTemplate
   const isSaving = createTemplate.isPending || updateTemplate.isPending
   const saveError = createTemplate.error ?? updateTemplate.error
 
-  function handleSave() {
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
+  const lastSavedPayloadRef = useRef<string | null>(null)
+
+  function buildSavePayload() {
     const dynamicFieldKeys = new Set(elements.filter((el) => el.type === 'dynamic-field').map((el) => (el as DynamicFieldElement).field_key))
     const fields = Object.fromEntries(Object.entries(fieldMeta).filter(([key]) => dynamicFieldKeys.has(key)))
 
-    const payload = {
+    return {
       name: name || t('editor.actions.untitled'),
       page_size: pageSize,
       orientation,
       layout_json: elements,
       fields,
     }
+  }
+
+  function handleSave() {
+    const payload = buildSavePayload()
+    const serialized = JSON.stringify(payload)
+    const onSuccess = () => {
+      lastSavedPayloadRef.current = serialized
+      setLastSavedAt(Date.now())
+    }
     if (isOwnedExisting && id) {
-      updateTemplate.mutate(payload)
+      updateTemplate.mutate(payload, { onSuccess })
     } else {
-      createTemplate.mutate(payload)
+      createTemplate.mutate(payload, { onSuccess })
     }
   }
+
+  const latestSaveContextRef = useRef({ id, isOwnedExisting, buildSavePayload })
+  useEffect(() => {
+    latestSaveContextRef.current = { id, isOwnedExisting, buildSavePayload }
+  })
+
+  useEffect(() => {
+    if (isPreview || isTemplateLoading) return
+
+    const intervalMs = autosaveIntervalMinutes * 60 * 1000
+    const timer = window.setInterval(() => {
+      const { id: currentId, isOwnedExisting: currentIsOwnedExisting, buildSavePayload: currentBuildSavePayload } = latestSaveContextRef.current
+      const payload = currentBuildSavePayload()
+      const serialized = JSON.stringify(payload)
+      if (serialized === lastSavedPayloadRef.current) return
+
+      autoSaveTemplate.mutate(
+        { id: currentId, isOwnedExisting: currentIsOwnedExisting, payload },
+        {
+          onSuccess: () => {
+            lastSavedPayloadRef.current = serialized
+            setLastSavedAt(Date.now())
+          },
+        },
+      )
+    }, intervalMs)
+
+    return () => window.clearInterval(timer)
+  }, [autosaveIntervalMinutes, isPreview, isTemplateLoading])
 
   function elementsToMove(draggedId: string): string[] {
     return selectedIds.includes(draggedId) ? selectedIds : [draggedId]
@@ -286,6 +331,7 @@ export function TemplateEditorPage() {
         onNameChange={setName}
         onSave={handleSave}
         isSaving={isSaving}
+        lastSavedAt={lastSavedAt}
         zoom={zoom}
         onZoomChange={setZoom}
         orientation={orientation}

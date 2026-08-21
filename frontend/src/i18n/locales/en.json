@@ -289,6 +289,8 @@
     "actions": {
       "save": "Save",
       "templateName": "Template Name",
+      "savedIndicator": "Saved",
+      "savedToast": "Template saved successfully",
       "untitled": "Untitled Template",
       "orientation": "Orientation",
       "orientation_portrait": "Portrait",
@@ -656,9 +658,13 @@
     "preferences": {
       "notifications": "Notification Preferences",
       "invoiceReminders": "Invoice reminder notifications",
+      "durations": "Durations",
       "sessionTimeout": "Session Timeout",
       "sessionTimeoutHint": "You'll be automatically logged out after this many minutes of inactivity.",
-      "sessionTimeoutOption": "{{count}} minutes"
+      "sessionTimeoutOption": "{{count}} minutes",
+      "autosaveInterval": "Template Auto-Save Interval",
+      "autosaveIntervalHint": "Changes in the template designer are automatically saved at this interval.",
+      "autosaveIntervalOption": "{{count}} minutes"
     },
     "security": {
       "changePassword": "Change Password",

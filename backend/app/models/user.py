@@ -41,6 +41,7 @@ class User(Base):
     locale: Mapped[str] = mapped_column(String(5), nullable=False, default="tr")
     notify_invoice_reminders: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     session_timeout_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
+    template_autosave_interval_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     default_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="TRY")
     date_format: Mapped[str] = mapped_column(String(20), nullable=False, default="DD.MM.YYYY")
     tax_year_start_month: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

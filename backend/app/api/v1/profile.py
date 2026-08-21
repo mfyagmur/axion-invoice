@@ -152,6 +152,8 @@ def update_preferences(
         current_user.notify_invoice_reminders = payload.notify_invoice_reminders
     if payload.session_timeout_minutes is not None:
         current_user.session_timeout_minutes = payload.session_timeout_minutes
+    if payload.template_autosave_interval_minutes is not None:
+        current_user.template_autosave_interval_minutes = payload.template_autosave_interval_minutes
     db.commit()
     db.refresh(current_user)
     return current_user

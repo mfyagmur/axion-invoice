@@ -6,6 +6,56 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — Manuel Kaydet: Editörden Çıkmama + Toast Bildirimi
+
+**Bağlam:** `dashboard/templates/new` ve `dashboard/templates/:id/edit` sayfalarındaki "Kaydet"
+butonu, başarılı kayıttan sonra kullanıcıyı şablon listesine (`/dashboard/templates`)
+yönlendiriyordu. Kullanıcı, manuel kaydetmenin de otomatik kaydetme gibi kullanıcıyı editörde
+tutmasını ve başarılı kayıtta bir toast bildirimi göstermesini istedi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoice-editor/hooks/useCreateTemplate.ts` | Değiştirme | `navigate('/dashboard/templates')` yerine `navigate(`/dashboard/templates/${data.id}/edit`, { replace: true })` — autosave hook'undaki gibi kullanıcı editörde kalır, URL gerçek id'ye güncellenir. Başarıda `useToastStore.push(t('editor.actions.savedToast'), 'success')` eklendi. |
+| `frontend/src/features/invoice-editor/hooks/useUpdateTemplate.ts` | Değiştirme | Navigasyon çağrısı tamamen kaldırıldı (kullanıcı zaten `/edit/:id`'de). Aynı toast eklendi. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Ekleme | `editor.actions.savedToast` anahtarı: "Şablon başarıyla kaydedildi" / "Template saved successfully". |
+
+**Doğrulama:** `npx tsc --noEmit` hatasız geçti. `useCreateTemplate`/`useUpdateTemplate`'in yalnızca
+`TemplateEditorPage.tsx` içinde kullanıldığı grep ile doğrulandı, başka hiçbir akışı etkilemiyor.
+Gerçek tarayıcıda kayıt sonrası editörde kalındığı ve toast'ın göründüğü teyidi `docs/todo.md` §0
+kapsamındaki genel görsel doğrulama borcuna dahil (ayrı bir madde açılmadı).
+
+---
+
+## 2026-08-21 — Şablon Otomatik Kaydetme + Tercihler Sekmesi Kartlaşması
+
+**Bağlam:** Şablon tasarımcısında yapılan değişiklikler, bağlantı kopması veya unutma durumunda
+kaybolabiliyordu. Kullanıcı, kaydetme süresinin `dashboard/settings?tab=preferences` üzerinden
+seçilebildiği bir otomatik kaydetme özelliği istedi; otomatik kayıt olduğunda şablon adının
+yanında görünür bir "Kaydedildi" göstergesi talep etti. Ayrıca Tercihler sekmesinin düz form
+yerine "Bildirim Tercihleri" ve "Süreler" olmak üzere iki ayrı karta bölünmesini istedi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/models/user.py` | Ekleme | `template_autosave_interval_minutes` (Integer, default 5) sütunu eklendi. |
+| `backend/alembic/versions/a1b2c3d4e5f6_...py` | Ekleme | Yeni migration (`down_revision='f0a1b2c3d4e5'`, mevcut head), yukarıdaki sütunu ekliyor. |
+| `backend/app/schemas/auth.py` | Değiştirme | `UserResponse`'a alan eklendi; `PreferencesUpdatePayload`'a `Literal[1,3,5,10,15,20,25,30] \| None` olarak eklendi (session_timeout'un aksine 5'in katı değil, sabit bir set). |
+| `backend/app/api/v1/profile.py` | Değiştirme | `update_preferences` içine yeni alanı işleyen satır eklendi. |
+| `frontend/src/types/auth.ts` | Değiştirme | `User` ve `PreferencesUpdatePayload`'a `template_autosave_interval_minutes` eklendi. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Ekleme | `settings.preferences.durations/autosaveInterval/autosaveIntervalHint/autosaveIntervalOption` ve `editor.actions.savedIndicator` anahtarları. |
+| `frontend/src/pages/dashboard/settings/PreferencesTab.tsx` | Değiştirme | Düz `<form>` içindeki iki `<div>` bölüm, mevcut paylaşılan `Card` bileşenine taşındı (Bildirim Tercihleri / Süreler); oturum süresi native `<select>`'ten mevcut paylaşılan `Select` bileşenine taşındı, yanına yeni "Şablon Otomatik Kaydetme Süresi" `Select`'i eklendi. |
+| `frontend/src/features/invoice-editor/hooks/useAutoSaveTemplate.ts` | Ekleme | Mevcut `useCreateTemplate`/`useUpdateTemplate`'in aksine başarı sonrası **navigate etmeyen** sessiz kayıt mutation'ı; yeni şablon ilk otomatik kayıtta oluşturulursa dönen `id` ile URL `replace: true` ile `/edit/:id`'ye güncelleniyor (kullanıcı editörden atılmıyor). |
+| `frontend/src/pages/dashboard/TemplateEditorPage.tsx` | Değiştirme | `template_autosave_interval_minutes`'e göre kurulan `setInterval`; son kaydedilen payload'ın `JSON.stringify`'ı bir ref'te tutulup değişiklik yoksa otomatik kayıt atlanıyor (gereksiz istek yok); stale-closure sorununu önlemek için en güncel id/isOwnedExisting/payload-builder bir ref üzerinden interval callback'ine veriliyor; `lastSavedAt` state'i `EditorToolbar`'a geçiliyor. |
+| `frontend/src/features/invoice-editor/components/EditorToolbar.tsx` | Değiştirme | `lastSavedAt` prop'u eklendi; şablon adı input'unun yanında, her kayıttan sonra 2.5 saniyeliğine beliren yeşil "Kaydedildi ✓" göstergesi (Tailwind `transition-opacity`, ekstra bağımlılık yok). |
+
+**Doğrulama:** `npx tsc --noEmit` ve backend dosyalarının `py_compile` kontrolü hatasız geçti.
+Yeni migration bu oturumda `alembic upgrade head` ile gerçek DB'ye uygulanmadı — bu ortamda
+çalışan bir Python venv/DB bağlantısı yoktu (bkz. `docs/LOCAL_DEV_SETUP.md`); kullanıcının kendi
+dev ortamında `alembic upgrade head` çalıştırması gerekiyor. Gerçek tarayıcıda otomatik kaydın
+tetiklenmesi, "Kaydedildi" göstergesinin görünürlüğü ve Tercihler sekmesindeki yeni kartların
+görsel teyidi, mevcut genel tarayıcı-doğrulama borcuyla aynı kapsamda (`docs/todo.md` §0).
+
+---
+
 ## 2026-08-21 — A4 Şablon Tasarımcısı Sağ Panele Sticky Scroll + Modern Scrollbar
 
 **Bağlam:** Editörün sol paneli (`ElementPanel`, element paleti) `position: sticky` ile ekranda

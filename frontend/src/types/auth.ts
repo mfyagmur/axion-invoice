@@ -22,6 +22,7 @@ export interface User {
   locale: Locale
   notify_invoice_reminders: boolean
   session_timeout_minutes: number
+  template_autosave_interval_minutes: number
   default_currency: string
   date_format: string
   tax_year_start_month: number
@@ -80,6 +81,7 @@ export interface PreferencesUpdatePayload {
   profession?: string | null
   notify_invoice_reminders?: boolean
   session_timeout_minutes?: number
+  template_autosave_interval_minutes?: number
 }
 
 export interface CompanySettingsUpdatePayload {

@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
 
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.user import AccountType
@@ -50,6 +52,7 @@ class UserResponse(BaseModel):
     locale: str
     notify_invoice_reminders: bool
     session_timeout_minutes: int
+    template_autosave_interval_minutes: int
     default_currency: str
     date_format: str
     tax_year_start_month: int
@@ -87,6 +90,7 @@ class PreferencesUpdatePayload(BaseModel):
     profession: str | None = Field(default=None, max_length=255)
     notify_invoice_reminders: bool | None = None
     session_timeout_minutes: int | None = Field(default=None, ge=5, le=30, multiple_of=5)
+    template_autosave_interval_minutes: Literal[1, 3, 5, 10, 15, 20, 25, 30] | None = None
 
 
 class CompanySettingsUpdatePayload(BaseModel):

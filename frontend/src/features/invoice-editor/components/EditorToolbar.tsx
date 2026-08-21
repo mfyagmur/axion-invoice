@@ -1,4 +1,5 @@
-import { Eye, Pencil, Redo2, RotateCcw, Undo2 } from 'lucide-react'
+import { Check, Eye, Pencil, Redo2, RotateCcw, Undo2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '@/components/Button'
@@ -11,6 +12,7 @@ interface EditorToolbarProps {
   onNameChange: (name: string) => void
   onSave: () => void
   isSaving: boolean
+  lastSavedAt: number | null
   zoom: number
   onZoomChange: (zoom: number) => void
   orientation: Orientation
@@ -28,6 +30,7 @@ export function EditorToolbar({
   onNameChange,
   onSave,
   isSaving,
+  lastSavedAt,
   zoom,
   onZoomChange,
   orientation,
@@ -40,10 +43,29 @@ export function EditorToolbar({
   onTogglePreview,
 }: EditorToolbarProps) {
   const { t } = useTranslation()
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false)
+
+  useEffect(() => {
+    if (lastSavedAt === null) return
+    setShowSavedIndicator(true)
+    const timeout = window.setTimeout(() => setShowSavedIndicator(false), 2500)
+    return () => window.clearTimeout(timeout)
+  }, [lastSavedAt])
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 shadow-sm">
-      <Input label={t('editor.actions.templateName')} hideLabel value={name} onChange={(e) => onNameChange(e.target.value)} className="max-w-xs" placeholder={t('editor.actions.templateName')} />
+      <div className="flex items-center gap-2">
+        <Input label={t('editor.actions.templateName')} hideLabel value={name} onChange={(e) => onNameChange(e.target.value)} className="max-w-xs" placeholder={t('editor.actions.templateName')} />
+        <span
+          className={twMerge(
+            'flex items-center gap-1 text-xs font-medium text-emerald-600 transition-opacity duration-500',
+            showSavedIndicator ? 'opacity-100' : 'opacity-0',
+          )}
+        >
+          <Check size={14} />
+          {t('editor.actions.savedIndicator')}
+        </span>
+      </div>
 
       <div className="flex items-center gap-2">
         <button type="button" onClick={onUndo} disabled={!canUndo} className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-30" title="Ctrl+Z">
