@@ -13,8 +13,11 @@
     color: #1a1a1a;
   }
   .el { position: absolute; box-sizing: border-box; overflow: hidden; }
+  .el-table { height: auto !important; overflow: visible !important; }
   .el-table table { width: 100%; height: auto; border-collapse: collapse; table-layout: fixed; }
   .el-table th, .el-table td { padding: 1mm 1.5mm; overflow-wrap: break-word; }
+  .el-table tfoot td { padding: 1mm 1.5mm; }
+  .el-table tfoot tr.grand-total td { font-weight: bold; }
   .el-signature { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
   .el-signature .sig-line { width: 100%; border-top: 0.3mm solid #333; margin-bottom: 1mm; }
   .watermark {
@@ -93,15 +96,16 @@
         <div style="font-size:{{ element.font_size }}pt; text-align:{{ element.text_align }}; color:{{ element.color }}; white-space: pre-wrap;">{{ resolved_text.get(element.id, '') }}</div>
 
       {% elif element.type == 'table' %}
+        {% set visible_columns = element.columns | selectattr('visible') | list %}
         <table style="font-size:{{ element.row_font_size }}pt;">
           <colgroup>
-            {% for column in element.columns if column.visible %}
+            {% for column in visible_columns %}
             <col style="width:{{ column.width_mm }}mm">
             {% endfor %}
           </colgroup>
           <thead>
             <tr style="background-color:{{ element.header_bg_color }}; color:{{ element.header_text_color }}; font-size:{{ element.header_font_size }}pt;">
-              {% for column in element.columns if column.visible %}
+              {% for column in visible_columns %}
               <th style="text-align:{{ column.align }}; border-bottom:{{ element.border_width }}mm solid {{ element.border_color }};">{{ column.label }}</th>
               {% endfor %}
             </tr>
@@ -109,12 +113,28 @@
           <tbody>
             {% for row in line_items %}
             <tr style="height:{{ element.row_height_mm }}mm; {% if element.zebra_striping and loop.index0 % 2 == 1 %}background-color:#f8fafc;{% endif %}">
-              {% for column in element.columns if column.visible %}
+              {% for column in visible_columns %}
               <td style="text-align:{{ column.align }}; border-bottom:{{ element.border_width }}mm solid {{ element.border_color }};">{{ row.get(column.key, '') }}</td>
               {% endfor %}
             </tr>
             {% endfor %}
           </tbody>
+          {% if element.show_totals %}
+          <tfoot>
+            <tr>
+              <td colspan="{{ [visible_columns | length - 1, 1] | max }}" style="text-align:right;">Ara Toplam</td>
+              <td style="text-align:right;">{{ totals.subtotal }} {{ totals.currency }}</td>
+            </tr>
+            <tr>
+              <td colspan="{{ [visible_columns | length - 1, 1] | max }}" style="text-align:right;">KDV</td>
+              <td style="text-align:right;">{{ totals.tax_total }} {{ totals.currency }}</td>
+            </tr>
+            <tr class="grand-total" style="background-color:{{ element.header_bg_color }};">
+              <td colspan="{{ [visible_columns | length - 1, 1] | max }}" style="text-align:right;">Genel Toplam</td>
+              <td style="text-align:right;">{{ totals.grand_total }} {{ totals.currency }}</td>
+            </tr>
+          </tfoot>
+          {% endif %}
         </table>
       {% endif %}
     </div>

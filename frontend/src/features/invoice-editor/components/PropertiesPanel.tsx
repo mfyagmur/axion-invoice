@@ -266,6 +266,10 @@ export function PropertiesPanel() {
             <input type="checkbox" checked={element.zebra_striping} onChange={(e) => set({ zebra_striping: e.target.checked })} />
             {t('editor.table.zebraStriping')}
           </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={element.show_totals} onChange={(e) => set({ show_totals: e.target.checked })} />
+            {t('editor.table.showTotals')}
+          </label>
         </>
       )}
     </div>

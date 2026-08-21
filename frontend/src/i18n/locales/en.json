@@ -255,7 +255,8 @@
       "headerBg": "Header Background",
       "borderColor": "Border Color",
       "rowHeight": "Row Height",
-      "zebraStriping": "Zebra Striping"
+      "zebraStriping": "Zebra Striping",
+      "showTotals": "Add Totals to Table"
     },
     "tableColumn": {
       "item_code": "Item Code",

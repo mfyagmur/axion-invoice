@@ -255,7 +255,8 @@
       "headerBg": "Başlık Arkaplanı",
       "borderColor": "Kenarlık Rengi",
       "rowHeight": "Satır Yüksekliği",
-      "zebraStriping": "Zebra Deseni"
+      "zebraStriping": "Zebra Deseni",
+      "showTotals": "Toplamları Tabloya Ekle"
     },
     "tableColumn": {
       "item_code": "Ürün Kodu",

@@ -7,6 +7,19 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
+### Kalemler Tablosunda Toplamlar — Eski Şablonların Elle Geçişi
+**Dosya:** `frontend/src/features/invoice-editor/components/PropertiesPanel.tsx`, şablon editörü
+**Durum:** Ertelendi (bilinçli tasarım kararı) — eklendi 2026-08-21
+**Bağlam:** 2026-08-21'de kalemler tablosuna, satır sayısı ne olursa olsun tabloyu garantili takip
+eden opsiyonel bir toplamlar `<tfoot>`'u eklendi (`show_totals` alanı, bkz.
+`docs/PROJECT_DESING.md` § "Kalemler Tablosu Sabit Yükseklik Kırpması..."). Bu özellik varsayılan
+kapalı — mevcut, toplamları ayrı elle konumlandırılmış `dynamic-field` kutularıyla tasarlanmış
+şablonlar hiç değişmeden çalışmaya devam ediyor. Otomatik geçiş yapılmadı çünkü hangi metin
+elementinin "toplam" temsil ettiğini güvenli biçimde tespit etmek mümkün değil. Kullanıcı isterse
+şablon editöründe tabloyu seçip yeni "Toplamları Tabloya Ekle" toggle'ını açabilir ve eski ayrı
+toplam kutularını elle silip/gizleyebilir.
+**Sıra:** Düşük
+
 ### Fatura Önizleme — Çok Sayfalı Fatura Desteği
 **Dosya:** `backend/app/templates_html/template_designer_base.html`, `invoice_base.html`,
 `backend/app/services/pdf_service.py`

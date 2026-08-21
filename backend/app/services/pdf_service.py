@@ -148,7 +148,7 @@ def _qr_data_uri(value: str) -> str | None:
 
 
 def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
-    _, line_items, _ = _collect_render_data(invoice)
+    _, line_items, totals = _collect_render_data(invoice)
 
     resolved_text: dict[str, str] = {}
     for element in template.layout_json:
@@ -186,6 +186,7 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
         elements=template.layout_json,
         resolved_text=resolved_text,
         line_items=line_items,
+        totals=totals,
         logo_data_uri=_logo_data_uri(invoice),
         page_width_mm=page_width_mm,
         page_height_mm=page_height_mm,

@@ -42,6 +42,7 @@ export function createDefaultElement(type: ElementType, x_mm: number, y_mm: numb
         header_font_size: 8, header_bg_color: '#f1f5f9', header_text_color: '#1a1a1a',
         row_font_size: 8, row_height_mm: 6, border_color: '#cccccc', border_width: 0.2,
         zebra_striping: false, currency_format: '#,##0.00', number_format: '#,##0.##',
+        show_totals: false,
       }
     case 'bank-account':
       return { id, type, x_mm, y_mm, width_mm: 60, height_mm: 16, ...BASE, z_index: zIndex, slot: 1, font_size: 8, text_align: 'left', color: '#1a1a1a' }

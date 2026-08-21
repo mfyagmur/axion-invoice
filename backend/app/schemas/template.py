@@ -132,6 +132,7 @@ class InvoiceTableElement(BaseElement):
     zebra_striping: bool = False
     currency_format: str = "#,##0.00"
     number_format: str = "#,##0.##"
+    show_totals: bool = False
 
 
 class BankAccountElement(BaseElement):

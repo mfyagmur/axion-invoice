@@ -6,6 +6,43 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — Kalemler Tablosu Sabit Yükseklik Kırpması ve Toplamların Tabloyu Takip Etmemesi Düzeltildi
+
+**Bağlam:** Kullanıcı gerçek fatura render'ında (önizleme + PDF, ikisi de aynı kaynaktan:
+`pdf_service.render_invoice_html` → `template_designer_base.html`) iki hata bildirdi: (1) 10 kalemli
+bir faturada sadece 1 kalem görünüyordu, (2) Toplamlar (Ara Toplam/KDV/Genel Toplam) alanı, tablo
+satır sayısına göre büyüyen kalemler tablosunu takip etmiyordu. Kod incelemesi ile satır sayısını
+sınırlayan bir backend hatası olmadığı kanıtlandı (`{% for row in line_items %}` tüm kalemleri
+basıyordu) — asıl sebep, her element gibi tablo kutusunun da JSON'da kayıtlı **sabit**
+`height_mm` + `.el { overflow:hidden }` ile çizilmesiydi: az kalemli bir test faturası için
+tasarlanan tablo yüksekliği, 10 kalem eklenince taşan satırları görsel olarak kesiyordu. Toplamlar
+ise ayrı, elle konumlandırılmış `dynamic-field` elementleri olduğu için tabloya hiç bağlı değildi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/schemas/template.py` | Değiştirme | `InvoiceTableElement`'a geriye dönük uyumlu (varsayılan `False`) yeni alan: `show_totals: bool`. |
+| `backend/app/templates_html/template_designer_base.html` | Değiştirme | `.el-table` için `.el`'in genel sabit `height`/`overflow:hidden` kuralını geçersiz kılan `height:auto !important; overflow:visible !important;` eklendi — tablo artık kaç satır varsa o kadar yer kaplıyor, hiçbir satır kesilmiyor. `show_totals=true` olduğunda `</tbody>` altına, `totals` context'inden (`subtotal`/`tax_total`/`grand_total`) 3 satırlık bir `<tfoot>` eklendi (Genel Toplam kalın) — bu satırlar aynı `<table>` içinde olduğu için HTML akışı sayesinde tablo kaç satıra çıkarsa çıksın **garantili** olarak hemen altında kalıyor. |
+| `backend/app/services/pdf_service.py` | Değiştirme | `_render_visual_v2_html`, zaten hesaplanan `totals` dict'ini (`_collect_render_data` dönüşü) artık Jinja context'ine `totals=totals` olarak geçiriyor (önceden `_` ile atılıyordu, template'e hiç ulaşmıyordu). |
+| `frontend/src/features/invoice-editor/types/element.ts`, `constants/elementDefaults.ts` | Değiştirme | `InvoiceTableElement` tipine ve yeni tablo elemanı varsayılanına `show_totals: false` eklendi — mevcut şablonlar davranış değişikliği görmez (opt-in). |
+| `frontend/src/features/invoice-editor/components/PropertiesPanel.tsx` | Değiştirme | Tablo elemanı özelliklerine "Toplamları Tabloya Ekle" checkbox'ı eklendi (`zebra_striping` checkbox'ıyla birebir aynı pattern). |
+| `frontend/src/features/invoice-editor/components/A4Canvas/CanvasElement.tsx` | Değiştirme | Editördeki statik tablo placeholder'ına, `show_totals` açıkken gerçek `tfoot`'u temsilen kozmetik bir 3 satırlık önizleme (Ara Toplam/KDV/Genel Toplam) eklendi — WYSIWYG tutarlılığı için, gerçek render mantığını etkilemiyor. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Değiştirme | Yeni anahtar: `editor.table.showTotals`. |
+
+**Not:** Mevcut, toplamları ayrı `dynamic-field` kutularıyla tasarlanmış şablonlar hiçbir değişiklik
+görmeden çalışmaya devam eder (`show_totals` varsayılan `false`, Jinja'da tanımsız anahtar `False`
+olarak değerlendirilir — Docker konteyner içinde eski formatlı bir element dict'iyle test edilip
+doğrulandı). Bu geçiş otomatik yapılmaz — kullanıcı isterse şablon editöründe tabloyu seçip yeni
+toggle'ı açıp eski ayrı toplam kutularını elle silebilir; bkz. `docs/todo.md`.
+
+**Doğrulama:** `npx tsc --noEmit` ve değişen dosyalar için `npx eslint` hatasız geçti. Backend
+tarafında Docker konteyner içinde Jinja template'i doğrudan render edip 10 kalemli sahte veriyle
+`<tbody>` içinde 10 `<tr>` üretildiği, `show_totals=true` iken `<tfoot>` ve Genel Toplam değerinin
+çıktıda yer aldığı, `show_totals` alanı hiç olmayan eski formatlı bir element dict'iyle de hatasız
+render edilip `<tfoot>` üretilmediği doğrulandı. Gerçek tarayıcıda görsel teyit bu ortamda
+yapılamadı — kullanıcı kendisi test edecek.
+
+---
+
 ## 2026-08-21 — A4 Şablon Editörü ↔ Gerçek Render Tutarsızlıkları Düzeltildi
 
 **Bağlam:** Kullanıcı, bir önceki oturumda eklenen fatura önizleme özelliğini ve şablon

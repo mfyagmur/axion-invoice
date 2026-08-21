@@ -100,6 +100,7 @@ export interface InvoiceTableElement extends BaseElement {
   zebra_striping: boolean
   currency_format: string
   number_format: string
+  show_totals: boolean
 }
 
 export interface BankAccountElement extends BaseElement {

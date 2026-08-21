@@ -97,6 +97,22 @@ function ElementContent({ element }: { element: CanvasElementData }) {
           </div>
           <div className="shrink-0 px-1 py-2 text-center text-[7pt] text-slate-400">Kalemler (fatura oluşturulunca doldurulur)</div>
           <div className="flex-1" />
+          {element.show_totals && (
+            <div className="shrink-0 text-[7pt]" style={{ backgroundColor: element.header_bg_color }}>
+              <div className="flex justify-end gap-2 px-1 py-0.5">
+                <span className="text-slate-500">Ara Toplam</span>
+                <span className="w-16 text-right text-slate-500">0,00</span>
+              </div>
+              <div className="flex justify-end gap-2 px-1 py-0.5">
+                <span className="text-slate-500">KDV</span>
+                <span className="w-16 text-right text-slate-500">0,00</span>
+              </div>
+              <div className="flex justify-end gap-2 px-1 py-0.5 font-bold">
+                <span>Genel Toplam</span>
+                <span className="w-16 text-right">0,00</span>
+              </div>
+            </div>
+          )}
         </div>
       )
   }
