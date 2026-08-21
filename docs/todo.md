@@ -7,6 +7,41 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
+### Fatura Önizleme — Çok Sayfalı Fatura Desteği
+**Dosya:** `backend/app/templates_html/template_designer_base.html`, `invoice_base.html`,
+`backend/app/services/pdf_service.py`
+**Durum:** Ertelendi (kullanıcıyla netleştirildi) — eklendi 2026-08-21
+**Bağlam:** `docs/Template_Invoice.md` §12 çok sayfalı fatura desteği istiyor ama mevcut renderer
+(hem PDF üretimi hem de yeni eklenen `/invoices/{id}/preview` tabanlı önizleme — ikisi de aynı
+`pdf_service.render_invoice_html()` fonksiyonunu kullanıyor) tek sabit boyutlu `.page` div'i ve
+`.el { overflow: hidden }` varsayıyor. 20+ kalemli bir faturada tablo taşarsa hem PDF'te hem
+önizlemede kesiliyor (bu önceden var olan bir sınırlama, bu oturumdaki değişiklikle
+oluşmadı/kötüleşmedi). Doğru çözüm: şablon modeline eleman bazında "her sayfada tekrarla"
+(header/footer) bayrağı eklemek + backend'de tabloyu satır satır A4 sayfa sınırlarına göre bölüp
+çok sayfalı HTML üretmek — ayrı ve dikkatli bir iterasyon gerektiriyor.
+**Sıra:** Orta
+
+### Fatura Oluşturma Ekranında Kaydedilmemiş Taslak Önizlemesi
+**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
+**Durum:** Ertelendi — eklendi 2026-08-21
+**Bağlam:** Fatura oluşturma formundaki (`dashboard/invoices/new`) "Önizle" butonu hâlâ `disabled`.
+Sebep: `/invoices/{id}/preview` endpoint'i var olan bir `invoice_id` gerektiriyor, ama bu ekranda
+fatura henüz kaydedilmemiş. Kaydedilmemiş form verisiyle canlı önizleme için yeni bir POST tabanlı
+preview endpoint'i (form payload'ını doğrudan `render_invoice_html`'e benzer şekilde işleyen)
+eklenmesi gerekiyor.
+**Sıra:** Düşük
+
+### Fatura Detayı — Sabit "Gönderen" Placeholder'ı
+**Dosya:** `frontend/src/features/invoices/components/CompanyInfoSection.tsx`
+**Durum:** Ertelendi — eklendi 2026-08-21
+**Bağlam:** Fatura detay sayfasındaki (elle kodlanmış, düzenlenebilir) "Fatura Bilgileri" kartında
+gönderen/satıcı bloğu hâlâ sabit bir placeholder gösteriyor (`invoices.detail.senderPlaceholderName`
+= "Axion", TODO yorumu: "gerçek gönderen şirket profili eklenince güncellenecek"). Bu, 2026-08-21'de
+eklenen yeni A4 şablon önizlemesini etkilemiyor (o zaten `company.*` alanlarını
+`template_field_resolver.py` üzerinden gerçek `User`/şirket profilinden doğru çözüyor) — sadece bu
+ayrı dashboard kartındaki kozmetik bir eksiklik.
+**Sıra:** Düşük
+
 ### 0. A4 Şablon Tasarımcısının Tarayıcıda Görsel Teyidi
 **Dosya:** `frontend/src/pages/dashboard/TemplateEditorPage.tsx` ve `frontend/src/features/invoice-editor/` altındaki yeni bileşenler
 **Durum:** Ertelenmiş (tarayıcı otomasyon aracı yoktu) — eklendi 2026-08-20

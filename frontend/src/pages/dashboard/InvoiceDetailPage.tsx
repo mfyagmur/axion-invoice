@@ -12,6 +12,7 @@ import { PaymentSummaryBox } from '@/features/invoices/components/PaymentSummary
 import { NetReceivableBox } from '@/features/invoices/components/NetReceivableBox'
 import { StatusTimeline } from '@/features/invoices/components/StatusTimeline'
 import { PaymentChaserPanel } from '@/features/invoices/components/PaymentChaserPanel'
+import { InvoiceDocumentPreview } from '@/features/invoices/components/InvoiceDocumentPreview'
 
 export function InvoiceDetailPage() {
   const { t } = useTranslation()
@@ -19,6 +20,7 @@ export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: invoice, isLoading } = useInvoice(id)
   const [isChaserOpen, setChaserOpen] = useState(false)
+  const [isPreviewOpen, setPreviewOpen] = useState(false)
 
   if (isLoading || !invoice) {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
@@ -33,6 +35,7 @@ export function InvoiceDetailPage() {
         row={row}
         onBack={() => navigate('/dashboard/invoices')}
         onOpenPaymentChaser={() => setChaserOpen(true)}
+        onOpenPreview={() => setPreviewOpen(true)}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
@@ -73,6 +76,14 @@ export function InvoiceDetailPage() {
       </div>
 
       <PaymentChaserPanel row={row} isOpen={isChaserOpen} onClose={() => setChaserOpen(false)} />
+
+      <InvoiceDocumentPreview
+        invoiceId={invoice.id}
+        invoiceNumber={invoice.invoice_number}
+        isOpen={isPreviewOpen}
+        isPdfReady={invoice.pdf_status === 'ready' && !!invoice.pdf_url}
+        onClose={() => setPreviewOpen(false)}
+      />
     </div>
   )
 }

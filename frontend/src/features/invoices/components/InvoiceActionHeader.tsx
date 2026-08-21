@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Eye } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { InvoiceStatusBadge } from '@/features/invoices/components/InvoiceStatusBadge'
 import { InvoiceRowActions } from '@/features/invoices/components/InvoiceRowActions'
@@ -13,9 +13,16 @@ interface InvoiceActionHeaderProps {
   row: InvoiceRow
   onBack: () => void
   onOpenPaymentChaser: () => void
+  onOpenPreview: () => void
 }
 
-export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser }: InvoiceActionHeaderProps) {
+export function InvoiceActionHeader({
+  invoice,
+  row,
+  onBack,
+  onOpenPaymentChaser,
+  onOpenPreview,
+}: InvoiceActionHeaderProps) {
   const { t } = useTranslation()
   const { formatDate } = useDateFormat()
   const downloadPdf = useDownloadInvoicePdf()
@@ -57,6 +64,10 @@ export function InvoiceActionHeader({ invoice, row, onBack, onOpenPaymentChaser 
           disabled={isCancelled}
         >
           {t('invoices.actions.paymentReminder')}
+        </Button>
+        <Button type="button" variant="secondary" className="gap-2" onClick={onOpenPreview}>
+          <Eye size={16} />
+          {t('invoices.detail.preview')}
         </Button>
         <Button
           type="button"

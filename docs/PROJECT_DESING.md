@@ -6,6 +6,42 @@ regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem tü
 
 ---
 
+## 2026-08-21 — Fatura Önizleme, PDF ile Aynı Renderer'a Bağlandı
+
+**Bağlam:** Kullanıcı, A4 Şablon Editörü'nde (`dashboard/templates/:id/edit`) tasarlanan
+şablonların, gerçek faturalarda (`dashboard/invoices/:id`) önizleme ekranı ile PDF çıktısının
+birebir aynı olmasını istedi. İnceleme sonucu ortaya çıktı ki backend'de bu altyapı zaten mevcuttu
+— `GET /invoices/{id}/preview` (`backend/app/api/v1/invoices.py`), PDF üretiminde kullanılan
+**aynı** `pdf_service.render_invoice_html()` fonksiyonunu çağırıyordu (hem v2 görsel tasarımcı hem
+v1 legacy hem XSLT motoru için) — ama frontend'de `invoicesApi.preview()`/`useInvoicePreview()`
+hook'u yazılmış olmasına rağmen hiçbir component tarafından kullanılmıyordu. Fatura detay sayfası
+bunun yerine şablonla hiç ilişkisi olmayan, elle kodlanmış bir dashboard kart düzeni gösteriyordu.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoices/components/InvoiceDocumentPreview.tsx` | Ekleme | Yeni tam ekran önizleme overlay'i. `useInvoicePreview` (var olan hook) ile `/invoices/{id}/preview` HTML'ini çeker ve `<iframe srcDoc sandbox="allow-same-origin">` içinde render eder — backend'in döndürdüğü tam `<!doctype html>` belgesi (`@page { size: A4 }` dahil) doğrudan DOM'a değil izole bir iframe'e verilir. `frontend/src/features/invoice-editor/canvasGeometry.ts`'teki mevcut `A4_WIDTH_MM`/`A4_HEIGHT_MM`/`PX_PER_MM` sabitleri yeniden kullanıldı (yeni sabit tanımlanmadı). iframe `onLoad`'da içerideki `.page` elemanının gerçek piksel boyutunu ölçüp (portrait/landscape farkı otomatik yakalanır) container'a sığdıracak bir `transform: scale()` uyguluyor. Yükleniyor/hata durumları mevcut `Loader2`+`animate-spin` deseni ve paylaşılan `ErrorState` bileşeniyle (retry destekli) — `alert()`/`confirm()` kullanılmadı. |
+| `frontend/src/features/invoices/components/InvoiceActionHeader.tsx` | Değiştirme | "Önizle" butonu (Eye ikonu) eklendi, yeni `onOpenPreview` prop'u üzerinden `InvoiceDetailPage`'e bağlandı. |
+| `frontend/src/pages/dashboard/InvoiceDetailPage.tsx` | Değiştirme | `isPreviewOpen` state'i (mevcut `isChaserOpen` deseniyle aynı şekilde) eklendi, `InvoiceDocumentPreview` sayfanın sonuna eklendi. Mevcut düzenlenebilir kart düzeni (`CompanyInfoSection`, `LineItemsTable`, vb.) hiç değiştirilmedi — taslak düzenleme akışı aynen korundu, önizleme ayrı bir katman olarak eklendi. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | — | Değişiklik gerekmedi — `invoices.detail.preview`/`hidePreview`/`download` anahtarları önceki bir denemeden zaten mevcuttu ve ihtiyacı tam karşılıyordu. |
+| Backend | — | Hiçbir dosya değiştirilmedi — `/invoices/{id}/preview` ve `pdf_service.render_invoice_html()` zaten "tek kaynak" prensibini uyguluyordu, sadece frontend'in bunu tüketmesi gerekiyordu. |
+
+**Ertelenen kapsam (kullanıcıyla netleştirildi, `docs/todo.md`'ye tarihli eklendi):** çok sayfalı
+fatura desteği (mevcut renderer tek sabit A4 sayfası varsayıyor, taşan kalemler kesiliyor — PDF'te
+de önizlemede de, önceden var olan bir sınırlama), fatura oluşturma ekranındaki kaydedilmemiş
+taslak önizlemesi (hâlâ `disabled` — id gerektiren mevcut endpoint kaydedilmemiş veriyle
+çalışamıyor), `CompanyInfoSection`'daki sabit "Gönderen" placeholder'ı (ayrı, kozmetik bir sorun).
+
+**Doğrulama:** `npx tsc --noEmit` hatasız geçti. Backend `pytest` (36/36, değişiklik yok, regresyon
+kontrolü) geçti. Çalışan dev backend container'ında `pdf_service.render_invoice_html()` doğrudan
+Python'dan çağrılıp gerçek bir `VISUAL` (v1) ve gerçek bir `XSLT` faturası için hatasız HTML
+ürettiği teyit edildi — bu, yeni frontend component'inin tüketeceği tam kod yolu. Dev DB'de henüz
+`layout_version=2` ile oluşturulmuş gerçek bir fatura olmadığından o yol ayrıca canlı test
+edilemedi, ancak kodu bu oturumda değiştirilmedi ve mevcut backend testleri onu kapsıyor. Gerçek
+tarayıcıda "Önizle" butonunun aynı görüntüyü verdiğinin görsel teyidi bu ortamda yapılamadı
+(tarayıcı aracı yok) — mevcut genel görsel-doğrulama borcuna eklendi.
+
+---
+
 ## 2026-08-21 — Manuel Kaydet: Editörden Çıkmama + Toast Bildirimi
 
 **Bağlam:** `dashboard/templates/new` ve `dashboard/templates/:id/edit` sayfalarındaki "Kaydet"
