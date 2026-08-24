@@ -13,7 +13,8 @@
     "back": "Back",
     "edit": "Edit",
     "add": "Add",
-    "remove": "Remove"
+    "remove": "Remove",
+    "copied": "Copied"
   },
   "landing": {
     "nav": {

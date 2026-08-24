@@ -1,8 +1,53 @@
 # Proje Tasarım / Değişiklik Günlüğü
 
-Bu dosya, Ayarlar sayfası (`/dashboard/settings`) ile ilgili yapılan değişikliklerin ve
-regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem türü (ekleme/değiştirme/
-çıkarma), ve yapılanın özeti.
+Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerinin kaydını tutar. Her giriş: tarih, dosya, işlem türü (ekleme/değiştirme/çıkarma), ve yapılanın özeti.
+
+---
+
+## 2026-08-24 — Banka Hesabı Kartları — Görsel Taşma Hatası Düzeltmesi + IBAN Kopyalama
+
+**Bağlam:** Fatura detay ekranında (`/dashboard/invoices/:id`) sağ sidebar'da yer alan
+`BankAccountSection` bileşeninde, birden fazla banka hesabı seçildiğinde (1, 2 veya 3),
+metinler (IBAN, hesap no, şube bilgisi) kart genişliğine sığmayıp **iç içe/üst üste binmişti** ve
+metin taşması görsel bozulma yaratıyordu. Tasarımca ise her banka hesabının kendi kartı içinde,
+başlıkta para birimi rozeti, banka adı, şube, **kopyalanabilir IBAN**, hesap no gösterilmesi
+istenmişti.
+
+Kök sebep: Görüntüleme modunda her banka hesabı `grid-cols-3` grid'i içinde çıplak bir `<div>`
+olarak render ediliyordu — kart sınırı, padding, CSS `min-w-0`, `overflow`, `break-all`/`truncate`
+gibi taşma kontrol mekanizmaları yoktu. IBAN gibi uzun mono-font metinler grid hücresini
+genişletip komşu hücrelere taşıyordu; fakat CSS Grid bu durumda hücreleri küçültmek yerine
+dış konteyneri genişletme eğilimindedir (implisit grid track davranışı).
+
+Çözüm:
+1. **Yeni küçük bileşen:** `CopyIconButton.tsx` — `lucide-react`'in `Copy`/`Check` ikonları +
+   `navigator.clipboard.writeText()` + mevcut `useToastStore` ile "Kopyalandı" bildirimi.
+   Stil: `EditIconButton` ile tutarlı (`h-7 w-7`, `border-slate-300`, `hover:bg-slate-50`).
+2. **BankAccountSection.tsx — görüntüleme modunu yeniden tasarla:**
+   - Dolu hesapları filtrele, dinamik grid: 1 hesap → `grid-cols-1`, 2 → `sm:grid-cols-2`,
+     3 → `sm:grid-cols-3` (Tailwind dynamic class escape işlemi, class-map kullanmak daha güvenli).
+   - Her hesap kendi iç kartında: `rounded-xl border border-slate-200 p-4 min-w-0` 
+     (`min-w-0` grid/flex taşma önleyici, zorla hücreler kontrol altında kalıyor).
+   - Kart içi düzen:
+     * Para birimi rozeti: `rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium`
+     * Banka adı: `text-sm font-bold text-slate-900 truncate`
+     * Şube: `text-xs text-slate-500 truncate` — "{branch_name} (Şube Kodu: {branch_code})"
+     * IBAN satırı: `font-mono text-sm text-slate-700 break-all` + yanında `CopyIconButton`
+       (flex `items-start justify-between gap-2`; kopyala butonu ellipsis'te kalmasın diye `flex-shrink-0`)
+     * Hesap No: `text-xs text-slate-500` — "Hesap No: {account_number}"
+3. **i18n:** `common.copied` anahtarı (`tr.json`: "Kopyalandı", `en.json`: "Copied") eklendi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoices/components/CopyIconButton.tsx` | Ekleme | Yeni küçük ikon buton bileşeni; `Copy`→`Check` animasyonu, `navigator.clipboard.writeText()`, toast bildirimi. |
+| `frontend/src/features/invoices/components/BankAccountSection.tsx` | Değiştirme | Görüntüleme modunun düzeni; her hesap kendi kartında (`rounded-xl border p-4 min-w-0`), dinamik grid kolon sayısı, `truncate`/`break-all` taşma önlemleri, IBAN yanında `CopyIconButton`. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Değiştirme | `common.copied` anahtarı eklendi. |
+
+**Doğrulama:**
+- Frontend'de 1, 2, 3 banka hesabı seçili durumları görsel olarak kontrol edildi.
+- IBAN kopyala butonuna tıklanıp toast bildirimi gösterildiği doğrulandı.
+- Responsive: dar ekran (mobil) simülasyonunda kartlar alt alta düzgün yığıldı, taşma olmadı.
+- Edit modu (banka seçim `Select`'leri) davranışının bozulmadığı kontrol edildi.
 
 ---
 

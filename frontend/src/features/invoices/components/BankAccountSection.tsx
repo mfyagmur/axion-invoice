@@ -4,6 +4,7 @@ import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Select } from '@/components/Select'
 import { EditIconButton } from '@/features/invoices/components/EditIconButton'
+import { CopyIconButton } from '@/features/invoices/components/CopyIconButton'
 import { useUpdateInvoice } from '@/features/invoices/hooks/useUpdateInvoice'
 import { useBankAccounts } from '@/features/definitions/hooks/useBankAccounts'
 import type { InvoiceStatus } from '@/types/invoice'
@@ -45,6 +46,9 @@ export function BankAccountSection({ invoiceId, status, bankAccounts }: BankAcco
     )
   }
 
+  const filled = bankAccounts.filter((b): b is DefinitionBankAccount => !!b)
+  const colsClass = filled.length === 1 ? 'grid-cols-1' : filled.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
+
   const action = !canEdit ? null : isEditing ? (
     <div className="flex items-center gap-2">
       <Button type="button" variant="secondary" onClick={() => setIsEditing(false)} disabled={updateInvoice.isPending}>
@@ -76,19 +80,21 @@ export function BankAccountSection({ invoiceId, status, bankAccounts }: BankAcco
             />
           ))
         ) : hasAnyBankAccount ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {bankAccounts.map((bankAccount, index) =>
-              bankAccount ? (
-                <div key={bankAccount.id}>
-                  <p className="text-sm font-medium text-slate-900">{bankAccount.bank_name}</p>
-                  <p className="text-xs text-slate-500">{bankAccount.branch_name} (Şube Kodu: {bankAccount.branch_code})</p>
-                  <p className="text-sm text-slate-700 font-mono mt-2">{bankAccount.iban}</p>
-                  <p className="text-xs text-slate-500 mt-1">Hesap No: {bankAccount.account_number} — {bankAccount.currency}</p>
+          <div className={`grid gap-4 grid-cols-1 ${colsClass}`}>
+            {filled.map((bankAccount) => (
+              <div key={bankAccount.id} className="min-w-0 rounded-xl border border-slate-200 p-4">
+                <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  {bankAccount.currency}
                 </div>
-              ) : (
-                <div key={`empty-${index}`} />
-              ),
-            )}
+                <p className="truncate text-sm font-bold text-slate-900">{bankAccount.bank_name}</p>
+                <p className="truncate text-xs text-slate-500">{bankAccount.branch_name} (Şube Kodu: {bankAccount.branch_code})</p>
+                <div className="mt-3 flex items-start justify-between gap-2">
+                  <p className="break-all font-mono text-sm text-slate-700">{bankAccount.iban}</p>
+                  <CopyIconButton value={bankAccount.iban} label="Copy IBAN" />
+                </div>
+                <p className="text-xs text-slate-500">Hesap No: {bankAccount.account_number}</p>
+              </div>
+            ))}
           </div>
         ) : (
           <p className="text-sm text-slate-400">{t('invoices.detail.noBankAccount')}</p>
