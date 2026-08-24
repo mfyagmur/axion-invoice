@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
@@ -67,17 +68,29 @@ export function BankAccountSection({ invoiceId, status, bankAccounts }: BankAcco
       <div className="grid grid-cols-1 gap-4">
         {isEditing ? (
           FIELD_NAMES.map((fieldName, index) => (
-            <Select
-              key={fieldName}
-              label={`${t('invoices.detail.bankAccount')} - ${index + 1}`}
-              value={selectedIds[index]}
-              onChange={(value) => setSelectedIds((prev) => prev.map((id, i) => (i === index ? value : id)))}
-              options={availableBankAccounts?.filter((b) => b.is_active).map((b) => ({
-                value: b.id,
-                label: `${b.bank_name} — ${b.iban} (${b.currency})`,
-              })) || []}
-              placeholder={t('invoices.detail.selectBankAccount')}
-            />
+            <div key={fieldName} className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Select
+                  label={`${t('invoices.detail.bankAccount')} - ${index + 1}`}
+                  value={selectedIds[index]}
+                  onChange={(value) => setSelectedIds((prev) => prev.map((id, i) => (i === index ? value : id)))}
+                  options={availableBankAccounts?.filter((b) => b.is_active).map((b) => ({
+                    value: b.id,
+                    label: `${b.bank_name} — ${b.iban} (${b.currency})`,
+                  })) || []}
+                  placeholder={t('invoices.detail.selectBankAccount')}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedIds((prev) => prev.map((id, i) => (i === index ? '' : id)))}
+                disabled={!selectedIds[index]}
+                aria-label={`Remove bank account ${index + 1}`}
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
           ))
         ) : hasAnyBankAccount ? (
           <div className={`grid gap-4 grid-cols-1 ${colsClass}`}>
