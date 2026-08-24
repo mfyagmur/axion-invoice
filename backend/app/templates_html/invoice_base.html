@@ -99,16 +99,31 @@
 
     {% if bank_accounts %}
     <div style="position: absolute; left: 15mm; bottom: 30mm; width: 180mm; font-size: 8pt; color: #333; border-top: 1px solid #ddd; padding-top: 2mm;">
-      <div style="font-weight: bold; margin-bottom: 1mm;">Ödeme Bilgileri:</div>
-      <div style="display: flex; gap: 6mm;">
-        {% for bank_account in bank_accounts %}
-        <div style="flex: 1;">
-          <div>{{ bank_account.bank_name }} — {{ bank_account.branch_name }} (Şube Kodu: {{ bank_account.branch_code }})</div>
-          <div style="font-family: monospace; margin: 1mm 0;">{{ bank_account.iban }}</div>
-          <div>Hesap No: {{ bank_account.account_number }} — {{ bank_account.currency }}</div>
-        </div>
-        {% endfor %}
-      </div>
+      <div style="font-weight: bold; margin-bottom: 2mm;">Banka Bilgileri</div>
+      <table style="width: 100%; border-collapse: collapse; font-size: 8pt;">
+        <thead>
+          <tr style="background-color: #f5f5f5; border-bottom: 0.3mm solid #333;">
+            <th style="padding: 1.5mm; text-align: left; font-weight: bold;">Banka Adı</th>
+            <th style="padding: 1.5mm; text-align: left; font-weight: bold;">Şube Adı</th>
+            <th style="padding: 1.5mm; text-align: center; font-weight: bold;">Şube Kodu</th>
+            <th style="padding: 1.5mm; text-align: center; font-weight: bold;">Döviz Tipi</th>
+            <th style="padding: 1.5mm; text-align: left; font-weight: bold;">Hesap No</th>
+            <th style="padding: 1.5mm; text-align: left; font-weight: bold;">IBAN</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bank_account in bank_accounts %}
+          <tr style="border-bottom: 0.2mm solid #ddd;">
+            <td style="padding: 1.5mm;">{{ bank_account.bank_name }}</td>
+            <td style="padding: 1.5mm;">{{ bank_account.branch_name }}</td>
+            <td style="padding: 1.5mm; text-align: center;">{{ bank_account.branch_code }}</td>
+            <td style="padding: 1.5mm; text-align: center;">{{ bank_account.currency }}</td>
+            <td style="padding: 1.5mm;">{{ bank_account.account_number }}</td>
+            <td style="padding: 1.5mm; font-family: monospace;">{{ bank_account.iban }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     {% endif %}
 

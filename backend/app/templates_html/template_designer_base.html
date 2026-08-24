@@ -93,7 +93,34 @@
         <div style="font-size:8pt; text-align:center;">{{ element.label }}</div>
 
       {% elif element.type == 'bank-account' %}
+        {% if bank_accounts and bank_accounts | length > 0 %}
+        <table style="width:100%; border-collapse:collapse; font-size:{{ element.font_size }}pt;">
+          <thead>
+            <tr style="background-color:#f5f5f5; border-bottom:0.3mm solid #333;">
+              <th style="padding:1.5mm; text-align:left; font-weight:bold;">Banka Adı</th>
+              <th style="padding:1.5mm; text-align:left; font-weight:bold;">Şube Adı</th>
+              <th style="padding:1.5mm; text-align:center; font-weight:bold;">Şube Kodu</th>
+              <th style="padding:1.5mm; text-align:center; font-weight:bold;">Döviz Tipi</th>
+              <th style="padding:1.5mm; text-align:left; font-weight:bold;">Hesap No</th>
+              <th style="padding:1.5mm; text-align:left; font-weight:bold;">IBAN</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ba in bank_accounts %}
+            <tr style="border-bottom:0.2mm solid #ddd;">
+              <td style="padding:1.5mm;">{{ ba.bank_name }}</td>
+              <td style="padding:1.5mm;">{{ ba.branch_name }}</td>
+              <td style="padding:1.5mm; text-align:center;">{{ ba.branch_code }}</td>
+              <td style="padding:1.5mm; text-align:center;">{{ ba.currency }}</td>
+              <td style="padding:1.5mm;">{{ ba.account_number }}</td>
+              <td style="padding:1.5mm; font-family:monospace;">{{ ba.iban }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
         <div style="font-size:{{ element.font_size }}pt; text-align:{{ element.text_align }}; color:{{ element.color }}; white-space: pre-wrap;">{{ resolved_text.get(element.id, '') }}</div>
+        {% endif %}
 
       {% elif element.type == 'table' %}
         {% set visible_columns = element.columns | selectattr('visible') | list %}

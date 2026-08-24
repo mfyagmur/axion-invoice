@@ -218,6 +218,19 @@ def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -
 def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
     _, line_items, totals = _collect_render_data(invoice)
 
+    bank_accounts = [
+        {
+            'bank_name': bank_account.bank_name,
+            'branch_name': bank_account.branch_name,
+            'branch_code': bank_account.branch_code,
+            'iban': bank_account.iban,
+            'account_number': bank_account.account_number,
+            'currency': bank_account.currency,
+        }
+        for bank_account in (invoice.bank_account, invoice.bank_account_2, invoice.bank_account_3)
+        if bank_account is not None
+    ]
+
     resolved_text: dict[str, str] = {}
     for element in template.layout_json:
         element_id = element.get("id")
@@ -255,6 +268,7 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
         resolved_text=resolved_text,
         line_items=line_items,
         totals=totals,
+        bank_accounts=bank_accounts,
         logo_data_uri=_logo_data_uri(invoice),
         page_width_mm=page_width_mm,
         page_height_mm=page_height_mm,

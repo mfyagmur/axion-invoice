@@ -51,6 +51,38 @@ dış konteyneri genişletme eğilimindedir (implisit grid track davranışı).
 
 ---
 
+## 2026-08-24 — PDF/Print Preview Banka Bilgileri Tablo Tasarımı
+
+**Bağlam:** Fatura PDF öncizlemesinde ("Önizle" butonu) banka hesabı bilgileri (1, 2 veya 3 adet)
+görüntülenişinde düzensiz bir layout vardı — web detay ekranında card-tabanlı modern tasarım 
+yapılmasıyla beraber, PDF/print çıktısında da profesyonel bir tablo formatı istenmişti. 
+Kök sebep: HTML Jinja2 şablonlarında banka hesapları flex layout (v1 template) veya multiline 
+metin (v2 template) ile render ediliyordu — tabular veriye çıktısı hatalı uyuyordu.
+
+Çözüm:
+1. **invoice_base.html (v1 template):** Flex layout'tan gerçek HTML `<table>` formatına geçildi.
+   - Başlık: "Banka Bilgileri" (kalın)
+   - Sütunlar: Banka Adı | Şube Adı | Şube Kodu | Döviz Tipi | Hesap No | IBAN
+   - Tablo stili: Header gri background (`#f5f5f5`), altı çizgi (`border-bottom`), satır alternansı
+   - Font: Genel 8pt, IBAN `font-family: monospace`
+2. **template_designer_base.html (v2 template):** `bank-account` element tipi artık tablo render ediyor.
+   - `_render_visual_v2_html` içinde `bank_accounts` listesi v2 template'e geçildi (yeni)
+   - Template'te: eğer `bank_accounts` dolu ise tablo render et, yoksa fallback metin (geriye uyumluluk)
+   - Aynı tablo tasarımı (sütunlar, styling) v1 ile eşleştirildi
+3. **pdf_service.py:** `_render_visual_v2_html` fonksiyonuna `bank_accounts` parametresi eklendi
+   (invoice.bank_account/bank_account_2/bank_account_3 üçlüsü filtreli ve render template'e iletildi).
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/templates_html/invoice_base.html` | Değiştirme | Banka hesapları flex → HTML tablo (6 kolon: banka, şube, şube kodu, döviz, hesap no, IBAN) |
+| `backend/app/templates_html/template_designer_base.html` | Değiştirme | bank-account element tipi artık tablo render ediyor (v2 template) |
+| `backend/app/services/pdf_service.py` | Değiştirme | `_render_visual_v2_html` fonksiyonuna `bank_accounts` listesi eklendi ve template'e iletildi |
+
+**Not:** Bu değişiklik **sadece PDF/print preview'a** etkiliyor. Web detay ekranında BankAccountSection 
+bileşeni (yukarıdaki 2026-08-24 girdisi) zaten modern card layout ile gösteriyor. ✓
+
+---
+
 ## 2026-08-21 — Sayfa Altı Sabit İçerik (Banka Hesabı/Açıklama) Reflow İle Birlikte Aşağı Kaymasın Diye Mesafe Eşiği Eklendi
 
 **Bağlam:** Bir önceki reflow düzeltmesi (font metrikleri tabanlı taşma hesabı) tablo↔toplamlar
