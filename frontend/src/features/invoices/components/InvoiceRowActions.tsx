@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 import { PaymentChaserPanel } from '@/features/invoices/components/PaymentChaserPanel'
+import { InvoiceDocumentPreview } from '@/features/invoices/components/InvoiceDocumentPreview'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useCancelInvoice } from '@/features/invoices/hooks/useCancelInvoice'
 import { useRestoreInvoice } from '@/features/invoices/hooks/useRestoreInvoice'
@@ -27,6 +28,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [isPaymentChaserOpen, setIsPaymentChaserOpen] = useState(false)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [confirmAction, setConfirmAction] = useState<'cancel' | 'restore' | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -181,7 +183,14 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
         </button>
         {!hideViewPreviewDownload && (
           <>
-            <button type="button" disabled className={disabledItemClass}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false)
+                setIsPreviewOpen(true)
+              }}
+              className={activeItemClass}
+            >
               {t('invoices.actions.preview')}
             </button>
             <button type="button" disabled className={disabledItemClass}>
@@ -251,6 +260,14 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
       {menu && createPortal(menu, document.body)}
 
       <PaymentChaserPanel row={row} isOpen={isPaymentChaserOpen} onClose={() => setIsPaymentChaserOpen(false)} />
+
+      <InvoiceDocumentPreview
+        invoiceId={invoiceId}
+        invoiceNumber={row.invoiceNumber}
+        isOpen={isPreviewOpen}
+        isPdfReady={isPdfReady}
+        onClose={() => setIsPreviewOpen(false)}
+      />
 
       <ConfirmDialog
         isOpen={confirmAction !== null}
