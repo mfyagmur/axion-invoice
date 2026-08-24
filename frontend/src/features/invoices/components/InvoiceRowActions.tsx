@@ -15,12 +15,13 @@ import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvo
 interface InvoiceRowActionsProps {
   row: InvoiceRow
   disableView?: boolean
+  hideViewPreviewDownload?: boolean
 }
 
 const activeItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50'
 const disabledItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed'
 
-export function InvoiceRowActions({ row, disableView = false }: InvoiceRowActionsProps) {
+export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDownload = false }: InvoiceRowActionsProps) {
   const invoiceId = row.id
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -89,7 +90,7 @@ export function InvoiceRowActions({ row, disableView = false }: InvoiceRowAction
     setConfirmAction(null)
   }
 
-  const viewItem = disableView ? (
+  const viewItem = hideViewPreviewDownload ? null : disableView ? (
     <span className={disabledItemClass}>{t('invoices.actions.view')}</span>
   ) : (
     <Link
@@ -157,7 +158,7 @@ export function InvoiceRowActions({ row, disableView = false }: InvoiceRowAction
     menuBody = (
       <>
         {viewItem}
-        <div className="border-t border-slate-100" />
+        {viewItem && <div className="border-t border-slate-100" />}
         <button
           type="button"
           onClick={() => {
@@ -178,23 +179,27 @@ export function InvoiceRowActions({ row, disableView = false }: InvoiceRowAction
         >
           {t('invoices.actions.paymentReminder')}
         </button>
-        <button type="button" disabled className={disabledItemClass}>
-          {t('invoices.actions.preview')}
-        </button>
-        <button type="button" disabled className={disabledItemClass}>
-          {t('invoices.actions.sendEmail')}
-        </button>
-        <button
-          type="button"
-          disabled={!isPdfReady || downloadPdf.isPending}
-          onClick={() => {
-            setIsOpen(false)
-            downloadPdf.mutate({ id: invoiceId, filename: row.invoiceNumber })
-          }}
-          className={isPdfReady ? activeItemClass : disabledItemClass}
-        >
-          {t('invoices.actions.downloadPdf')}
-        </button>
+        {!hideViewPreviewDownload && (
+          <>
+            <button type="button" disabled className={disabledItemClass}>
+              {t('invoices.actions.preview')}
+            </button>
+            <button type="button" disabled className={disabledItemClass}>
+              {t('invoices.actions.sendEmail')}
+            </button>
+            <button
+              type="button"
+              disabled={!isPdfReady || downloadPdf.isPending}
+              onClick={() => {
+                setIsOpen(false)
+                downloadPdf.mutate({ id: invoiceId, filename: row.invoiceNumber })
+              }}
+              className={isPdfReady ? activeItemClass : disabledItemClass}
+            >
+              {t('invoices.actions.downloadPdf')}
+            </button>
+          </>
+        )}
         <button
           type="button"
           disabled={!isCancellable}

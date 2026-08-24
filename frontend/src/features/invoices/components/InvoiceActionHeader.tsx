@@ -76,24 +76,24 @@ export function InvoiceActionHeader({
           <Eye size={16} />
           {t('invoices.detail.preview')}
         </Button>
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="secondary"
-            className="gap-2"
-            onClick={() => retryPdf.mutate(invoice.id)}
-            disabled={isPdfRegenerating}
-            title={invoice.pdf_status === 'failed' ? t('invoices.detail.retryPdf') : t('invoices.detail.regeneratePdf')}
-          >
-            <RefreshCw size={16} className={isPdfRegenerating ? 'animate-spin' : undefined} />
-            {isPdfRegenerating
-              ? t('invoices.detail.pdfRegenerating')
-              : invoice.pdf_status === 'failed'
-                ? t('invoices.detail.retryPdf')
-                : t('invoices.detail.regeneratePdf')}
-          </Button>
-          <InfoTooltip title={t('invoices.detail.regeneratePdf')} description={t('invoices.detail.regeneratePdfHint')} />
-        </div>
+        {(invoice.pdf_status === 'failed' || isPdfRegenerating) && (
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="secondary"
+              className="gap-2"
+              onClick={() => retryPdf.mutate(invoice.id)}
+              disabled={isPdfRegenerating}
+              title={t('invoices.detail.retryPdf')}
+            >
+              <RefreshCw size={16} className={isPdfRegenerating ? 'animate-spin' : undefined} />
+              {isPdfRegenerating
+                ? t('invoices.detail.pdfRegenerating')
+                : t('invoices.detail.retryPdf')}
+            </Button>
+            <InfoTooltip title={t('invoices.detail.regeneratePdf')} description={t('invoices.detail.regeneratePdfHint')} />
+          </div>
+        )}
         <Button
           type="button"
           onClick={() => downloadPdf.mutate({ id: invoice.id, filename: invoice.invoice_number })}
@@ -101,7 +101,7 @@ export function InvoiceActionHeader({
         >
           {t('invoices.detail.download')}
         </Button>
-        <InvoiceRowActions row={row} disableView />
+        <InvoiceRowActions row={row} disableView hideViewPreviewDownload />
       </div>
     </div>
   )

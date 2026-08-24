@@ -4,6 +4,37 @@ Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerin
 
 ---
 
+## 2026-08-24 — Fatura Detay — Aksiyon Başlığı Sadeleştirmesi
+
+**Bağlam:** Dashboard/invoices/:id (Fatura Detay) sayfasındaki `InvoiceActionHeader` bileşeni gereksiz karmaşıklık içeriyordu:
+1. Normal durumda ("pdf_status=ready") "PDF'i Yeniden Oluştur" butonu ve tooltip'i — bu manuel regenerate özelliği artık istenmiyor
+2. Yanında `InvoiceRowActions` dropdown'ında Önizleme, İndir (PDF), Görüntüle seçenekleri tekrar listeleniyor — Fatura Detay'da bu seçenekler başlıkta ayrı butonlar olarak zaten bulunduğu için tekrarlı menü
+
+**Çözüm:**
+1. **InvoiceActionHeader.tsx — Regenerate Butonu Koşullu Hale Getirildi:**
+   - "PDF'i Yeniden Oluştur" butonu ve `InfoTooltip` sadece `pdf_status === 'failed'` veya `isPdfRegenerating` durumlarında render edilir
+   - Normal "ready" durumunda butonu + tooltip tamamen gizlenir (temiz başlık)
+   - Failed durumda buton "Tekrar Dene" metniyle hâlâ görünüp kullanıcıya kurtarma yolu sağlar
+   - `InvoiceRowActions`'a yeni `hideViewPreviewDownload` prop'u geçildi
+
+2. **InvoiceRowActions.tsx — Menü Öğeleri Gizlendi:**
+   - Yeni opsiyonel prop: `hideViewPreviewDownload?: boolean` (varsayılan `false`)
+   - `hideViewPreviewDownload=true` olduğunda:
+     - "Görüntüle" (View) link'i tamamen gizlenir (mevcut `disableView` davranışından ayrı)
+     - Normal dalda "Önizleme" ve "İndir (PDF)" butonları gizlenir
+   - Diğer ekranlardaki `InvoiceTableRow`'dan çağrıldığında prop verilmediği için davranış aynı kalır (geriye uyumlu)
+
+3. **i18n — Değişiklik yok**
+   - Mevcut anahtar'lar (`invoices.detail.retryPdf`, `regeneratePdf`, `pdfRegenerating`, `regeneratePdfHint`) olduğu gibi kalır
+   - `regeneratePdf` metni sadece failed→retry geçişinde artık kullanılmıyor, ama silinmiyor (gelecek kullanımı için reserved)
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoices/components/InvoiceActionHeader.tsx` | Değiştirme | Regenerate butonu koşullu (failed/regenerating durumunda), `hideViewPreviewDownload` prop'u geçildi |
+| `frontend/src/features/invoices/components/InvoiceRowActions.tsx` | Değiştirme | Yeni `hideViewPreviewDownload` prop, Görüntüle/Önizleme/İndir koşullu gizlendi |
+
+---
+
 ## 2026-08-24 — QR Kod — Yeni "Fatura Bilgisi" Veri Kaynağı Seçeneği
 
 **Bağlam:** Şablon tasarımcısında QR kod elemanının "Veri Kaynağı" seçeneğine 3. bir alternatif eklendi: **"Fatura Bilgisi"**. Şu ana kadar 2 seçenek mevcuttu: dinamik `invoice.number` ve sabit kullanıcı metni. Yeni seçenek, Fatura No, Firma Vergi No, Müşteri Vergi No, Fatura Tarihi, Genel Toplam Tutarı ve Parabirimi olmak üzere 5 alan bilgisini etiketli, çok satırlı metin olarak QR koduna gömüyor. Bu şekilde QR kodu taratıldığında faturanın özet bilgileri görülebiliyor.
