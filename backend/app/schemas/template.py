@@ -87,7 +87,7 @@ class ImageElement(BaseElement):
 
 class QrCodeElement(BaseElement):
     type: Literal["qrcode"] = "qrcode"
-    data_source: Literal["invoice_number", "static"] = "invoice_number"
+    data_source: Literal["invoice_number", "static", "invoice_info"] = "invoice_number"
     static_value: str | None = None
 
 

@@ -245,6 +245,7 @@
       "qrDataSource": "QR Data Source",
       "qrStatic": "Static Value",
       "qrStaticValue": "Static QR Value",
+      "qrInvoiceInfo": "Invoice Info",
       "label": "Label",
       "bankAccountSlot": "Bank Account Slot"
     },

@@ -55,7 +55,7 @@ export interface ImageElement extends BaseElement {
 
 export interface QrCodeElement extends BaseElement {
   type: 'qrcode'
-  data_source: 'invoice_number' | 'static'
+  data_source: 'invoice_number' | 'static' | 'invoice_info'
   static_value: string | null
 }
 

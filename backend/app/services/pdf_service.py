@@ -282,8 +282,23 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
                     f"Hesap No: {account_number} — {currency}"
                 )
         elif element_type == "qrcode":
-            if element.get("data_source") == "static":
+            data_source = element.get("data_source")
+            if data_source == "static":
                 value = element.get("static_value") or ""
+            elif data_source == "invoice_info":
+                invoice_number = template_field_resolver.resolve_field("invoice.number", invoice)
+                company_tax_no = template_field_resolver.resolve_field("company.tax_number", invoice)
+                customer_tax_no = template_field_resolver.resolve_field("customer.tax_number", invoice)
+                invoice_date = template_field_resolver.resolve_field("invoice.date", invoice)
+                grand_total = template_field_resolver.resolve_field("totals.grand_total", invoice)
+                currency = template_field_resolver.resolve_field("invoice.currency", invoice)
+                value = (
+                    f"Fatura No: {invoice_number}\n"
+                    f"Firma Vergi No: {company_tax_no}\n"
+                    f"Müşteri Vergi No: {customer_tax_no}\n"
+                    f"Fatura Tarihi: {invoice_date}\n"
+                    f"Genel Toplam: {grand_total} {currency}"
+                )
             else:
                 value = invoice.invoice_number
             resolved_text[element_id] = _qr_data_uri(value) or ""

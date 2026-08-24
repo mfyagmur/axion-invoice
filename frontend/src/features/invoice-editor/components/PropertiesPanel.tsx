@@ -215,6 +215,7 @@ export function PropertiesPanel() {
             <select value={element.data_source} onChange={(e) => set({ data_source: e.target.value })} className="rounded-md border border-slate-300 px-3 py-2 text-sm">
               <option value="invoice_number">{t('editor.field.invoice_number')}</option>
               <option value="static">{t('editor.properties.qrStatic')}</option>
+              <option value="invoice_info">{t('editor.properties.qrInvoiceInfo')}</option>
             </select>
           </Field>
           {element.data_source === 'static' && (

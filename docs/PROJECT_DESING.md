@@ -4,6 +4,39 @@ Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerin
 
 ---
 
+## 2026-08-24 — QR Kod — Yeni "Fatura Bilgisi" Veri Kaynağı Seçeneği
+
+**Bağlam:** Şablon tasarımcısında QR kod elemanının "Veri Kaynağı" seçeneğine 3. bir alternatif eklendi: **"Fatura Bilgisi"**. Şu ana kadar 2 seçenek mevcuttu: dinamik `invoice.number` ve sabit kullanıcı metni. Yeni seçenek, Fatura No, Firma Vergi No, Müşteri Vergi No, Fatura Tarihi, Genel Toplam Tutarı ve Parabirimi olmak üzere 5 alan bilgisini etiketli, çok satırlı metin olarak QR koduna gömüyor. Bu şekilde QR kodu taratıldığında faturanın özet bilgileri görülebiliyor.
+
+**Çözüm:**
+1. **backend/app/schemas/template.py:** `QrCodeElement.data_source` literal'ine `"invoice_info"` eklendi
+2. **backend/app/services/pdf_service.py:** `_render_visual_v2_html()` fonksiyonundaki `qrcode` dalına `elif data_source == "invoice_info":` eklenip 5 alan `template_field_resolver.resolve_field()` ile çekilerek şu format'ta birleştirildi:
+   ```
+   Fatura No: {invoice.number}
+   Firma Vergi No: {company.tax_number}
+   Müşteri Vergi No: {customer.tax_number}
+   Fatura Tarihi: {invoice.date}
+   Genel Toplam: {totals.grand_total} {invoice.currency}
+   ```
+   (Boş değerler boş satır olarak yer alır, `resolve_field` zaten eksik veri için `""` döndürüyor.)
+3. **frontend/src/features/invoice-editor/types/element.ts:** `QrCodeElement.data_source` union'una `'invoice_info'` eklendi
+4. **frontend/src/features/invoice-editor/components/PropertiesPanel.tsx:** QR veri kaynağı dropdown'a `<option value="invoice_info">{t('editor.properties.qrInvoiceInfo')}</option>` seçeneği eklendi
+5. **frontend/src/i18n/locales/tr.json, en.json:** Yeni i18n anahtarları:
+   - tr: `"qrInvoiceInfo": "Fatura Bilgisi"`
+   - en: `"qrInvoiceInfo": "Invoice Info"`
+6. **backend/tests/test_templates.py:** Yeni test `test_render_v2_template_qrcode_invoice_info()` — `data_source="invoice_info"` olan qrcode elemanı + invoice ile render edip `_qr_data_uri`'ye giden string'in tüm 5 etiketi ve doğru değerleri içerdiğini monkeypatch ile doğrulanıyor.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/schemas/template.py` | Değiştirme | `QrCodeElement.data_source` literal'ine `"invoice_info"` eklendi |
+| `backend/app/services/pdf_service.py` | Değiştirme | `qrcode` dalında yeni `elif` eklenip 5 alan etiketli metin olarak birleştirildi |
+| `frontend/src/features/invoice-editor/types/element.ts` | Değiştirme | `QrCodeElement.data_source` union'a `'invoice_info'` eklendi |
+| `frontend/src/features/invoice-editor/components/PropertiesPanel.tsx` | Değiştirme | QR veri kaynağı dropdown'a yeni seçenek eklendi |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Değiştirme | `qrInvoiceInfo` i18n anahtarları eklendi |
+| `backend/tests/test_templates.py` | Ekleme | `test_render_v2_template_qrcode_invoice_info()` yeni test fonksiyonu |
+
+---
+
 ## 2026-08-24 — PDF Önizleme — Banka Hesabı Tablosunda Çoklu Render Hatası Düzeltmesi
 
 **Bağlam:** Fatura detay ekranında "Önizle" butonuna basıldığında, PDF/HTML önizlemede banka hesabı tablosunda **sadece sütun başlıkları** (Banka Adı, Şube Adı, vb.) görünüyor, veri satırları gözükmüyor ya da garip bir şekilde görünüyor (başlıklar veri satırlarını kapatıyor gibi). İncelenen gerçek test faturasında (`INV202600013`, "Fatura Test 1" şablonu, v2 layout, 2 banka hesabı atanmış) durum: şablonun `layout_json`'da **3 ayrı `bank-account` elemanı** vardı — slot 1, 2, 3 için ayrı ayrı, konumları yalnızca ~5mm arayla (y: 245.67, 250.67, 255.67mm), her biri sadece 5mm yükseklikte.

@@ -355,3 +355,66 @@ def test_legacy_layout_version_1_system_template_still_renders(
 
     html = pdf_service.render_invoice_html(invoice, template)
     assert "<!doctype html>" in html.lower()
+
+
+def test_render_v2_template_qrcode_invoice_info(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    """Test that qrcode element with data_source='invoice_info' combines invoice metadata into QR value."""
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+    from unittest.mock import patch
+
+    template = InvoiceTemplate(
+        user_id=test_user.id,
+        name="V2 QR Invoice Info Template",
+        is_system_template=False,
+        layout_version=2,
+        orientation="portrait",
+        layout_json=[
+            {
+                "id": "el_qr",
+                "type": "qrcode",
+                "x_mm": 10,
+                "y_mm": 10,
+                "width_mm": 30,
+                "height_mm": 30,
+                "rotation": 0,
+                "z_index": 0,
+                "locked": False,
+                "hidden": False,
+                "data_source": "invoice_info",
+                "static_value": None,
+            },
+        ],
+    )
+    db_session.add(template)
+    db_session.flush()
+    db_session.commit()
+    db_session.refresh(template)
+
+    payload = InvoiceCreatePayload(
+        template_id=template.id,
+        customer_id=test_customer.id,
+        line_items=[LineItemPayload(description="Hizmet", quantity="1", unit_price="100")],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+
+    captured_qr_value = None
+
+    def mock_qr_data_uri(value):
+        nonlocal captured_qr_value
+        captured_qr_value = value
+        return "data:image/png;base64,fake"
+
+    with patch("app.services.pdf_service._qr_data_uri", side_effect=mock_qr_data_uri):
+        html = pdf_service.render_invoice_html(invoice, template)
+
+    assert captured_qr_value is not None
+    assert "Fatura No:" in captured_qr_value
+    assert invoice.invoice_number in captured_qr_value
+    assert "Firma Vergi No:" in captured_qr_value
+    assert "Müşteri Vergi No:" in captured_qr_value
+    assert "Fatura Tarihi:" in captured_qr_value
+    assert "Genel Toplam:" in captured_qr_value
+    assert invoice.currency in captured_qr_value
