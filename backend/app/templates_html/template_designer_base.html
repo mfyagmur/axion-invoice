@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <style>
-  @page { size: A4; margin: 0; }
+  @page { size: {% if page_width_mm %}{{ page_width_mm }}mm {{ page_height_mm }}mm{% else %}A4{% endif %}; margin: 0; }
   html, body { margin: 0; padding: 0; }
   .page {
     position: relative;

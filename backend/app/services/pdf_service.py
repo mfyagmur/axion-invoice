@@ -345,6 +345,19 @@ def generate_invoice_pdf(
         try:
             page = browser.new_page()
             page.set_content(html, wait_until="networkidle")
-            page.pdf(path=str(output_path), format="A4", print_background=True)
+
+            pdf_kwargs: dict = {
+                "path": str(output_path),
+                "print_background": True,
+                "prefer_css_page_size": True,
+            }
+            if template.engine != TemplateEngine.XSLT and template.layout_version >= 2:
+                orientation = getattr(template, "orientation", "portrait")
+                if orientation == "landscape":
+                    pdf_kwargs["landscape"] = True
+            else:
+                pdf_kwargs["format"] = "A4"
+
+            page.pdf(**pdf_kwargs)
         finally:
             browser.close()
