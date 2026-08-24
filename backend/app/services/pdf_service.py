@@ -168,7 +168,7 @@ _FOLLOW_GAP_THRESHOLD_MM = 50.0  # how close below the table an element must ori
 # page-anchored content and are deliberately left in place — see docstring below.
 
 
-def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -> list[dict]:
+def _reflow_elements_below_table(elements: list[dict], line_items: list[dict], bank_accounts: list[dict] = None) -> list[dict]:
     """Push elements positioned directly below the items table down by however much the
     table's real content (header + one row per line item + optional totals footer) overflows
     its designed height_mm. The renderer positions every element with fixed x/y/height mm
@@ -191,8 +191,15 @@ def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -
     A4 page. Pushing those too would shove them past the page boundary and spill them onto an
     unintended second page; keeping them in place matches how a designer actually laid out the
     page (totals flow with the table, the footer band stays put).
+
+    Also handles bank-account table elements (slot 1 only) similarly: estimates content height
+    from bank account row count and pushes elements below the bank table if they are within threshold.
     """
+    if bank_accounts is None:
+        bank_accounts = []
+
     elements = copy.deepcopy(elements)
+
     for table_el in elements:
         if table_el.get("type") != "table":
             continue
@@ -212,6 +219,28 @@ def _reflow_elements_below_table(elements: list[dict], line_items: list[dict]) -
             gap_mm = other_el.get("y_mm", 0) - table_bottom_mm
             if -0.5 <= gap_mm <= _FOLLOW_GAP_THRESHOLD_MM:
                 other_el["y_mm"] = other_el.get("y_mm", 0) + overflow_mm
+
+    for bank_el in elements:
+        if bank_el.get("type") != "bank-account" or bank_el.get("slot") != 1:
+            continue
+        if not bank_accounts:
+            continue
+        header_height_mm = _natural_row_height_mm(bank_el.get("font_size", 8))
+        row_height_mm = _natural_row_height_mm(bank_el.get("font_size", 8))
+        content_height_mm = (header_height_mm + row_height_mm * len(bank_accounts)) * 1.05
+        designed_height_mm = bank_el.get("height_mm", 0)
+        overflow_mm = content_height_mm - designed_height_mm
+        if overflow_mm <= 0:
+            continue
+        bank_bottom_mm = bank_el.get("y_mm", 0) + designed_height_mm
+        bank_el["height_mm"] = content_height_mm
+        for other_el in elements:
+            if other_el is bank_el:
+                continue
+            gap_mm = other_el.get("y_mm", 0) - bank_bottom_mm
+            if -0.5 <= gap_mm <= _FOLLOW_GAP_THRESHOLD_MM:
+                other_el["y_mm"] = other_el.get("y_mm", 0) + overflow_mm
+
     return elements
 
 
@@ -264,7 +293,7 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
 
     jinja_template = _env.get_template("template_designer_base.html")
     return jinja_template.render(
-        elements=_reflow_elements_below_table(template.layout_json, line_items),
+        elements=_reflow_elements_below_table(template.layout_json, line_items, bank_accounts),
         resolved_text=resolved_text,
         line_items=line_items,
         totals=totals,

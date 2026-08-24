@@ -243,6 +243,55 @@ def test_render_v2_template_resolves_dynamic_fields_and_bank_account(
     assert "Danışmanlık Hizmeti" in html
 
 
+def test_render_v2_template_multi_bank_account_no_duplication(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    """Test that multiple bank-account elements (slots 1, 2, 3) render the table only once."""
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+
+    bank_account_1 = _create_bank_account(db_session, test_user)
+    bank_account_2 = _create_bank_account(db_session, test_user)
+
+    template = InvoiceTemplate(
+        user_id=test_user.id,
+        name="V2 Multi Bank Template",
+        is_system_template=False,
+        layout_version=2,
+        orientation="portrait",
+        layout_json=[
+            _text_element("el_1", "customer.name", "Müşteri", y=10),
+            _bank_account_element("el_2", 1),
+            _bank_account_element("el_3", 2),
+            _bank_account_element("el_4", 3),
+            _table_element("el_5"),
+        ],
+    )
+    db_session.add(template)
+    db_session.flush()
+    db_session.commit()
+    db_session.refresh(template)
+
+    payload = InvoiceCreatePayload(
+        template_id=template.id,
+        customer_id=test_customer.id,
+        bank_account_id=bank_account_1.id,
+        bank_account_id_2=bank_account_2.id,
+        line_items=[LineItemPayload(description="Hizmet", quantity="1", unit_price="100")],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+
+    html = pdf_service.render_invoice_html(invoice, template)
+
+    table_count = html.count("<table style=\"width:100%; border-collapse:collapse; font-size:8pt;\">")
+    assert table_count == 1, f"Expected 1 bank-account table, found {table_count}"
+
+    assert bank_account_1.iban in html
+    assert bank_account_2.iban in html
+    assert bank_account_1.bank_name in html
+    assert bank_account_2.bank_name in html
+
+
 def test_render_v2_template_resolves_new_totals_fields(
     db_session, test_customer: InvoiceCustomer, test_user: User
 ):

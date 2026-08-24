@@ -4,6 +4,36 @@ Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerin
 
 ---
 
+## 2026-08-24 — PDF Önizleme — Banka Hesabı Tablosunda Çoklu Render Hatası Düzeltmesi
+
+**Bağlam:** Fatura detay ekranında "Önizle" butonuna basıldığında, PDF/HTML önizlemede banka hesabı tablosunda **sadece sütun başlıkları** (Banka Adı, Şube Adı, vb.) görünüyor, veri satırları gözükmüyor ya da garip bir şekilde görünüyor (başlıklar veri satırlarını kapatıyor gibi). İncelenen gerçek test faturasında (`INV202600013`, "Fatura Test 1" şablonu, v2 layout, 2 banka hesabı atanmış) durum: şablonun `layout_json`'da **3 ayrı `bank-account` elemanı** vardı — slot 1, 2, 3 için ayrı ayrı, konumları yalnızca ~5mm arayla (y: 245.67, 250.67, 255.67mm), her biri sadece 5mm yükseklikte.
+
+**Kök sebep:** `template_designer_base.html`'deki `bank-account` dalı, `element.slot` değerine hiç bakmadan, `bank_accounts` listesi doluysa **HER bank-account elemanı için** (slot 1, 2, ve 3 hepsi) başlık+tüm-hesaplar içeren komple `<table>` render ediyordu. Sonuç: aynı 2-satırlık tablo 3 kez üst üste, sadece 5mm arayla konumlanarak basılıyordu. `.el-table` CSS kuralı (`height: auto !important`) tabloların gerçek içerik yüksekliğine büyümesine izin verdiği için, üst tabloların opak başlık arka planı (`#f5f5f5`) alttaki tabloların veri satırlarını **görsel olarak örtüyordu** — kullanıcının gördüğü "sadece başlıklar" görüntüsü bu yüzden.
+
+**Çözüm:**
+1. **template_designer_base.html — slot kontrolü eklendi:** `bank-account` tablo render'ı yalnızca `element.slot == 1` (veya slot undefined) olduğunda yapılır. Slot 2/3 elemanları tamamen skip edilir.
+2. **pdf_service.py — banka tablosu yükseklik hesaplaması eklendi:** `_reflow_elements_below_table()` fonksiyonu (items tablosu için zaten mevcuttu) genişletildi: slot-1 `bank-account` elemanları için de şu işlemi yapar:
+   - `header_height_mm` + (`row_height_mm` × hesap sayısı) × 1.05 (safety margin) ile gerçek içerik yüksekliğini hesaplar
+   - Eğer tasarlanmış `height_mm`'i aşarsa (overflow varsa) `height_mm`'i günceller
+   - Tablo altında ~50mm içinde kalan elemanları (`y_mm`) overflow kadarı aşağı kaydırır (item tablosu ile aynı pattern)
+3. **_render_visual_v2_html() çağrısı güncellendi:** `_reflow_elements_below_table()` artık 3. parametre olarak `bank_accounts` listesi alıyor.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/templates_html/template_designer_base.html` | Değiştirme | `bank-account` dalında `{% if element.slot == 1 or element.slot is undefined %}` kontrolü eklendi, slot 2/3 hiç render edilmiyor |
+| `backend/app/services/pdf_service.py` | Değiştirme | `_reflow_elements_below_table()` parametresi `bank_accounts` eklendi, slot-1 bank-account elemanları için yükseklik overflow hesaplaması + altında kalan elemanların kaydırılması uygulandı |
+| `backend/tests/test_templates.py` | Ekleme | `test_render_v2_template_multi_bank_account_no_duplication()` yeni test: 3 slotta bank-account elemanı + 2 hesaplı fatura ile render, HTML'de tek bir tablo doğrulanıyor (slot 2/3 tekrar basılmıyor) |
+
+**Doğrulama:**
+- Test DB'ye karşı yeni test çalıştırılıp geçtiği teyit edildi
+- Gerçek test faturası (`INV202600013`) HTML render'ında:
+  - `<thead>` 1 adet (banka tablosunun başlığı) ✓
+  - "Banka Adı" header 1 kez ✓
+  - Veri satırları 2 adet (2 hesap) ✓
+  - Slot 2/3 tekrar render edilmiyor ✓
+
+---
+
 ## 2026-08-24 — Banka Hesabı Düzenleme — Seçilmiş Hesapları Kaldırabilme (Clear Button)
 
 **Bağlam:** Fatura detay ekranında (`/dashboard/invoices/:id`) sağ sidebar'daki `BankAccountSection`
