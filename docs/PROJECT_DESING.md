@@ -4,6 +4,37 @@ Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerin
 
 ---
 
+## 2026-08-24 — Banka Hesabı Düzenleme — Seçilmiş Hesapları Kaldırabilme (Clear Button)
+
+**Bağlam:** Fatura detay ekranında (`/dashboard/invoices/:id`) sağ sidebar'daki `BankAccountSection`
+bileşeninin düzenleme modunda, kullanıcı şu anda sadece banka hesabı seçebiliyor, ama seçilen 
+bir hesabı kaldırmaya (temizlemeye) kabiliyeti yok. Kullanıcı isteği: "Düzenle" butonuna basıp
+3 banka hesabından istediğini **kaldırabilsin**, kaydet yapıp sadece kalanlar listelenmesi."
+
+Kök sebep: Düzenleme modundaki Select alan'ında hiçbir "boş bırak" seçeneği yoktu ve UI'da
+bilerek seçilen hesapları kaldırmanın yolu yoktu.
+
+Çözüm:
+1. **BankAccountSection.tsx — edit mode'daki Select'in yanına clear button eklendi:**
+   - Her Select alan'ının sağında küçük bir `X` ikonu (lucide-react'ten)
+   - Click handler: `setSelectedIds((prev) => prev.map((id, i) => (i === index ? '' : id)))`
+   - Button otomatik disabled hale gelir, o slot boş olduğunda (`disabled={!selectedIds[index]}`)
+   - Styling: `CopyIconButton` pattern'ıyla tutarlı (h-10 w-10, border-slate-300, hover:bg-slate-50)
+2. **Backend zaten hazırlı:** `handleSave` fonksiyonu `selectedIds[i] || null` dönüştürmesi yapıyor,
+   empty string otomatik null'a dönüştürülüyor. Hiçbir backend değişikliği gerekmedi.
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `frontend/src/features/invoices/components/BankAccountSection.tsx` | Değiştirme | Edit mode'da her Select'in yanına X kaldırma butonu; `disabled={!selectedIds[index]}`, onClick setSelectedIds'i empty string'e ayarla |
+
+**Doğrulama (beklemede):**
+- Frontend'de 3 banka hesabı olan bir faturayı aç, Edit'e bas
+- Select'lerin yanındaki X butonlarına tıkla, seçili olanlar temizlensin (disabled olsa bile gözükse)
+- Save'e bas, temizlenmiş hesaplar ekrandan kaybolsun, sadece geri kalanlar görünsün
+- Tek bir hesap kalırsa grid 1 kolon, iki hesap kalırsa 2 kolon görmek
+
+---
+
 ## 2026-08-24 — Banka Hesabı Kartları — Görsel Taşma Hatası Düzeltmesi + IBAN Kopyalama
 
 **Bağlam:** Fatura detay ekranında (`/dashboard/invoices/:id`) sağ sidebar'da yer alan
