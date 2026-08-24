@@ -75,15 +75,26 @@ def download_invoice_pdf(
     db: Annotated[Session, Depends(get_db)],
 ) -> FileResponse:
     invoice = get_own_invoice(db, invoice_id, current_user)
-    if invoice.pdf_url is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF henüz hazır değil")
+    template = db.get(InvoiceTemplate, invoice.template_id)
+    if template is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Şablon bulunamadı")
 
-    pdf_path = Path(settings.pdf_storage_dir) / invoice.pdf_url
-    if not pdf_path.exists():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF dosyası bulunamadı")
+    show_watermark = get_active_plan(db, current_user).key == "free"
+    output_path = Path(settings.pdf_storage_dir) / f"{invoice.id}.pdf"
+    try:
+        pdf_service.generate_invoice_pdf(invoice, template, output_path, show_watermark)
+        invoice.pdf_url = output_path.name
+        invoice.pdf_status = InvoicePdfStatus.READY
+        invoice.pdf_error = None
+        db.commit()
+    except Exception as exc:
+        invoice.pdf_status = InvoicePdfStatus.FAILED
+        invoice.pdf_error = str(exc)[:1000]
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="PDF üretilemedi") from exc
 
     return FileResponse(
-        path=pdf_path,
+        path=output_path,
         media_type="application/pdf",
         filename=f"{invoice.invoice_number}.pdf",
     )

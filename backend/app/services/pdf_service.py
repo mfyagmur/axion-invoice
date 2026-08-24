@@ -142,7 +142,10 @@ def _qr_data_uri(value: str) -> str | None:
         return None
     import qrcode
 
-    image = qrcode.make(value)
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=20, border=2)
+    qr.add_data(value)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color="black", back_color="white")
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode('ascii')}"
