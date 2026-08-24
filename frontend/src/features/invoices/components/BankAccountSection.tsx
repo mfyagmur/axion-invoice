@@ -87,7 +87,7 @@ export function BankAccountSection({ invoiceId, status, bankAccounts }: BankAcco
                   {bankAccount.currency}
                 </div>
                 <p className="truncate text-sm font-bold text-slate-900">{bankAccount.bank_name}</p>
-                <p className="truncate text-xs text-slate-500">{bankAccount.branch_name} (Şube Kodu: {bankAccount.branch_code})</p>
+                <p className="truncate text-xs text-slate-500">{bankAccount.branch_name}</p> {/* (Şube Kodu: {bankAccount.branch_code}) */}
                 <div className="mt-3 flex items-start justify-between gap-2">
                   <p className="break-all font-mono text-sm text-slate-700">{bankAccount.iban}</p>
                   <CopyIconButton value={bankAccount.iban} label="Copy IBAN" />
