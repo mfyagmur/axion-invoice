@@ -154,10 +154,14 @@ def send_invoice_email_endpoint(
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
     invoice = get_own_invoice(db, invoice_id, current_user)
-    if invoice.customer.email is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Müşterinin e-posta adresi yok")
 
-    send_invoice_email_task.delay(str(invoice.id), invoice.customer.email)
+    has_company_email = invoice.customer.email is not None
+    has_contacts = bool(invoice.recipient_contact_ids)
+
+    if not has_company_email and not has_contacts:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Alıcı e-posta adresi yok")
+
+    send_invoice_email_task.delay(str(invoice.id))
 
 
 @router.post("/{invoice_id}/payment-reminder/activate", response_model=InvoiceDetailResponse)

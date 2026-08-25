@@ -19,11 +19,21 @@ Bu dosya, projede yapılan her önemli implementasyon değişikliğini tarih, do
 
 **Not:** Backend `.env` dosyasında `# SMTP Configuration` bölümü (SMTP_HOST/PORT/USER/PASSWORD/FROM) zaten mevcut. Kullanıcı gerçek SMTP bilgilerini kendisi `.env`'e girerse mail akışı otomatik çalışır. SMTP boşsa test için log-simülasyonu yapılıyor (prodüksiyona geçilene kadar güvenli default).
 
+---
+
+### 2026-08-25 — Çoklu Alıcıya Mail Gönderimi
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/api/v1/invoices.py` | Değiştirme | `send_invoice_email_endpoint` — `invoice.customer.email` VEYA `recipient_contact_ids` kontrol eklendi. Her ikisi de boşsa 400 döner ("Alıcı e-posta adresi yok"). Task imzası `send_invoice_email_task.delay(str(invoice.id))` (to_email parametresi kaldırıldı). |
+| `backend/app/tasks/email_tasks.py` | Değiştirme | `send_invoice_email_task` imzası `(invoice_id: str)` oldu. Task tüm alıcıları toplar: şirketin e-postası + recipient_contact_ids üzerinden seçili iletişim kişilerinin e-postaları (1-3 kişi). Tüm unique e-postalar listesine her birine `email_service.send_invoice_email()` çağrısı yapılır. |
+
+**Açıklama:** Frontend `InvoiceForm.tsx`'de zaten 3 dropdown (Faturanın gönderileceği kişi, Ek İletişim 1, Ek İletişim 2) ve `recipient_contact_ids: string[]` array'i mevcuttu. Backend iş mantığı sadece bu alıcıları mail gönderim sırasında çekip iletiş kuruluyor. Mail artık şirkete + seçili 1-3 contact'a gidiyor (3-4 adet mail).
+
 **Ertelenen/Kapsam Dışı İşler:**
 - Mail şablonu (HTML/branded design) — şimdilik düz metin mesaj
 - Fatura PDF eki — `email_tasks.py` PDF bağımlılığını kaldırdı, mail gönderim anında PDF üretilmesini beklemez
 - E-posta gönderim durumunun DB izlemesi (`email_status`, `email_sent_at` alanları) — şu an Celery log + frontend toast
-- Çoklu alıcı (`recipient_contact_ids`) — şu an sadece `invoice.customer.email` kullanılıyor
 
 ---
 
