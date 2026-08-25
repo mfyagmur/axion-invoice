@@ -7,19 +7,6 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
-### Kalemler Tablosunda Toplamlar — Eski Şablonların Elle Geçişi
-**Dosya:** `frontend/src/features/invoice-editor/components/PropertiesPanel.tsx`, şablon editörü
-**Durum:** Ertelendi (bilinçli tasarım kararı) — eklendi 2026-08-21
-**Bağlam:** 2026-08-21'de kalemler tablosuna, satır sayısı ne olursa olsun tabloyu garantili takip
-eden opsiyonel bir toplamlar `<tfoot>`'u eklendi (`show_totals` alanı, bkz.
-`docs/PROJECT_DESING.md` § "Kalemler Tablosu Sabit Yükseklik Kırpması..."). Bu özellik varsayılan
-kapalı — mevcut, toplamları ayrı elle konumlandırılmış `dynamic-field` kutularıyla tasarlanmış
-şablonlar hiç değişmeden çalışmaya devam ediyor. Otomatik geçiş yapılmadı çünkü hangi metin
-elementinin "toplam" temsil ettiğini güvenli biçimde tespit etmek mümkün değil. Kullanıcı isterse
-şablon editöründe tabloyu seçip yeni "Toplamları Tabloya Ekle" toggle'ını açabilir ve eski ayrı
-toplam kutularını elle silip/gizleyebilir.
-**Sıra:** Düşük
-
 ### Fatura Önizleme — Çok Sayfalı Fatura Desteği
 **Dosya:** `backend/app/templates_html/template_designer_base.html`, `invoice_base.html`,
 `backend/app/services/pdf_service.py`
@@ -36,13 +23,13 @@ oluşmadı/kötüleşmedi). Doğru çözüm: şablon modeline eleman bazında "h
 
 ### Fatura Oluşturma Ekranında Kaydedilmemiş Taslak Önizlemesi
 **Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
-**Durum:** Ertelendi — eklendi 2026-08-21
+**Durum:** ✅ Tamamlandı (2026-08-25)
 **Bağlam:** Fatura oluşturma formundaki (`dashboard/invoices/new`) "Önizle" butonu hâlâ `disabled`.
 Sebep: `/invoices/{id}/preview` endpoint'i var olan bir `invoice_id` gerektiriyor, ama bu ekranda
 fatura henüz kaydedilmemiş. Kaydedilmemiş form verisiyle canlı önizleme için yeni bir POST tabanlı
 preview endpoint'i (form payload'ını doğrudan `render_invoice_html`'e benzer şekilde işleyen)
 eklenmesi gerekiyor.
-**Sıra:** Düşük
+**Sıra:** Tamamlandı
 
 ### Fatura Detayı — Sabit "Gönderen" Placeholder'ı
 **Dosya:** `frontend/src/features/invoices/components/CompanyInfoSection.tsx`
@@ -57,7 +44,7 @@ ayrı dashboard kartındaki kozmetik bir eksiklik.
 
 ### 0. A4 Şablon Tasarımcısının Tarayıcıda Görsel Teyidi
 **Dosya:** `frontend/src/pages/dashboard/TemplateEditorPage.tsx` ve `frontend/src/features/invoice-editor/` altındaki yeni bileşenler
-**Durum:** Ertelenmiş (tarayıcı otomasyon aracı yoktu) — eklendi 2026-08-20
+**Durum:** ✅ Tamamlandı (2026-08-25)
 **Bağlam:** `dashboard/templates/new` tamamen yeniden yazıldı (bkz. `docs/PROJECT_DESING.md` §
 2026-08-20 — A4 Şablon Tasarımcısı Yeniden Yazımı). Backend `pytest` (35/35) ve frontend
 `tsc --noEmit`/`vite build` ile doğrulandı ama gerçek tarayıcıda hiç açılmadı. Kontrol edilmesi
@@ -71,7 +58,7 @@ taşımanın snap ile birlikte doğru davrandığı, (4) undo/redo (Ctrl+Z/Y) ve
 düzgün yüklendiği ve kaydedilince v2'ye geçtiği, (8) admin panelinden (`/dashboard/admin/templates`)
 XSLT şablon oluşturmanın hâlâ çalıştığı, kullanıcı ekranında "XSLT Şablonu Oluştur" butonunun
 artık görünmediği.
-**Sıra:** Yüksek
+**Sıra:** Tamalandı
 
 ### 0.1 Şablon Tasarımcısı — Ertelenen Alt Özellikler
 **Durum:** Bilinçli olarak kapsam dışı bırakıldı — eklendi 2026-08-20
@@ -86,7 +73,7 @@ değer/yüksek efor nedeniyle ertelendi:
   görsellerde JSONB satırını şişirebilir.
 **Sıra:** Düşük
 
-### 0. Fatura Detayında Vade Tarihi Gösterimi
+### 0. Fatura Detayında Vade Tarihi Gösterimi (Tamamlandı — 2026-08-19)
 **Dosya:** `frontend/src/features/invoices/components/InvoiceActionHeader.tsx`
 **Durum:** ✅ Tamamlandı (2026-08-19)
 **Bağlam:** Fatura detay sayfasındaki başlık satırında oluşturma tarihinin yanında vade tarihi gösteriliyordu. "Vade Tarihi: 26.08.2026" formatında oluşturma tarihinin altında gösterilir.
@@ -178,7 +165,7 @@ eklenmeli.
 için TRY banka hesabı seçebilir. Şu an backend/frontend bunu engellemiyor veya uyarmıyor.
 **Sıra:** Düşük
 
-### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu (Yapıldı — 2026-08-20)
+### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu (Tamamlandı — 2026-08-20)
 **Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
 **Durum:** ✅ Tamamlandı
 **Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
