@@ -539,8 +539,6 @@
       "companyInfoTitle": "Invoice Information",
       "senderTitle": "Sender",
       "recipientTitle": "Recipient",
-      "senderPlaceholderName": "Axion",
-      "senderPlaceholderNote": "Company details coming soon.",
       "recipientAddressLabel": "Address Details",
       "recipientTaxLabel": "Tax Details",
       "recipientContactLabel": "Contact Details",

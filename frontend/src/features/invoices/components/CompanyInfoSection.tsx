@@ -6,6 +6,7 @@ import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { EditIconButton } from '@/features/invoices/components/EditIconButton'
 import { useUpdateInvoice } from '@/features/invoices/hooks/useUpdateInvoice'
+import { useAuthStore } from '@/store/authStore'
 import type { Customer } from '@/types/customer'
 import type { CustomerSnapshot, InvoiceStatus } from '@/types/invoice'
 
@@ -31,8 +32,21 @@ interface FormState {
 export function CompanyInfoSection({ customer, invoiceId, status, customerSnapshot }: CompanyInfoSectionProps) {
   const { t } = useTranslation()
   const updateInvoice = useUpdateInvoice()
+  const user = useAuthStore((state) => state.user)
   const [isEditing, setIsEditing] = useState(false)
   const [form, setForm] = useState<FormState | null>(null)
+
+  const senderName = user?.company_name
+  const senderAddress = user?.address
+  const senderCity = user?.city
+  const senderPostalCode = user?.postal_code
+  const senderCountry = user?.country
+  const senderTaxOffice = user?.tax_office
+  const senderTaxNumber = user?.tax_number
+  const senderEmail = user?.corporate_email
+  const senderPhone = user?.phone
+
+  const senderLocationLine = [senderCity, senderPostalCode, senderCountry].filter(Boolean).join(' / ')
 
   const recipientName = customerSnapshot?.name || customer.company_name || customer.name
   const address = customerSnapshot?.address ?? customer.address
@@ -137,14 +151,79 @@ export function CompanyInfoSection({ customer, invoiceId, status, customerSnapsh
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="flex flex-col gap-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              {t('invoices.detail.senderTitle')}
-            </span>
-            {/* TODO: gerçek gönderen şirket profili eklenince güncellenecek */}
-            <span className="text-sm font-semibold text-slate-900">{t('invoices.detail.senderPlaceholderName')}</span>
-            <span className="text-xs text-slate-400">{t('invoices.detail.senderPlaceholderNote')}</span>
-          </div>
+          {senderName && (
+            <div className="rounded-xl border border-slate-300 p-4 shadow-sm">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                <div className="flex items-start gap-3 border-b border-slate-100 pb-4">
+                  <Building2 size={18} className="mt-0.5 shrink-0 text-blue-900" />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                      {t('invoices.detail.senderTitle')}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900">{senderName}</span>
+                  </div>
+                </div>
+
+                {(senderAddress || senderLocationLine) && (
+                  <div className="flex items-start gap-3 border-b border-slate-100 pb-4">
+                    <MapPin size={18} className="mt-0.5 shrink-0 text-blue-900" />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                        {t('invoices.detail.recipientAddressLabel')}
+                      </span>
+                      {senderAddress && <span className="text-sm font-bold text-slate-900">{senderAddress}</span>}
+                      {senderLocationLine && <span className="text-sm text-slate-700">{senderLocationLine}</span>}
+                    </div>
+                  </div>
+                )}
+
+                {(senderTaxOffice || senderTaxNumber) && (
+                  <div className="flex items-start gap-3">
+                    <Receipt size={18} className="mt-0.5 shrink-0 text-blue-900" />
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                        {t('invoices.detail.recipientTaxLabel')}
+                      </span>
+                      {senderTaxOffice && (
+                        <span className="text-sm text-slate-500">
+                          {t('customers.form.taxOffice')}: <span className="font-bold text-slate-900">{senderTaxOffice}</span>
+                        </span>
+                      )}
+                      {senderTaxNumber && (
+                        <span className="text-sm text-slate-500">
+                          {t('customers.form.taxNumber')}: <span className="font-bold text-slate-900">{senderTaxNumber}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(senderEmail || senderPhone) && (
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex shrink-0 items-center gap-0.5 text-blue-900">
+                      <Mail size={16} />
+                      <Phone size={16} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                        {t('invoices.detail.recipientContactLabel')}
+                      </span>
+                      {senderEmail && (
+                        <span className="text-sm text-slate-500">
+                          {t('customers.form.email')}: <span className="font-bold text-slate-900">{senderEmail}</span>
+                        </span>
+                      )}
+                      {senderPhone && (
+                        <span className="text-sm text-slate-500">
+                          {t('customers.form.phone')}: <span className="font-bold text-slate-900">{senderPhone}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="rounded-xl border border-slate-300 p-4 shadow-sm">
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
