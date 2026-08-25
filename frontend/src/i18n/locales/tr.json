@@ -6,6 +6,7 @@
     "confirm": "Onayla",
     "loading": "Yükleniyor...",
     "comingSoon": "Bu bölüm ileriki bir fazda eklenecek.",
+    "error": "Bir hata oluştu",
     "genericError": "Bir hata oluştu, lütfen tekrar deneyin.",
     "retry": "Tekrar Dene",
     "language": "Dil",
@@ -128,7 +129,9 @@
       "freeUseBlocked": "Free planda hazır şablon kullanılamaz. Devam etmek için planınızı yükseltin.",
       "promoteToSystem": "Sisteme Ekle",
       "demoteFromSystem": "Sistemden Kaldır",
-      "demoteConfirm": "Bu şablonu sistemden kaldırmak istediğinize emin misiniz? Şablon kendi listenize geri dönecek."
+      "demoteTitle": "Şablonu Sistemden Kaldır",
+      "demoteConfirm": "Bu şablonu sistemden kaldırmak istediğinize emin misiniz? Şablon kendi listenize geri dönecek.",
+      "demoteConfirmBtn": "Evet, Kaldır"
     }
   },
   "editor": {

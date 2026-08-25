@@ -1,8 +1,10 @@
 import axios from 'axios'
 import { Plus, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { ErrorState } from '@/components/ErrorState'
 import { useMySubscription } from '@/features/billing/hooks/useMySubscription'
 import { useDeleteTemplate } from '@/features/invoice-editor/hooks/useDeleteTemplate'
@@ -47,6 +49,7 @@ function TemplateCard({
   isAdmin: boolean
 }) {
   const { t } = useTranslation()
+  const [demoteDialogOpen, setDemoteDialogOpen] = useState(false)
   const duplicateTemplate = useDuplicateTemplate()
   const deleteTemplate = useDeleteTemplate()
   const promoteTemplate = usePromoteTemplate()
@@ -58,33 +61,44 @@ function TemplateCard({
     (PLAN_RANK[userPlanKey ?? 'free'] ?? 0) < (PLAN_RANK[template.min_plan_key] ?? 0)
 
   return (
-    <div className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-slate-900">{template.name}</span>
-        <TemplateBadges template={template} />
-      </div>
-      <div className="flex gap-2">
-        {template.is_system_template ? (
-          <>
-            <Button
-              variant="secondary"
-              className={isBlocked ? 'opacity-60' : undefined}
-              onClick={() => {
-                if (isBlocked) {
-                  pushToast(t('templates.list.freeUseBlocked'))
-                  return
-                }
-                duplicateTemplate.mutate(template.id)
-              }}
-            >
-              {t('templates.list.use')}
-            </Button>
-            {isAdmin && template.engine === 'visual' && (
+    <>
+      <div className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-slate-900">{template.name}</span>
+          <TemplateBadges template={template} />
+        </div>
+        <div className="flex gap-2">
+          {template.is_system_template ? (
+            <>
               <Button
-                variant="ghost"
+                variant="secondary"
+                className={isBlocked ? 'opacity-60' : undefined}
                 onClick={() => {
-                  if (window.confirm(t('templates.list.demoteConfirm'))) {
-                    demoteTemplate.mutate(template.id, {
+                  if (isBlocked) {
+                    pushToast(t('templates.list.freeUseBlocked'))
+                    return
+                  }
+                  duplicateTemplate.mutate(template.id)
+                }}
+              >
+                {t('templates.list.use')}
+              </Button>
+              {isAdmin && template.engine === 'visual' && (
+                <Button variant="ghost" onClick={() => setDemoteDialogOpen(true)}>
+                  {t('templates.list.demoteFromSystem')}
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <Link to={`/dashboard/templates/${template.id}/edit`}>
+                <Button variant="secondary">{t('templates.list.edit')}</Button>
+              </Link>
+              {isAdmin && template.engine === 'visual' && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    promoteTemplate.mutate(template.id, {
                       onError: (error: unknown) => {
                         const message = axios.isAxiosError(error)
                           ? ((error.response?.data as { detail?: string } | undefined)?.detail ??
@@ -93,50 +107,47 @@ function TemplateCard({
                         pushToast(message)
                       },
                     })
+                  }}
+                >
+                  {t('templates.list.promoteToSystem')}
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (window.confirm(t('templates.list.deleteConfirm'))) {
+                    deleteTemplate.mutate(template.id)
                   }
                 }}
               >
-                {t('templates.list.demoteFromSystem')}
+                <Trash2 size={16} />
               </Button>
-            )}
-          </>
-        ) : (
-          <>
-            <Link to={`/dashboard/templates/${template.id}/edit`}>
-              <Button variant="secondary">{t('templates.list.edit')}</Button>
-            </Link>
-            {isAdmin && template.engine === 'visual' && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  promoteTemplate.mutate(template.id, {
-                    onError: (error: unknown) => {
-                      const message = axios.isAxiosError(error)
-                        ? ((error.response?.data as { detail?: string } | undefined)?.detail ??
-                            t('common.error'))
-                        : t('common.error')
-                      pushToast(message)
-                    },
-                  })
-                }}
-              >
-                {t('templates.list.promoteToSystem')}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              onClick={() => {
-                if (window.confirm(t('templates.list.deleteConfirm'))) {
-                  deleteTemplate.mutate(template.id)
-                }
-              }}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+      <ConfirmDialog
+        isOpen={demoteDialogOpen}
+        title={t('templates.list.demoteTitle')}
+        message={t('templates.list.demoteConfirm')}
+        confirmLabel={t('templates.list.demoteConfirmBtn')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={() => {
+          setDemoteDialogOpen(false)
+          demoteTemplate.mutate(template.id, {
+            onError: (error: unknown) => {
+              const message = axios.isAxiosError(error)
+                ? ((error.response?.data as { detail?: string } | undefined)?.detail ??
+                    t('common.error'))
+                : t('common.error')
+              pushToast(message)
+            },
+          })
+        }}
+        onCancel={() => setDemoteDialogOpen(false)}
+      />
+    </>
   )
 }
 

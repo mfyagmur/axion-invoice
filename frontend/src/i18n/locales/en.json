@@ -6,6 +6,7 @@
     "confirm": "Confirm",
     "loading": "Loading...",
     "comingSoon": "This section will be added in a later phase.",
+    "error": "Something went wrong",
     "genericError": "Something went wrong, please try again.",
     "retry": "Retry",
     "language": "Language",
@@ -128,7 +129,9 @@
       "freeUseBlocked": "Ready-made templates aren't available on the Free plan. Upgrade your plan to continue.",
       "promoteToSystem": "Add to System",
       "demoteFromSystem": "Remove from System",
-      "demoteConfirm": "Are you sure you want to remove this template from the system? It will return to your templates list."
+      "demoteTitle": "Remove Template from System",
+      "demoteConfirm": "Are you sure you want to remove this template from the system? It will return to your templates list.",
+      "demoteConfirmBtn": "Yes, Remove"
     }
   },
   "editor": {
