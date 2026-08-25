@@ -13,10 +13,9 @@ def send_invoice_email_task(invoice_id: str, to_email: str) -> None:
     db = SessionLocal()
     try:
         invoice = db.get(Invoice, uuid.UUID(invoice_id))
-        if invoice is None or invoice.pdf_url is None:
+        if invoice is None:
             return
 
-        pdf_path = Path(settings.pdf_storage_dir) / invoice.pdf_url
-        email_service.send_invoice_email(to_email, invoice, pdf_path)
+        email_service.send_invoice_email(to_email, invoice)
     finally:
         db.close()

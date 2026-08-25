@@ -41,14 +41,16 @@ değer/yüksek efor nedeniyle ertelendi:
   görsellerde JSONB satırını şişirebilir.
 **Sıra:** Düşük
 
-### "Devam Et" Butonu İşlevselliğinin Tamamlanması
-**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
-**Durum:** Ertelenmiş (2026-08-20'de tespit edildi)
-**Bağlam:** Fatura oluşturma formundaki "Devam Et" butonu şu an hardcoded `disabled` 
-durumda — onClick handler'ı yok (InvoiceForm.tsx:674). Tasarım amacı "Kaydet (taslak)" ve 
-"Devam Et (taslak + müşteriye gönder)" olmacak gibi düşünülüyor ama hangi akış/API endpoint 
-desteklemeleri gerektiği henüz belirlenmedi.
-**Sıra:** Düşük
+### Mail Gönderim Sistemi (SMTP) — Temel Uçtan Uca
+**Dosya:** `backend/app/services/email_service.py`, `backend/app/tasks/email_tasks.py`, `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/features/invoices/components/InvoiceRowActions.tsx`
+**Durum:** Ertelendi (2026-08-25)
+**Bağlam:** Gerçek SMTP gönderimi uygulandı, "Gönder" butonu aktifleştirildi (fatura oluştur + mail), 
+faturalar listesinde "Mail Gönder" menü öğesi çalışıyor. Temel işlevsellik tamam ama ertelenen alt özellikler:
+- Mail şablonu (HTML/branded tasarım) — şu an düz metin mesaj (`"Fatura Numarası: {num}..."`)
+- Fatura PDF eki — `email_tasks.py` PDF bağımlılığını kaldırdı, mail gönderimi PDF üretimini beklemez
+- E-posta gönderim durumu DB izlemesi (`email_status`, `email_sent_at` alanları) — şu an Celery log + toast
+- Çoklu alıcı (`recipient_contact_ids` için dropdown) — şu an sadece `invoice.customer.email`
+**Sıra:** Orta (serideki sonraki adım)
 
 ### Banka Bilgilerinde TR Dışı Banka Desteği
 **Dosya:** `frontend/src/utils/formatIban.ts`, `frontend/src/pages/dashboard/settings/definitions/DefinitionPanel.tsx` (bankAccounts bloğu), backend `BankAccountPayload`/model alanları
@@ -221,6 +223,16 @@ selection, undo/redo, layers panel, PDF uyuşması, legacy v1→v2 migration tey
 **Durum:** ✅ Tamamlandı (2026-08-19)
 **Bağlam:** Fatura detay sayfasındaki başlık satırında oluşturma tarihinin yanında vade tarihi
 "Vade Tarihi: 26.08.2026" formatında oluşturma tarihinin altında gösterilir.
+
+### Fatura Oluşturma Ekranında "Gönder" Butonu (Fatura + Mail)
+**Dosya:** `backend/app/services/email_service.py`, `backend/app/tasks/email_tasks.py`, `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/features/invoices/components/InvoiceRowActions.tsx`, `frontend/src/i18n/locales/tr.json`/`en.json`
+**Durum:** ✅ Tamamlandı (2026-08-25)
+**Bağlam:** Fatura oluşturma formundaki "Devam Et" butonu (`InvoiceForm.tsx`) hardcoded `disabled`'den 
+çıkarılıp tam işlevsel hale getirildi. Etiket "Gönder" olarak değiştirildi (fatura oluştur + mail gönder). 
+Backend SMTP gerçek implementasyonu yapıldı (port 465 ise SSL, aksi halde TLS). "Kaydet" butonu 
+"Kaydet (Taslak)" olarak etiketlendi. Faturalar listesindeki (`InvoiceRowActions.tsx`) "Mail Gönder" 
+menü öğesi de aktifleştirildi — `useSendInvoiceEmail` hook'u artık kullanılıyor (önceden dead code idi). 
+Test ortamında SMTP_HOST boşsa log basıyor, dolu olunca gerçek mail gönderimi yapıyor.
 
 ### Sabit Tanımlamalar Yeniden Tasarımının Tarayıcıda Görsel Teyidi
 **Dosya:** `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` ve `definitions/` altındaki yeni bileşenler

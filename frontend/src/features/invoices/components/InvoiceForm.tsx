@@ -14,6 +14,7 @@ import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
+import { useSendInvoiceEmail } from '@/features/invoices/hooks/useSendInvoiceEmail'
 import { invoicesApi } from '@/features/invoices/api/invoicesApi'
 import { InvoiceDraftPreviewModal } from '@/features/invoices/components/InvoiceDraftPreviewModal'
 import type { InvoiceCreatePayload } from '@/types/invoice'
@@ -83,6 +84,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { data: customers } = useCustomers()
   const user = useAuthStore((state) => state.user)
   const createInvoice = useCreateInvoice()
+  const sendEmail = useSendInvoiceEmail()
   const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
   const [isFixedRate, setIsFixedRate] = useState(false)
   const [selectedPaymentTermId, setSelectedPaymentTermId] = useState('')
@@ -277,6 +279,18 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   function handlePreview() {
     previewDraft.mutate(buildInvoicePayload(getValues()), { onSuccess: () => setIsPreviewOpen(true) })
+  }
+
+  function handleSubmitAndSend() {
+    const values = getValues()
+    createInvoice.mutate(buildInvoicePayload(values), {
+      onSuccess: (invoice) => {
+        sendEmail.mutate(invoice.id, {
+          onSuccess: () => pushToast(t('invoices.detail.emailSent'), 'success'),
+          onError: () => pushToast(t('invoices.detail.emailSendError') || 'E-posta gönderilemedi'),
+        })
+      },
+    })
   }
 
   const onSubmit = handleSubmit((values) => {
@@ -700,7 +714,12 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
             )}
 
             <div className="flex gap-2">
-              <Button type="button" disabled className="flex-1 gap-2">
+              <Button
+                type="button"
+                onClick={handleSubmitAndSend}
+                disabled={!isFormValid || createInvoice.isPending || sendEmail.isPending}
+                className="flex-1 gap-2"
+              >
                 <Send size={16} />
                 {t('invoices.form.continueAction')}
               </Button>

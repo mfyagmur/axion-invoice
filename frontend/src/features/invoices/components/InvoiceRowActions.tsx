@@ -12,6 +12,8 @@ import { useRestoreInvoice } from '@/features/invoices/hooks/useRestoreInvoice'
 import { useArchiveInvoice } from '@/features/invoices/hooks/useArchiveInvoice'
 import { useUnarchiveInvoice } from '@/features/invoices/hooks/useUnarchiveInvoice'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
+import { useSendInvoiceEmail } from '@/features/invoices/hooks/useSendInvoiceEmail'
+import { useToastStore } from '@/store/toastStore'
 
 interface InvoiceRowActionsProps {
   row: InvoiceRow
@@ -38,6 +40,8 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
   const archiveMutation = useArchiveInvoice()
   const unarchiveMutation = useUnarchiveInvoice()
   const downloadPdf = useDownloadInvoicePdf()
+  const sendEmail = useSendInvoiceEmail()
+  const pushToast = useToastStore((state) => state.push)
 
   const isPdfReady = row.pdfStatus === 'ready'
   const isCancelled = row.status === 'cancelled'
@@ -193,7 +197,18 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
             >
               {t('invoices.actions.preview')}
             </button>
-            <button type="button" disabled className={disabledItemClass}>
+            <button
+              type="button"
+              disabled={sendEmail.isPending}
+              onClick={() => {
+                setIsOpen(false)
+                sendEmail.mutate(invoiceId, {
+                  onSuccess: () => pushToast(t('invoices.detail.emailSent'), 'success'),
+                  onError: () => pushToast(t('invoices.detail.emailSendError') || 'E-posta gönderilemedi'),
+                })
+              }}
+              className={activeItemClass}
+            >
               {t('invoices.actions.sendEmail')}
             </button>
             <button
