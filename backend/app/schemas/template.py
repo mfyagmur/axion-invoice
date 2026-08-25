@@ -210,6 +210,7 @@ class TemplateSummaryResponse(BaseModel):
     engine: TemplateEngine
     target_format: TemplateFormat
     min_plan_key: str | None
+    user_id: uuid.UUID | None
     updated_at: datetime
 
     model_config = {"from_attributes": True}

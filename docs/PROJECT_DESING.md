@@ -4,6 +4,32 @@ Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerin
 
 ---
 
+## 2026-08-25 — Şablonlar — Admin Sistem Şablonu Yönetimi (Promote/Demote)
+
+**Bağlam:** Admin kullanıcı (mfyagmur@gmail.com), dashboard/templates/new görsel editörüyle kendi "E-Fatura" şablonunu hazırlayabilecek, fakat bu şablon yalnızca kullanıcı şablonu olarak DB'de tutuluyordu (`user_id = <admin>`, `is_system_template = false`). Şablonu "Sistem Şablonu" yapabilmek için yalnızca XSLT admin panelindeki `/admin/templates/xslt` endpoint'i üzerinde mümkündü, görsel şablonlar için yol yoktu. Bu görev admin'e kendi görsel şablonlarını sisteme terfi ettirip, sistemden geri alabilmesi için iki yeni endpoint + frontend UI'ı ekledi.
+
+**Çözüm:**
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/api/v1/templates.py` | Ekleme | `POST /templates/{id}/promote`, `POST /templates/{id}/demote` endpoint'leri; promote=sistem'e terfi, demote=geri al |
+| `backend/app/schemas/template.py` | Değiştirme | `TemplateSummaryResponse`'e `user_id: UUID \| None` alanı eklendi |
+| `backend/tests/test_templates.py` | Ekleme | 9 yeni test (promote/demote happy-path, owner olmayan, zaten sistem, XSLT, admin olmayan) |
+| `frontend/src/features/invoice-editor/api/templatesApi.ts` | Ekleme | `promote()`, `demote()` metotları |
+| `frontend/src/features/invoice-editor/hooks/usePromoteTemplate.ts` | Ekleme | Yeni hook (mutation + queryClient invalidate) |
+| `frontend/src/features/invoice-editor/hooks/useDemoteTemplate.ts` | Ekleme | Yeni hook (mutation + queryClient invalidate) |
+| `frontend/src/pages/dashboard/TemplatesPage.tsx` | Değiştirme | `TemplateCard`'a `isAdmin` prop, "Sisteme Ekle" / "Sistemden Kaldır" butonları |
+| `frontend/src/i18n/locales/tr.json` | Ekleme | `promoteToSystem`, `demoteFromSystem`, `demoteConfirm` i18n anahtarları |
+| `frontend/src/i18n/locales/en.json` | Ekleme | Aynı anahtarların İngilizce versiyonları |
+
+**Davranış:**
+- **Promote:** Admin'in kendi (sistem olmayan, visual engine) şablonunu `POST /templates/{id}/promote` ile sisteme ekler → `is_system_template=true`, `user_id=NULL`, `is_active=true` olur, diğer tüm kullanıcılar görebilir.
+- **Demote:** Admin sistemdeki visual şablonu `POST /templates/{id}/demote` ile geri alır → `is_system_template=false`, `user_id=<admin>'a döner, yalnızca o admin görebilir, diğer kullanıcılar artık göremez.
+- XSLT sistem şablonları bu butonlardan etkilenmez (ayrı `/admin/templates/xslt` akışında yönetilir).
+- Frontend: `TemplatesPage`'de sistem/kendi bölümlerinde çıkan kartlar, sadece `user.is_admin === true` iken butonlar gösterir, window.confirm sonrası API çağrısı yapılır, başarıda toast.
+
+---
+
 ## 2026-08-24 — Fatura Detay — Aksiyon Başlığı Sadeleştirmesi
 
 **Bağlam:** Dashboard/invoices/:id (Fatura Detay) sayfasındaki `InvoiceActionHeader` bileşeni gereksiz karmaşıklık içeriyordu:

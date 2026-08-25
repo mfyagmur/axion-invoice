@@ -418,3 +418,234 @@ def test_render_v2_template_qrcode_invoice_info(
     assert "Fatura Tarihi:" in captured_qr_value
     assert "Genel Toplam:" in captured_qr_value
     assert invoice.currency in captured_qr_value
+
+
+def test_promote_template(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    template = InvoiceTemplate(
+        user_id=admin_user.id,
+        name="Promosyon Testi Şablonu",
+        is_system_template=False,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/promote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["is_system_template"] is True
+    assert data["user_id"] is None
+    assert data["is_active"] is True
+
+
+def test_promote_template_not_own(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    other_user = User(
+        email=f"{uuid.uuid4()}@example.com",
+        password_hash=hash_password("testpassword123"),
+        full_name="Other User",
+        account_type=AccountType.BIREYSEL,
+    )
+    db_session.add(other_user)
+    db_session.flush()
+    ensure_default_subscription(db_session, other_user)
+    db_session.commit()
+
+    template = InvoiceTemplate(
+        user_id=other_user.id,
+        name="Başkasının Şablonu",
+        is_system_template=False,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/promote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 404
+
+
+def test_promote_template_already_system(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    template = InvoiceTemplate(
+        user_id=None,
+        name="Sistem Şablonu",
+        is_system_template=True,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/promote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 400
+    assert "zaten sistem şablonu" in response.json()["detail"]
+
+
+def test_promote_template_xslt(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    template = InvoiceTemplate(
+        user_id=admin_user.id,
+        name="XSLT Şablonu",
+        is_system_template=False,
+        engine="xslt",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/promote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 400
+    assert "görsel şablonlar" in response.json()["detail"]
+
+
+def test_promote_template_not_admin(client, db_session, test_user):
+    token = create_access_token(str(test_user.id))
+
+    template = InvoiceTemplate(
+        user_id=test_user.id,
+        name="Şablonu",
+        is_system_template=False,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/promote",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 403
+
+
+def test_demote_template(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    template = InvoiceTemplate(
+        user_id=None,
+        name="Demosyon Testi Şablonu",
+        is_system_template=True,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/demote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["is_system_template"] is False
+    assert data["user_id"] == str(admin_user.id)
+
+
+def test_demote_template_not_system(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    template = InvoiceTemplate(
+        user_id=admin_user.id,
+        name="Kullanıcı Şablonu",
+        is_system_template=False,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/demote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 404
+
+
+def test_demote_template_xslt(client, db_session, test_user):
+    admin_user = test_user
+    admin_user.is_admin = True
+    db_session.commit()
+    admin_token = create_access_token(str(admin_user.id))
+
+    template = InvoiceTemplate(
+        user_id=None,
+        name="XSLT Sistem Şablonu",
+        is_system_template=True,
+        engine="xslt",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/demote",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 400
+    assert "admin panelinden" in response.json()["detail"]
+
+
+def test_demote_template_not_admin(client, db_session, test_user):
+    token = create_access_token(str(test_user.id))
+
+    template = InvoiceTemplate(
+        user_id=None,
+        name="Sistem Şablonu",
+        is_system_template=True,
+        engine="visual",
+        layout_json=[],
+    )
+    db_session.add(template)
+    db_session.commit()
+    template_id = template.id
+
+    response = client.post(
+        f"/api/v1/templates/{template_id}/demote",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 403

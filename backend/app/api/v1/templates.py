@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user, require_not_demo
+from app.core.deps import get_current_user, require_not_demo, require_admin
 from app.models.template import InvoiceTemplate, InvoiceTemplateField
 from app.models.user import User
 from app.schemas.template import (
@@ -176,3 +176,46 @@ def duplicate_template(
     db.commit()
     db.refresh(duplicate)
     return duplicate
+
+
+@router.post("/{template_id}/promote", response_model=TemplateSummaryResponse)
+def promote_template(
+    template_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> InvoiceTemplate:
+    template = db.get(InvoiceTemplate, template_id)
+    if template is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Şablon bulunamadı")
+    if template.is_system_template:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Şablon zaten sistem şablonu")
+    if template.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Şablon bulunamadı")
+    if template.engine != "visual":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sadece görsel şablonlar sisteme eklenebilir")
+
+    template.is_system_template = True
+    template.user_id = None
+    template.is_active = True
+    db.commit()
+    db.refresh(template)
+    return template
+
+
+@router.post("/{template_id}/demote", response_model=TemplateSummaryResponse)
+def demote_template(
+    template_id: uuid.UUID,
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> InvoiceTemplate:
+    template = db.get(InvoiceTemplate, template_id)
+    if template is None or not template.is_system_template:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Şablon bulunamadı")
+    if template.engine != "visual":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="XSLT sistem şablonları admin panelinden yönetilir")
+
+    template.is_system_template = False
+    template.user_id = current_user.id
+    db.commit()
+    db.refresh(template)
+    return template

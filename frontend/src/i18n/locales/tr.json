@@ -125,7 +125,10 @@
       "edit": "Düzenle",
       "deleteConfirm": "Bu şablonu silmek istediğinize emin misiniz?",
       "limitReached": "Özel şablon limitinize ulaştınız. Devam etmek için planınızı yükseltin.",
-      "freeUseBlocked": "Free planda hazır şablon kullanılamaz. Devam etmek için planınızı yükseltin."
+      "freeUseBlocked": "Free planda hazır şablon kullanılamaz. Devam etmek için planınızı yükseltin.",
+      "promoteToSystem": "Sisteme Ekle",
+      "demoteFromSystem": "Sistemden Kaldır",
+      "demoteConfirm": "Bu şablonu sistemden kaldırmak istediğinize emin misiniz? Şablon kendi listenize geri dönecek."
     }
   },
   "editor": {

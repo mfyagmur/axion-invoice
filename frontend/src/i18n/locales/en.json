@@ -125,7 +125,10 @@
       "edit": "Edit",
       "deleteConfirm": "Are you sure you want to delete this template?",
       "limitReached": "You've reached your custom template limit. Upgrade your plan to continue.",
-      "freeUseBlocked": "Ready-made templates aren't available on the Free plan. Upgrade your plan to continue."
+      "freeUseBlocked": "Ready-made templates aren't available on the Free plan. Upgrade your plan to continue.",
+      "promoteToSystem": "Add to System",
+      "demoteFromSystem": "Remove from System",
+      "demoteConfirm": "Are you sure you want to remove this template from the system? It will return to your templates list."
     }
   },
   "editor": {

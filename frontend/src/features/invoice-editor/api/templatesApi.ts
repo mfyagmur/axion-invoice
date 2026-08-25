@@ -16,4 +16,10 @@ export const templatesApi = {
 
   duplicate: (id: string) =>
     apiClient.post<TemplateDetail>(`/templates/${id}/duplicate`).then((res) => res.data),
+
+  promote: (id: string) =>
+    apiClient.post<TemplateSummary>(`/templates/${id}/promote`).then((res) => res.data),
+
+  demote: (id: string) =>
+    apiClient.post<TemplateSummary>(`/templates/${id}/demote`).then((res) => res.data),
 }
