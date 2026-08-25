@@ -65,6 +65,90 @@ def get_own_invoice(db: Session, invoice_id: uuid.UUID, user: User) -> Invoice:
     return invoice
 
 
+def build_preview_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> Invoice:
+    """Build a transient (unsaved) Invoice for HTML preview rendering.
+
+    Validates all data but does not persist to DB — no db.add/flush/commit called.
+    Used by draft preview endpoint to show what a new invoice would look like before saving.
+    """
+    _get_visible_template(db, payload.template_id, user)
+
+    customer = db.get(InvoiceCustomer, payload.customer_id)
+    if customer is None or customer.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Müşteri bulunamadı")
+
+    for contact_id in payload.recipient_contact_ids:
+        contact = next((c for c in customer.contacts if c.id == contact_id), None)
+        if contact is None:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Geçerli olmayan kişi seçimi")
+
+    for bank_account_id in (payload.bank_account_id, payload.bank_account_id_2, payload.bank_account_id_3):
+        if bank_account_id is not None:
+            bank_account = db.get(DefinitionBankAccount, bank_account_id)
+            if bank_account is None or bank_account.user_id != user.id:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banka hesabı bulunamadı")
+
+    subtotal, tax_total, grand_total, line_computations = compute_totals(payload.line_items)
+
+    field_values = {key: value for key, value in payload.field_values.items() if key not in COMPUTED_FIELD_KEYS}
+
+    placeholder_invoice_number = f"{user.invoice_prefix or ''}{'0' * user.invoice_number_padding}"
+
+    invoice = Invoice(
+        user_id=user.id,
+        template_id=payload.template_id,
+        invoice_number=placeholder_invoice_number,
+        customer_id=customer.id,
+        bank_account_id=payload.bank_account_id,
+        bank_account_id_2=payload.bank_account_id_2,
+        bank_account_id_3=payload.bank_account_id_3,
+        currency=payload.currency,
+        payment_currency=payload.payment_currency,
+        exchange_rate=payload.exchange_rate,
+        invoice_type=payload.invoice_type,
+        scenario=payload.scenario,
+        commission_payer=payload.commission_payer,
+        recipient_contact_ids=[str(cid) for cid in payload.recipient_contact_ids],
+        subtotal=subtotal,
+        tax_total=tax_total,
+        grand_total=grand_total,
+        data_json=field_values,
+        notes=payload.notes,
+        issued_at=payload.issued_at,
+        due_at=payload.due_at,
+    )
+
+    line_items = []
+    for item, computed in zip(payload.line_items, line_computations):
+        line_items.append(
+            InvoiceLineItem(
+                invoice_id=invoice.id,
+                item_code=item.item_code,
+                description=item.description,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                unit=item.unit,
+                discount_rate=item.discount_rate,
+                discount_amount=computed["discount_amount"],
+                tax_rate=item.tax_rate,
+                tax_amount=computed["tax_amount"],
+                other_tax_amount=item.other_tax_amount,
+            )
+        )
+
+    invoice.customer = customer
+    invoice.user = user
+    invoice.line_items = line_items
+    if payload.bank_account_id:
+        invoice.bank_account = db.get(DefinitionBankAccount, payload.bank_account_id)
+    if payload.bank_account_id_2:
+        invoice.bank_account_2 = db.get(DefinitionBankAccount, payload.bank_account_id_2)
+    if payload.bank_account_id_3:
+        invoice.bank_account_3 = db.get(DefinitionBankAccount, payload.bank_account_id_3)
+
+    return invoice
+
+
 def create_invoice(db: Session, user: User, payload: InvoiceCreatePayload) -> Invoice:
     _get_visible_template(db, payload.template_id, user)
 

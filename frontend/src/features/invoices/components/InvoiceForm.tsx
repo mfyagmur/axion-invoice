@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { List, Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/Button'
@@ -13,6 +14,9 @@ import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
+import { invoicesApi } from '@/features/invoices/api/invoicesApi'
+import { InvoiceDraftPreviewModal } from '@/features/invoices/components/InvoiceDraftPreviewModal'
+import type { InvoiceCreatePayload } from '@/types/invoice'
 import { useExchangeRate } from '@/features/invoices/hooks/useExchangeRate'
 import { LineItemCard } from '@/features/invoices/components/LineItemCard'
 import { useTemplates } from '@/features/invoice-editor/hooks/useTemplates'
@@ -82,8 +86,10 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
   const [isFixedRate, setIsFixedRate] = useState(false)
   const [selectedPaymentTermId, setSelectedPaymentTermId] = useState('')
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const previewDraft = useMutation({ mutationFn: invoicesApi.previewDraft })
 
-  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<InvoiceFormValues>({
+  const { register, control, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<InvoiceFormValues>({
     defaultValues: initialValues ?? {
       template_id: '',
       customer_id: '',
@@ -207,6 +213,15 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   const isFormValid = !!(templateId && customerId && lineItemFields.length > 0)
 
+  const isPreviewReady = !!(
+    templateId &&
+    customerId &&
+    lineItems?.length > 0 &&
+    lineItems.every(
+      (item) => item.description?.trim() && Number(item.quantity) > 0 && item.unit_price !== '' && Number(item.unit_price) >= 0
+    )
+  )
+
   const isFirstCustomerRender = useRef(true)
   useEffect(() => {
     if (isFirstCustomerRender.current) {
@@ -229,8 +244,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
     setValue('notes', defaultNote.content)
   }
 
-  const onSubmit = handleSubmit((values) => {
-    createInvoice.mutate({
+  function buildInvoicePayload(values: InvoiceFormValues): InvoiceCreatePayload {
+    return {
       template_id: values.template_id,
       customer_id: values.customer_id,
       bank_account_id: values.bank_account_id || undefined,
@@ -257,7 +272,15 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
       notes: values.notes || undefined,
       issued_at: values.issued_at || undefined,
       due_at: values.due_at || undefined,
-    })
+    }
+  }
+
+  function handlePreview() {
+    previewDraft.mutate(buildInvoicePayload(getValues()), { onSuccess: () => setIsPreviewOpen(true) })
+  }
+
+  const onSubmit = handleSubmit((values) => {
+    createInvoice.mutate(buildInvoicePayload(values))
   })
 
   return (
@@ -603,7 +626,13 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
         <Card
           title={t('invoices.form.summary')}
           action={
-            <Button variant="secondary" className="gap-1 px-2 py-1 text-xs" disabled>
+            <Button
+              type="button"
+              variant="secondary"
+              className="gap-1 px-2 py-1 text-xs"
+              onClick={handlePreview}
+              disabled={!isPreviewReady || previewDraft.isPending}
+            >
               <Eye size={14} />
               {t('invoices.form.preview')}
             </Button>
@@ -686,6 +715,14 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
           </div>
         </Card>
       </div>
+
+      <InvoiceDraftPreviewModal
+        isOpen={isPreviewOpen}
+        html={previewDraft.data}
+        isLoading={previewDraft.isPending}
+        isError={previewDraft.isError}
+        onClose={() => setIsPreviewOpen(false)}
+      />
     </form>
   )
 }

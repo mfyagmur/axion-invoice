@@ -14,7 +14,7 @@ from app.models.template import InvoiceTemplate
 from app.models.user import User
 from app.schemas.invoice import InvoiceCreatePayload, InvoiceDetailResponse, InvoiceSummaryResponse, InvoiceUpdatePayload
 from app.services import pdf_service
-from app.services.invoice_service import create_invoice, get_own_invoice, update_invoice
+from app.services.invoice_service import build_preview_invoice, create_invoice, get_own_invoice, update_invoice
 from app.services.subscription_service import check_invoice_limit, get_active_plan
 from app.tasks.email_tasks import send_invoice_email_task
 from app.tasks.pdf_tasks import generate_invoice_pdf_task
@@ -98,6 +98,22 @@ def download_invoice_pdf(
         media_type="application/pdf",
         filename=f"{invoice.invoice_number}.pdf",
     )
+
+
+@router.post("/preview", response_class=HTMLResponse)
+def preview_invoice_draft(
+    payload: InvoiceCreatePayload,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> HTMLResponse:
+    invoice = build_preview_invoice(db, current_user, payload)
+    template = db.get(InvoiceTemplate, payload.template_id)
+    if template is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Şablon bulunamadı")
+
+    show_watermark = get_active_plan(db, current_user).key == "free"
+    html = pdf_service.render_invoice_html(invoice, template, show_watermark)
+    return HTMLResponse(content=html)
 
 
 @router.get("/{invoice_id}/preview", response_class=HTMLResponse)
