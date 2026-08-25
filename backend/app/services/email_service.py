@@ -26,7 +26,7 @@ def send_invoice_email(to_email: str, invoice: Invoice) -> None:
 Aşağıdaki fatura bilgisini bulabilirsiniz:
 
 Fatura Numarası: {invoice.invoice_number}
-Tutar: {invoice.total} {invoice.currency}
+Tutar: {invoice.grand_total} {invoice.currency}
 Vade Tarihi: {due_date_str}
 
 Saygılarımızla,
