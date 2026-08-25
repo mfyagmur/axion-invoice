@@ -33,14 +33,14 @@ eklenmesi gerekiyor.
 
 ### Fatura Detayı — Sabit "Gönderen" Placeholder'ı
 **Dosya:** `frontend/src/features/invoices/components/CompanyInfoSection.tsx`
-**Durum:** Ertelendi — eklendi 2026-08-21
+**Durum:** ✅ Tamamlandı (2026-08-25)
 **Bağlam:** Fatura detay sayfasındaki (elle kodlanmış, düzenlenebilir) "Fatura Bilgileri" kartında
 gönderen/satıcı bloğu hâlâ sabit bir placeholder gösteriyor (`invoices.detail.senderPlaceholderName`
 = "Axion", TODO yorumu: "gerçek gönderen şirket profili eklenince güncellenecek"). Bu, 2026-08-21'de
 eklenen yeni A4 şablon önizlemesini etkilemiyor (o zaten `company.*` alanlarını
 `template_field_resolver.py` üzerinden gerçek `User`/şirket profilinden doğru çözüyor) — sadece bu
 ayrı dashboard kartındaki kozmetik bir eksiklik.
-**Sıra:** Düşük
+**Sıra:** Tamamlandı
 
 ### 0. A4 Şablon Tasarımcısının Tarayıcıda Görsel Teyidi
 **Dosya:** `frontend/src/pages/dashboard/TemplateEditorPage.tsx` ve `frontend/src/features/invoice-editor/` altındaki yeni bileşenler
@@ -81,7 +81,7 @@ değer/yüksek efor nedeniyle ertelendi:
 
 ### 0. Sabit Tanımlamalar Yeniden Tasarımının Tarayıcıda Görsel Teyidi
 **Dosya:** `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` ve `definitions/` altındaki yeni bileşenler
-**Durum:** Ertelenmiş (tarayıcı otomasyon aracı yoktu)
+**Durum:** ✅ Tamamlandı (2026-08-25)
 **Bağlam:** 2026-08-17'de `dashboard/settings?tab=definitions` 3 kartlı grid olarak yeniden
 tasarlandı (bkz. `docs/PROJECT_DESING.md` § 2026-08-17). Backend uçtan uca `curl` ile, frontend
 `tsc`/`eslint`/Vite HMR ile doğrulandı ama gerçek tarayıcıda hiç açılmadı. Kontrol edilmesi
@@ -91,7 +91,7 @@ animasyonunun (`grid-template-rows` transition) pürüzsüz çalışması, (3) s
 otomatik kaydedip yeşil toast gösterdiği, (4) Banka Bilgileri/Sabit Açıklama liste tipi
 CRUD akışının diğer tanımlamalarla aynı şekilde çalıştığı, (5) var olan 4 tanımlamanın (Birimler,
 KDV, Ödeme Vadeleri, Kategoriler) fonksiyonel olarak bozulmadığı (regresyon).
-**Sıra:** Yüksek
+**Sıra:** Tamamlandı
 
 ### 0.0 Fatura Ön Eki ve Basamak Ayarının Backend'de Uygulanması (Yapıldı — 2026-08-20)
 **Dosya:** `backend/app/services/invoice_service.py`, `backend/tests/test_invoices.py`
