@@ -7,31 +7,43 @@ import type { InvoiceStatus } from '@/types/invoice'
 interface StatusTimelineProps {
   status: InvoiceStatus
   createdAt: string
-  recipientEmail?: string | null
+  emailSentAt?: string | null
+  emailSentTo?: string[] | null
 }
 
-export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTimelineProps) {
+export function StatusTimeline({ status, createdAt, emailSentAt, emailSentTo }: StatusTimelineProps) {
   const { t } = useTranslation()
   const { formatDate } = useDateFormat()
 
   // NOTE: backend'de ayrı bir "ödeme alındı" durumu yok, bu yüzden
   // "Ödeme Alındı" ve "Ödendi" adımları status === 'paid' olduğunda birlikte tamamlanmış sayılıyor.
   const isPaid = status === 'paid'
+  const isEmailSent = !!emailSentAt
+  const emailSentToLabel = emailSentTo?.join(', ')
 
   const steps = [
     {
       label: t('invoices.detail.timelineCreated'),
       date: formatDate(createdAt),
+      detail: null as string | null | undefined,
       done: true,
+    },
+    {
+      label: t('invoices.detail.timelineEmailSent'),
+      date: isEmailSent ? formatDate(emailSentAt) : null,
+      detail: isEmailSent ? emailSentToLabel : null,
+      done: isEmailSent,
     },
     {
       label: t('invoices.detail.timelinePaymentReceived'),
       date: isPaid ? formatDate(createdAt) : null,
+      detail: null,
       done: isPaid,
     },
     {
       label: t('invoices.detail.timelinePaid'),
       date: isPaid ? formatDate(createdAt) : null,
+      detail: null,
       done: isPaid,
     },
   ]
@@ -40,14 +52,17 @@ export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTime
 
   // Tamamlanan adım sayısına göre mesaj belirle
   let statusMessage: string | null = null
-  if (completedStepsCount === 1 && recipientEmail) {
-    // Sadece ilk adım: Fatura gönderildi
-    statusMessage = 'sent'
+  if (completedStepsCount === 1) {
+    // Sadece ilk adım: fatura oluşturuldu, henüz e-posta gönderilmedi
+    statusMessage = 'created-only'
   } else if (completedStepsCount === 2) {
-    // İkinci adım: Ödeme alındı (sistem doğrulaması bekleniyor)
-    statusMessage = 'payment-received'
+    // İlk iki adım: fatura e-postayla gönderildi, ödeme bekleniyor
+    statusMessage = 'sent'
   } else if (completedStepsCount === 3) {
-    // Üçüncü adım: Ödendi (alıcı tarafından ödeme yapıldı)
+    // Üçüncü adım: Ödeme alındı (sistem doğrulaması bekleniyor)
+    statusMessage = 'payment-received'
+  } else if (completedStepsCount === 4) {
+    // Dördüncü adım: Ödendi (alıcı tarafından ödeme yapıldı)
     statusMessage = 'paid'
   }
 
@@ -77,16 +92,22 @@ export function StatusTimeline({ status, createdAt, recipientEmail }: StatusTime
                 {step.label}
               </span>
               {step.date && <span className="text-xs text-slate-500">{step.date}</span>}
+              {step.detail && <span className="text-xs text-slate-500">{step.detail}</span>}
             </div>
           </div>
         ))}
       </div>
       {statusMessage && (
         <div className="border-t border-slate-200 pt-4 mt-4">
+          {statusMessage === 'created-only' && (
+            <p className="text-xs text-slate-600">
+              Fatura {formatDate(createdAt)} tarihinde oluşturuldu. Henüz e-posta gönderilmedi.
+            </p>
+          )}
           {statusMessage === 'sent' && (
             <>
               <p className="text-xs text-slate-600">
-                Fatura <strong>{recipientEmail}</strong> adresine gönderilmiştir.
+                Fatura <strong>{emailSentToLabel}</strong> adresine gönderilmiştir.
               </p>
               <p className="text-xs text-slate-600">
                 Alıcının ödemeyi yapması bekleniyor.

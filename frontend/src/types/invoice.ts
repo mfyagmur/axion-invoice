@@ -51,6 +51,8 @@ export interface InvoiceSummary {
   archived: boolean
   issued_at: string | null
   created_at: string
+  email_sent_at: string | null
+  email_sent_to: string[] | null
   customer: Customer
 }
 
@@ -112,4 +114,5 @@ export interface InvoiceUpdatePayload {
   bank_account_id?: string | null
   bank_account_id_2?: string | null
   bank_account_id_3?: string | null
+  recipient_contact_ids?: string[]
 }

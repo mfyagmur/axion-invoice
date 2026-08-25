@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 
 from app.core.database import SessionLocal
 from app.models.customer import CustomerContact
@@ -28,5 +29,10 @@ def send_invoice_email_task(invoice_id: str) -> None:
 
         for email in recipients:
             email_service.send_invoice_email(email, invoice)
+
+        if recipients:
+            invoice.email_sent_at = datetime.now(UTC)
+            invoice.email_sent_to = sorted(recipients)
+            db.commit()
     finally:
         db.close()

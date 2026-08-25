@@ -39,6 +39,7 @@ class InvoiceUpdatePayload(BaseModel):
     bank_account_id: uuid.UUID | None = None
     bank_account_id_2: uuid.UUID | None = None
     bank_account_id_3: uuid.UUID | None = None
+    recipient_contact_ids: list[uuid.UUID] | None = Field(default=None, max_length=3)
 
 
 class InvoiceCreatePayload(BaseModel):
@@ -105,6 +106,8 @@ class InvoiceSummaryResponse(BaseModel):
     archived: bool
     issued_at: date | None
     created_at: datetime
+    email_sent_at: datetime | None
+    email_sent_to: list[str] | None
     customer: CustomerResponse
     bank_account_id: uuid.UUID | None
     bank_account: BankAccountResponse | None

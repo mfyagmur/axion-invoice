@@ -249,6 +249,9 @@ def update_invoice(db: Session, user: User, invoice_id: uuid.UUID, payload: Invo
         invoice.notes = update_fields["notes"]
         content_changed = True
 
+    if "recipient_contact_ids" in update_fields:
+        invoice.recipient_contact_ids = [str(cid) for cid in update_fields["recipient_contact_ids"]]
+
     for field_name in ("bank_account_id", "bank_account_id_2", "bank_account_id_3"):
         if field_name in update_fields:
             bank_account_id = update_fields[field_name]

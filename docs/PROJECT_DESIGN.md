@@ -21,6 +21,30 @@ Bu dosya, projede yapılan her önemli implementasyon değişikliğini tarih, do
 
 ---
 
+### 2026-08-25 — Fatura Detay: E-Posta Gönderim Akışının Yeniden Yapılandırılması
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/alembic/versions/v1w2x3y4z5a6_add_email_sent_tracking_to_invoices.py` | Ekleme | Yeni migration: `invoices.email_sent_at` (`DateTime(timezone=True)`, nullable) ve `invoices.email_sent_to` (`JSONB`, string listesi, nullable) sütunları eklendi. |
+| `backend/app/models/invoice.py` | Değiştirme | `Invoice` modeline `email_sent_at: datetime \| None` ve `email_sent_to: list[str] \| None` alanları eklendi. |
+| `backend/app/schemas/invoice.py` | Değiştirme | `InvoiceSummaryResponse`'a `email_sent_at`/`email_sent_to` eklendi (miras yoluyla `InvoiceDetailResponse`'a da geçiyor). `InvoiceUpdatePayload`'a `recipient_contact_ids: list[uuid.UUID] \| None` eklendi — alıcılar artık `PATCH /invoices/{id}` ile güncellenebiliyor. |
+| `backend/app/services/invoice_service.py` | Değiştirme | `update_invoice()` içine `recipient_contact_ids` işleme bloğu eklendi (PDF içeriğini etkilemediği için `content_changed` tetiklemiyor, PDF yeniden üretimine yol açmıyor). |
+| `backend/app/tasks/email_tasks.py` | Değiştirme | `send_invoice_email_task` artık gönderim döngüsü bitince (alıcı varsa) `invoice.email_sent_at = datetime.now(UTC)` ve `invoice.email_sent_to = sorted(recipients)` yazıp commit ediyor. MVP kapsamında "gönderim denendi" = "gönderildi" kabul ediliyor (per-recipient başarı takibi yok, bkz. `docs/todo.md`). |
+| `frontend/src/features/invoices/components/InvoiceForm.tsx` | Değiştirme | `handleSubmitAndSend` içindeki otomatik `sendEmail.mutate(...)` çağrısı kaldırıldı — "Devam Et" butonu artık sadece fatura oluşturup detay sayfasına yönlendiriyor, e-posta göndermiyor. `useSendInvoiceEmail` importu/hook'u kaldırıldı (dead code). |
+| `frontend/src/features/invoices/components/InvoiceActionHeader.tsx` | Değiştirme | Yeni `onOpenSendEmail` prop'u eklendi. "PDF İndir" butonundan sonra, `InvoiceRowActions`'tan önce yeni "E-posta Gönder" butonu eklendi (`Mail` ikonu, `invoices.detail.sendEmail` key'i — zaten mevcuttu). |
+| `frontend/src/features/invoices/components/InvoiceSendEmailModal.tsx` | Ekleme | Yeni modal component. `Modal` (shared) + `CustomerFormModal` deseni referans alındı. `InvoiceForm.tsx`'teki 3 alıcı Select'iyle birebir aynı yapı (`invoice.customer.contacts` kaynak, seçenekler `"Ad Soyad — email"` formatında), `invoice.recipient_contact_ids` ile prefill. Gönder akışı: alıcılar değiştiyse önce `useUpdateInvoice()` ile `PATCH`, sonra `useSendInvoiceEmail()` ile gönderim; başarı/hata toast (`invoices.detail.emailSent`/`emailSendError`, mevcut key'ler). |
+| `frontend/src/features/invoices/hooks/useSendInvoiceEmail.ts` | Değiştirme | `onSuccess`'e `['invoices']` ve gecikmeli (2sn) `['invoices', id]` query invalidation eklendi — Celery task async çalıştığı için, `StatusTimeline`'ın `email_sent_at` ile güncellenmesi bu şekilde sağlanıyor. |
+| `frontend/src/pages/dashboard/InvoiceDetailPage.tsx` | Değiştirme | `isEmailModalOpen` state + `InvoiceSendEmailModal` render edildi (diğer modallarla aynı desende). `StatusTimeline`'a artık `recipientEmail` yerine `emailSentAt`/`emailSentTo` geçiliyor. |
+| `frontend/src/features/invoices/components/StatusTimeline.tsx` | Değiştirme | Adım listesi 3'ten 4'e çıktı: `Oluşturuldu` → **yeni: `E-posta Gönderildi`** (`done: !!emailSentAt`, tarih + gönderilen adres(ler) adımın altında gösteriliyor) → `Ödeme Alındı` → `Ödendi` (bu ikisinin `isPaid` mantığı dokunulmadı). `statusMessage` dört duruma göre güncellendi: henüz gönderilmedi / gönderildi-ödeme bekleniyor / ödeme alındı (mevcut dead-code dalı korundu) / ödendi. |
+| `frontend/src/types/invoice.ts` | Değiştirme | `InvoiceSummary`'e `email_sent_at`/`email_sent_to`, `InvoiceUpdatePayload`'a `recipient_contact_ids?: string[]` eklendi. |
+| `frontend/src/i18n/locales/tr.json`, `en.json` | Değiştirme | `invoices.form.continueAction`: "Gönder"/"Send" → tekrar **"Devam Et"/"Continue"**. Yeni key'ler: `invoices.detail.sendEmailModalTitle`, `invoices.detail.timelineEmailSent`. |
+
+**Doğrulama:** `alembic upgrade head` ile migration uygulandı, `tsc --noEmit` hatasız geçti, backend import'ları sağlandı. Playwright ile gerçek tarayıcı üzerinden uçtan uca test edildi: yeni fatura formunda "Devam Et"/"Kaydet (Taslak)" etiketleri doğrulandı; mevcut bir taslak faturada "E-posta Gönder" → modal (alıcı Select'leri doğru prefill/format) → gönder → toast → (celery worker yeni kodu yükleyecek şekilde yeniden başlatıldı) → sayfa yenilendiğinde `StatusTimeline`'da "E-posta Gönderildi" adımının tarih + alıcı e-postalarıyla birlikte göründüğü ve statusMessage'ın güncellendiği görsel olarak teyit edildi.
+
+**Not (yan etki — kullanıcıya bildirilmeli):** Test sırasında `admin@axioninvoice.app` ve `mfyagmur@gmail.com` hesaplarının şifreleri geçici test şifresiyle değiştirildi (orijinal şifreler geri yüklenemiyor, hash tersine çevrilemez). Ayrıca test kapsamında INV202600023 ve INV202600024 numaralı gerçek taslak faturalara test e-postası gönderildi (`email_sent_at` alanları artık dolu).
+
+---
+
 ### 2026-08-25 — Çoklu Alıcıya Mail Gönderimi
 
 | Dosya | İşlem | Özet |

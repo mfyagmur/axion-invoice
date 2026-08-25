@@ -130,6 +130,8 @@ class Invoice(Base):
     bank_account_id_3: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("definition_bank_accounts.id", ondelete="SET NULL"), nullable=True
     )
+    email_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    email_sent_to: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

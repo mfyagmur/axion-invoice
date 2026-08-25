@@ -13,6 +13,7 @@ import { NetReceivableBox } from '@/features/invoices/components/NetReceivableBo
 import { StatusTimeline } from '@/features/invoices/components/StatusTimeline'
 import { PaymentChaserPanel } from '@/features/invoices/components/PaymentChaserPanel'
 import { InvoiceDocumentPreview } from '@/features/invoices/components/InvoiceDocumentPreview'
+import { InvoiceSendEmailModal } from '@/features/invoices/components/InvoiceSendEmailModal'
 
 export function InvoiceDetailPage() {
   const { t } = useTranslation()
@@ -21,6 +22,7 @@ export function InvoiceDetailPage() {
   const { data: invoice, isLoading } = useInvoice(id)
   const [isChaserOpen, setChaserOpen] = useState(false)
   const [isPreviewOpen, setPreviewOpen] = useState(false)
+  const [isEmailModalOpen, setEmailModalOpen] = useState(false)
 
   if (isLoading || !invoice) {
     return <p className="text-sm text-slate-500">{t('common.loading')}</p>
@@ -36,6 +38,7 @@ export function InvoiceDetailPage() {
         onBack={() => navigate('/dashboard/invoices')}
         onOpenPaymentChaser={() => setChaserOpen(true)}
         onOpenPreview={() => setPreviewOpen(true)}
+        onOpenSendEmail={() => setEmailModalOpen(true)}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
@@ -71,7 +74,12 @@ export function InvoiceDetailPage() {
             currency={invoice.currency}
           />
           <NetReceivableBox row={row} />
-          <StatusTimeline status={invoice.status} createdAt={invoice.created_at} recipientEmail={invoice.customer.email} />
+          <StatusTimeline
+            status={invoice.status}
+            createdAt={invoice.created_at}
+            emailSentAt={invoice.email_sent_at}
+            emailSentTo={invoice.email_sent_to}
+          />
         </div>
       </div>
 
@@ -83,6 +91,12 @@ export function InvoiceDetailPage() {
         isOpen={isPreviewOpen}
         isPdfReady={invoice.pdf_status === 'ready' && !!invoice.pdf_url}
         onClose={() => setPreviewOpen(false)}
+      />
+
+      <InvoiceSendEmailModal
+        invoice={invoice}
+        isOpen={isEmailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
       />
     </div>
   )

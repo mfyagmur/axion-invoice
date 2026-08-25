@@ -42,14 +42,20 @@ değer/yüksek efor nedeniyle ertelendi:
 **Sıra:** Düşük
 
 ### Mail Gönderim Sistemi (SMTP) — Temel Uçtan Uca
-**Dosya:** `backend/app/services/email_service.py`, `backend/app/tasks/email_tasks.py`, `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/features/invoices/components/InvoiceRowActions.tsx`
-**Durum:** Ertelendi (2026-08-25)
-**Bağlam:** Gerçek SMTP gönderimi uygulandı, "Gönder" butonu aktifleştirildi (fatura oluştur + mail), 
-faturalar listesinde "Mail Gönder" menü öğesi çalışıyor. Temel işlevsellik tamam ama ertelenen alt özellikler:
+**Dosya:** `backend/app/services/email_service.py`, `backend/app/tasks/email_tasks.py`, `frontend/src/features/invoices/components/InvoiceSendEmailModal.tsx`
+**Durum:** Ertelendi (2026-08-25, güncellendi 2026-08-25)
+**Bağlam:** Gerçek SMTP gönderimi uygulandı. E-posta gönderim durumu artık DB'de izleniyor
+(`invoices.email_sent_at`/`email_sent_to`, `send_invoice_email_task` tarafından yazılıyor) ve
+çoklu alıcı (`recipient_contact_ids`) Fatura Detay ekranındaki "E-Posta Gönder" modalından
+düzenlenebiliyor — bu iki madde tamamlandı. Kalan ertelenen alt özellikler:
 - Mail şablonu (HTML/branded tasarım) — şu an düz metin mesaj (`"Fatura Numarası: {num}..."`)
 - Fatura PDF eki — `email_tasks.py` PDF bağımlılığını kaldırdı, mail gönderimi PDF üretimini beklemez
-- E-posta gönderim durumu DB izlemesi (`email_status`, `email_sent_at` alanları) — şu an Celery log + toast
-- Çoklu alıcı (`recipient_contact_ids` için dropdown) — şu an sadece `invoice.customer.email`
+- Per-recipient gönderim başarı/hata takibi — `send_invoice_email_task` şu an "denendi" = "gönderildi"
+  kabul ediyor, `email_service.send_invoice_email` içindeki SMTP hataları sadece loglanıyor,
+  `email_sent_to` listesine hangi adreslerin gerçekten başarılı gittiği ayrımı yansımıyor
+- `InvoiceRowActions.tsx`'teki liste sayfası "Mail Gönder" hızlı-gönder menü öğesi hâlâ alıcı
+  düzenlemeden anlık gönderim yapıyor (detay sayfasındaki modal'a yönlendirilmedi, bilinçli olarak
+  iki ayrı yol korundu)
 **Sıra:** Orta (serideki sonraki adım)
 
 ### Banka Bilgilerinde TR Dışı Banka Desteği
