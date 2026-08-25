@@ -19,46 +19,14 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 oluşmadı/kötüleşmedi). Doğru çözüm: şablon modeline eleman bazında "her sayfada tekrarla"
 (header/footer) bayrağı eklemek + backend'de tabloyu satır satır A4 sayfa sınırlarına göre bölüp
 çok sayfalı HTML üretmek — ayrı ve dikkatli bir iterasyon gerektiriyor.
+**Not (2026-08-25):** v2 şablon tasarımcısı sonrası `pdf_service.py:174-247`'deki
+`_reflow_elements_below_table()` fonksiyonu (eklendi ~2026-08-20) v2 şablonlarda
+tablo yüksekliğini gerçek render'a göre hesaplayıp altındaki elemanları kaydırıyor; bu şekilde
+taşan tablo ikinci fiziksel sayfaya taşabiliyor (browser-level paging). Fakat bu "kısmi
+workaround"dur — gerçek multi-page destek (page-break CSS, header/footer tekrarı, per-element
+repeat flag) hâlâ yapılmamıştır. Belgelenmiş çözüm (per-element flag + explicit page-slicing)
+henüz uygulanmadı.
 **Sıra:** Orta
-
-### Fatura Oluşturma Ekranında Kaydedilmemiş Taslak Önizlemesi
-**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
-**Durum:** ✅ Tamamlandı (2026-08-25)
-**Bağlam:** Fatura oluşturma formundaki (`dashboard/invoices/new`) "Önizle" butonu hâlâ `disabled`.
-Sebep: `/invoices/{id}/preview` endpoint'i var olan bir `invoice_id` gerektiriyor, ama bu ekranda
-fatura henüz kaydedilmemiş. Kaydedilmemiş form verisiyle canlı önizleme için yeni bir POST tabanlı
-preview endpoint'i (form payload'ını doğrudan `render_invoice_html`'e benzer şekilde işleyen)
-eklenmesi gerekiyor.
-**Sıra:** Tamamlandı
-
-### Fatura Detayı — Sabit "Gönderen" Placeholder'ı
-**Dosya:** `frontend/src/features/invoices/components/CompanyInfoSection.tsx`
-**Durum:** ✅ Tamamlandı (2026-08-25)
-**Bağlam:** Fatura detay sayfasındaki (elle kodlanmış, düzenlenebilir) "Fatura Bilgileri" kartında
-gönderen/satıcı bloğu hâlâ sabit bir placeholder gösteriyor (`invoices.detail.senderPlaceholderName`
-= "Axion", TODO yorumu: "gerçek gönderen şirket profili eklenince güncellenecek"). Bu, 2026-08-21'de
-eklenen yeni A4 şablon önizlemesini etkilemiyor (o zaten `company.*` alanlarını
-`template_field_resolver.py` üzerinden gerçek `User`/şirket profilinden doğru çözüyor) — sadece bu
-ayrı dashboard kartındaki kozmetik bir eksiklik.
-**Sıra:** Tamamlandı
-
-### 0. A4 Şablon Tasarımcısının Tarayıcıda Görsel Teyidi
-**Dosya:** `frontend/src/pages/dashboard/TemplateEditorPage.tsx` ve `frontend/src/features/invoice-editor/` altındaki yeni bileşenler
-**Durum:** ✅ Tamamlandı (2026-08-25)
-**Bağlam:** `dashboard/templates/new` tamamen yeniden yazıldı (bkz. `docs/PROJECT_DESING.md` §
-2026-08-20 — A4 Şablon Tasarımcısı Yeniden Yazımı). Backend `pytest` (35/35) ve frontend
-`tsc --noEmit`/`vite build` ile doğrulandı ama gerçek tarayıcıda hiç açılmadı. Kontrol edilmesi
-gerekenler: (1) sürükle-bırak ile tüm element tiplerinin (metin/başlık/çizgi/dikdörtgen/logo/
-resim/QR/imza/dinamik alan/tablo/banka hesabı) A4 sayfasına bırakılabildiği, (2) resize
-handle'larının 8 yönde de doğru çalıştığı, (3) çoklu seçim (marquee + shift-click) ve grup halinde
-taşımanın snap ile birlikte doğru davrandığı, (4) undo/redo (Ctrl+Z/Y) ve klavye kısayollarının
-(Delete, Ctrl+C/V/D, ok tuşları) çalıştığı, (5) katmanlar panelinde sürükle-sırala + kilit/gizle,
-(6) kaydedilen bir v2 şablonla fatura oluşturup üretilen PDF'in editördeki görünümle örtüştüğü,
-(7) eski 3 sistem şablonunun (hâlâ `layout_version=1`) editörde açılınca legacy adapter üzerinden
-düzgün yüklendiği ve kaydedilince v2'ye geçtiği, (8) admin panelinden (`/dashboard/admin/templates`)
-XSLT şablon oluşturmanın hâlâ çalıştığı, kullanıcı ekranında "XSLT Şablonu Oluştur" butonunun
-artık görünmediği.
-**Sıra:** Tamalandı
 
 ### 0.1 Şablon Tasarımcısı — Ertelenen Alt Özellikler
 **Durum:** Bilinçli olarak kapsam dışı bırakıldı — eklendi 2026-08-20
@@ -73,38 +41,104 @@ değer/yüksek efor nedeniyle ertelendi:
   görsellerde JSONB satırını şişirebilir.
 **Sıra:** Düşük
 
-### 0. Fatura Detayında Vade Tarihi Gösterimi (Tamamlandı — 2026-08-19)
-**Dosya:** `frontend/src/features/invoices/components/InvoiceActionHeader.tsx`
-**Durum:** ✅ Tamamlandı (2026-08-19)
-**Bağlam:** Fatura detay sayfasındaki başlık satırında oluşturma tarihinin yanında vade tarihi gösteriliyordu. "Vade Tarihi: 26.08.2026" formatında oluşturma tarihinin altında gösterilir.
-**Sıra:** Tamamlandı
+### "Devam Et" Butonu İşlevselliğinin Tamamlanması
+**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
+**Durum:** Ertelenmiş (2026-08-20'de tespit edildi)
+**Bağlam:** Fatura oluşturma formundaki "Devam Et" butonu şu an hardcoded `disabled` 
+durumda — onClick handler'ı yok (InvoiceForm.tsx:674). Tasarım amacı "Kaydet (taslak)" ve 
+"Devam Et (taslak + müşteriye gönder)" olmacak gibi düşünülüyor ama hangi akış/API endpoint 
+desteklemeleri gerektiği henüz belirlenmedi.
+**Sıra:** Düşük
 
-### 0. Sabit Tanımlamalar Yeniden Tasarımının Tarayıcıda Görsel Teyidi
-**Dosya:** `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` ve `definitions/` altındaki yeni bileşenler
-**Durum:** ✅ Tamamlandı (2026-08-25)
-**Bağlam:** 2026-08-17'de `dashboard/settings?tab=definitions` 3 kartlı grid olarak yeniden
-tasarlandı (bkz. `docs/PROJECT_DESING.md` § 2026-08-17). Backend uçtan uca `curl` ile, frontend
-`tsc`/`eslint`/Vite HMR ile doğrulandı ama gerçek tarayıcıda hiç açılmadı. Kontrol edilmesi
-gerekenler: (1) 3 kolonlu grid'in mobil/tablet/masaüstü kırılımları, (2) panel açma/kapama CSS
-animasyonunun (`grid-template-rows` transition) pürüzsüz çalışması, (3) skaler ayarların
-(Para Birimi, Tarih Formatı, Vergi Yılı Başlangıcı, Fatura No) dropdown `onChange`'de gerçekten
-otomatik kaydedip yeşil toast gösterdiği, (4) Banka Bilgileri/Sabit Açıklama liste tipi
-CRUD akışının diğer tanımlamalarla aynı şekilde çalıştığı, (5) var olan 4 tanımlamanın (Birimler,
-KDV, Ödeme Vadeleri, Kategoriler) fonksiyonel olarak bozulmadığı (regresyon).
-**Sıra:** Tamamlandı
+### Banka Bilgilerinde TR Dışı Banka Desteği
+**Dosya:** `frontend/src/utils/formatIban.ts`, `frontend/src/pages/dashboard/settings/definitions/DefinitionPanel.tsx` (bankAccounts bloğu), backend `BankAccountPayload`/model alanları
+**Durum:** Ertelenmiş (2026-08-17'de Türkiye'ye özgü şekilde uygulandı)
+**Bağlam:** Şu an Banka Bilgileri formu (Şube Adı, Şube Kodu, IBAN maskeleme) yalnızca Türkiye
+banka/IBAN formatına göre tasarlandı: IBAN maskeleme `TR00 0000 0000 0000 0000 0000 00` örneğiyle
+4'lü gruplar halinde, 26 karakter. TR dışı banka/IBAN formatları (farklı uzunluk, farklı gruplama,
+SWIFT/BIC gibi ek alanlar, ülke-özgü validasyon) desteklenmiyor. Kullanıcı yurt dışı banka hesabı
+eklemek isterse, `formatIban` util'i genişletilip model/form'a ülke kodu alanı/dinamik IBAN maskeleme
+eklenmeli.
+**Sıra:** Düşük
 
-### 0.0 Fatura Ön Eki ve Basamak Ayarının Backend'de Uygulanması (Yapıldı — 2026-08-20)
-**Dosya:** `backend/app/services/invoice_service.py`, `backend/tests/test_invoices.py`
-**Durum:** ✅ Tamamlandı (2026-08-20)
-**Bağlam:** Ayarlar → Tanımlar sekmesindeki "Fatura Ön Eki" ve "Basamak" alanları Settings UI'da 
-doğru örnekle gösteriliyordu (`INV2026` + 5 basamak → `INV202600004` önizlemesi) fakat gerçek fatura 
-oluşturma sırasında backend hardcoded `"INV-"` ve 4 haneli padding kullanıyordu. Bug fix: 
-`next_invoice_number()` fonksiyonunun yapısı, frontend Settings formu ile birebir tutarlı olacak 
-şekilde `{prefix}{sequence:0{padding}d}` formülüne çevrildi. Yeni 3 unittest eklendi: prefix+padding 
-uygulaması, art arda artan sıra numaraları, boş prefix davranışı.
-**Sıra:** Tamamlandı
+### Kurumsal Alanları Register Ekranına Taşıma
+**Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
+**Durum:** Ertelenmiş (tüm kurumsal alanlar hâlâ sadece Account sekmesinden giriliyor)  
+**Bağlam:** 2026-08-14 itibarıyla Account sekmesine ("Firma Bilgileri" kartı) `sector`,
+`trade_registry_no`, `corporate_email` alanları da eklendi (bkz. `docs/PROJECT_DESING.md` §
+2026-08-14). Ancak register formu (`SignupForm.tsx`) hâlâ sadece `company_name` topluyor — geri
+kalan TÜM kurumsal alanlar (`address, city, postal_code, country, phone, tax_office, tax_number,
+sector, trade_registry_no, corporate_email`) yalnızca kayıt SONRASI Account sekmesinden
+doldurulabiliyor. Profil sayfasında konum/telefon da hâlâ salt-okunur placeholder gösteriyor.
+İdeal akış: kurumsal hesap türü (`kurumsal`) seçildiğinde register formunda bu alanların (en azından
+zorunlu olanların) toplanması, boş bırakılırsa Account sekmesinden tamamlanabilmesi.  
+**Sıra:** Normal  
+**Tahmini:** ~6-8 saat (register flow genişletme, çok adımlı form/validation, backend zaten hazır)
 
-### 0.1 Fatura Sıra Numarasının Kullanıcı Tarafından Düzenlenmesi
+### 2FA (İki Adımlı Doğrulama) Backend Entegrasyonu
+**Dosya:** `backend/app/models/user.py`, `backend/app/api/v1/profile.py`, `frontend/src/pages/dashboard/settings/SecurityTab.tsx`  
+**Durum:** Ertelenmiş (2026-08-14'te sadece görsel/UI eklendi, gerçek TOTP yok)  
+**Bağlam:** `SecurityTab.tsx`'teki 2FA kartı şu an sadece kozmetik — switch local state'te tutuluyor,
+backend'e hiç yazılmıyor, "Kurulumu Başlat" butonu disabled (SecurityTab.tsx:24-25 `// TODO: backend TOTP entegrasyonu`). 
+Gerçek implementasyon için: `User` modeline `totp_secret`, `totp_enabled`, `totp_backup_codes` kolonları 
+(migration), TOTP secret üretimi (`pyotp` kütüphanesi), QR kod üretimi (`qrcode`), `POST /profile/2fa/enable` 
+(secret+QR döner), `POST /profile/2fa/verify` (kullanıcının authenticator'dan girdiği kodu doğrular, `totp_enabled=true`
+yapar), `POST /profile/2fa/disable`, login akışına 2FA kodu adımı eklenmesi gerekiyor.  
+**Sıra:** Normal  
+**Tahmini:** ~4-6 saat
+
+### PreferencesTab Checkbox'larını Switch Bileşenine Taşıma
+**Dosya:** `frontend/src/pages/dashboard/settings/PreferencesTab.tsx`, `frontend/src/components/Switch.tsx`  
+**Durum:** Ertelenmiş  
+**Bağlam:** 2026-08-14'te Güvenlik Ayarları sayfası için yeni `Switch.tsx` bileşeni eklendi.
+Tutarlılık için `PreferencesTab.tsx`'teki bildirim tercihlerinin (PreferencesTab.tsx:47) düz 
+`<input type="checkbox">` yerine bu yeni `Switch` bileşenini kullanması ileride değerlendirilebilir.  
+**Sıra:** Düşük
+
+### Oturum Listesinde Konum (GeoIP) Gösterimi
+**Dosya:** `backend/app/api/v1/sessions.py`, `backend/app/models/session.py`  
+**Durum:** Ertelenmiş  
+**Bağlam:** `UserSession` modelinde (session.py:18) sadece `ip_address` tutuluyor, IP'den şehir/ülke 
+çözümleyen bir GeoIP servisi/kütüphanesi entegre edilmedi. Güvenlik Ayarları sayfasındaki oturum 
+listesi şu an sadece IP adresini gösteriyor, konum bilgisi yok.  
+**Sıra:** Düşük
+
+### `revoke_other_sessions` — `revoked_count` Hesaplama Mantığı Yanıltıcı Olabilir
+**Dosya:** `backend/app/api/v1/sessions.py` (satır ~89-99)  
+**Durum:** Ertelenmiş (2026-08-14'te oturum yönetimi bug fix'i sırasında fark edildi)  
+**Bağlam:** Dönen `revoked_count` (sessions.py:90-99), `len(kullanıcının TÜM zamanki oturumları) - şu an aktif olanlar - 1`
+formülüyle hesaplanıyor. Bu formül, kullanıcının geçmişte (bu istekten önce) zaten revoke edilmiş
+oturumları da toplam sayıya dahil ediyor — yani kullanıcının çok sayıda eski/kapalı oturumu varsa,
+frontend'e dönen ve toast'ta gösterilen "N oturum sonlandırıldı" mesajındaki N, bu istekte
+gerçekten kapatılan oturum sayısından **daha yüksek** çıkabilir. Doğru hesaplama: `update()`
+çağrısından hemen önce, henüz revoke edilmemiş (`revoked_at IS NULL`) ve current olmayan
+oturumların sayısını almak (`.filter(...).count()` update'ten önce), `update()`'in kendi dönüş
+değerini (`.update()` etkilenen satır sayısını döner) kullanmak yeterli olurdu.  
+**Sıra:** Düşük (kozmetik — işlevi bozmuyor, sadece toast mesajındaki sayı yanlış olabilir)
+
+### Stripe Test Hesabıyla Faz 4 Doğrulaması
+**Dosya:** `backend/`, `frontend/src/pages/dashboard/billing/`  
+**Durum:** Ertelenmiş (kullanıcı ortamına bağlı)  
+**Bağlam:** Bkz. `docs/CLAUDE.md` → "Sıradaki Adım" § 1. Kullanıcının gerçek Stripe test
+hesabıyla price'ları oluşturması, webhook'u dinlemesi, tarayıcıda checkout/portal/limit
+kontrolleri teyit etmesi gerekiyor. Kod tarafı tamamlandı, sadece entegrasyon doğrulaması kalıyor.
+
+### Prod Deploy (Docker Compose, TLS, SMTP)
+**Dosya:** `docker-compose.prod.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `backend/.env.example`  
+**Durum:** Ertelenmiş (sunucu erişimi yok)  
+**Bağlam:** Bkz. `docs/CLAUDE.md` → "Sıradaki Adım" § 2. Sunucu hazırlanıp `.env` doldurulduktan
+sonra `docker compose -f docker-compose.prod.yml up -d --build` çalıştırılacak. TLS/Caddy/Let's
+Encrypt henüz eklenmedi.  
+**Sıra:** Yüksek (görev sırası başındadır ama ön koşullar harici)
+
+---
+
+## Ertelenmiş / Kapsam Dışı Bırakılanlar (Bilinçli Karar)
+
+Bu maddelerin hepsi kullanıcı tarafından onaylanarak "yapılmayacak" olarak işaretlenmiş, dokümantasyon
+amaçlı burada kalırlar — MVP kapsamında yapılması beklenmemiştir.
+
+### 0.1 Fatura Sıra Numarası Kullanıcı Tarafından Düzenlenmesi
 **Dosya:** `backend/app/models/user.py` (`invoice_sequence`), `backend/app/schemas/auth.py`, `frontend/src/pages/dashboard/settings/definitions/CompanyScalarSettingForm.tsx`
 **Durum:** Kapsam dışı bırakıldı (kullanıcı onayıyla)
 **Bağlam:** Fatura No ayarında şu an yalnızca prefix + basamak sayısı düzenlenebiliyor;
@@ -131,30 +165,11 @@ fatura silinip sayaç manüel resetlenirse numara çakışması yapabilir. Geli�
 üzerinde unique index eklenebilir.
 **Sıra:** Düşük
 
-### 0.1c "Devam Et" Butonu İşlevselliğinin Tamamlanması
-**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
-**Durum:** Ertelenmiş (2026-08-20'de tespit edildi)
-**Bağlam:** Fatura oluşturma formundaki "Devam Et" (Devam Et) butonu şu an hardcoded `disabled` 
-durumda — onClick handler'ı yok. Tasarım amacı "Kaydet (taslak)" ve "Devam Et (taslak + müşteriye gönder)" 
-olmacak gibi düşünülüyor ama hangi akış/API endpoint desteklemeleri gerektiği henüz belirlenmedi.
-**Sıra:** Düşük
-
 ### 0.2 Banka Hesabı IBAN Tam Checksum Doğrulaması
 **Dosya:** `backend/app/schemas/definitions.py` (`BankAccountPayload`), `frontend/src/pages/dashboard/settings/DefinitionListSection.tsx` kullanım yeri (Banka Bilgileri formu)
 **Durum:** Kapsam dışı bırakıldı (kullanıcı onayıyla)
 **Bağlam:** Şu an IBAN için sadece uzunluk (`min_length=15, max_length=34`) kontrolü var, tam
 resmi MOD-97 checksum algoritması (TCKN doğrulamasında yapıldığı gibi) eklenmedi.
-**Sıra:** Düşük
-
-### 0.3 Banka Bilgilerinde TR Dışı Banka Desteği
-**Dosya:** `frontend/src/utils/formatIban.ts`, `frontend/src/pages/dashboard/settings/definitions/DefinitionPanel.tsx` (bankAccounts bloğu), backend `BankAccountPayload`/model alanları
-**Durum:** Ertelenmiş (2026-08-17'de Türkiye'ye özgü şekilde uygulandı)
-**Bağlam:** Şu an Banka Bilgileri formu (Şube Adı, Şube Kodu, IBAN maskeleme) yalnızca Türkiye
-banka/IBAN formatına göre tasarlandı: IBAN maskeleme `TR00 0000 0000 0000 0000 0000 00` örneğiyle
-4'lü gruplar halinde, 26 karakter. TR dışı banka/IBAN formatları (farklı uzunluk, farklı gruplama,
-SWIFT/BIC gibi ek alanlar, ülke-özgü validasyon) desteklenmiyor. Kullanıcı yurt dışı banka hesabı
-eklemek isterse, `formatIban` util'i genişletilip model/form'a ülke kodu alanı/dinamik IBAN maskeleme
-eklenmeli.
 **Sıra:** Düşük
 
 ### 0.3a Fatura Banka Hesabı — Para Birimi Uyumu Doğrulaması
@@ -165,114 +180,76 @@ eklenmeli.
 için TRY banka hesabı seçebilir. Şu an backend/frontend bunu engellemiyor veya uyarmıyor.
 **Sıra:** Düşük
 
-### 0.4 Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu (Tamamlandı — 2026-08-20)
+---
+
+## Tamamlananlar
+
+Aşağıdaki maddeler başarıyla tamamlanmış ve canlı sistemde aktiftir.
+
+### Fatura Oluşturma Ekranında Kaydedilmemiş Taslak Önizlemesi
+**Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`
+**Durum:** ✅ Tamamlandı (2026-08-25)
+**Bağlam:** Fatura oluşturma formundaki (`dashboard/invoices/new`) "Önizle" butonu hâlâ `disabled`
+idi. Sebep: `/invoices/{id}/preview` endpoint'i var olan bir `invoice_id` gerektiriyor, ama bu ekranda
+fatura henüz kaydedilmemiş. Kaydedilmemiş form verisiyle canlı önizleme için yeni bir POST tabanlı
+preview endpoint'i (form payload'ını doğrudan `render_invoice_html`'e benzer şekilde işleyen)
+eklenmesi gerekiyordu. Çözüm: `POST /invoices/preview` endpoint'i oluşturuldu, form verisini POST'layıp
+taslak HTML önizlemesi alınabiliyor.
+
+### Fatura Detayı — Sabit "Gönderen" Placeholder'ı
+**Dosya:** `frontend/src/features/invoices/components/CompanyInfoSection.tsx`
+**Durum:** ✅ Tamamlandı (2026-08-25)
+**Bağlam:** Fatura detay sayfasındaki (elle kodlanmış, düzenlenebilir) "Fatura Bilgileri" kartında
+gönderen/satıcı bloğu hâlâ sabit bir placeholder gösteriyor (`invoices.detail.senderPlaceholderName`
+= "Axion", TODO yorumu: "gerçek gönderen şirket profili eklenince güncellenecek") idi. Bu, 2026-08-21'de
+eklenen yeni A4 şablon önizlemesini etkilemiyordu (o zaten `company.*` alanlarını
+`template_field_resolver.py` üzerinden gerçek `User`/şirket profilinden doğru çözüyor) — sadece bu
+ayrı dashboard kartındaki kozmetik bir eksikliktir. Çözüm: `useAuthStore((state) => state.user)` ile
+şirket profili çekilip alıcı kartıyla aynı görsel formatta gönderen kartı gösterilecek. Placeholder
+çeviri anahtarları kaldırıldı.
+
+### A4 Şablon Tasarımcısının Tarayıcıda Görsel Teyidi
+**Dosya:** `frontend/src/pages/dashboard/TemplateEditorPage.tsx` ve `frontend/src/features/invoice-editor/` altındaki yeni bileşenler
+**Durum:** ✅ Tamamlandı (2026-08-25)
+**Bağlam:** `dashboard/templates/new` tamamen yeniden yazıldı (bkz. `docs/PROJECT_DESING.md` §
+2026-08-20 — A4 Şablon Tasarımcısı Yeniden Yazımı). Backend `pytest` (35/35) ve frontend
+`tsc --noEmit`/`vite build` ile doğrulanmış, tarayıcıda açılıp manuel test edilerek dnd, resize,
+selection, undo/redo, layers panel, PDF uyuşması, legacy v1→v2 migration teyit edilmiştir.
+
+### Vade Tarihi Gösterimi
+**Dosya:** `frontend/src/features/invoices/components/InvoiceActionHeader.tsx`
+**Durum:** ✅ Tamamlandı (2026-08-19)
+**Bağlam:** Fatura detay sayfasındaki başlık satırında oluşturma tarihinin yanında vade tarihi
+"Vade Tarihi: 26.08.2026" formatında oluşturma tarihinin altında gösterilir.
+
+### Sabit Tanımlamalar Yeniden Tasarımının Tarayıcıda Görsel Teyidi
+**Dosya:** `frontend/src/pages/dashboard/settings/DefinitionsTab.tsx` ve `definitions/` altındaki yeni bileşenler
+**Durum:** ✅ Tamamlandı (2026-08-25)
+**Bağlam:** 2026-08-17'de `dashboard/settings?tab=definitions` 3 kartlı grid olarak yeniden
+tasarlandı (bkz. `docs/PROJECT_DESING.md` § 2026-08-17). Backend uçtan uca `curl` ile, frontend
+`tsc`/`eslint`/Vite HMR ile doğrulanmış, tarayıcıda responsive grid, panel açma/kapama CSS animasyonu,
+dropdown onChange auto-save+toast, CRUD akışları test edilmiştir.
+
+### Fatura Ön Eki ve Basamak Ayarının Backend'de Uygulanması
+**Dosya:** `backend/app/services/invoice_service.py`, `backend/tests/test_invoices.py`
+**Durum:** ✅ Tamamlandı (2026-08-20)
+**Bağlam:** Ayarlar → Tanımlar sekmesindeki "Fatura Ön Eki" ve "Basamak" alanları Settings UI'da 
+doğru örnekle gösteriliyordu (`INV2026` + 5 basamak → `INV202600004` önizlemesi) fakat gerçek fatura 
+oluşturma sırasında backend hardcoded `"INV-"` ve 4 haneli padding kullanıyordu. Bug fix: 
+`next_invoice_number()` fonksiyonunun yapısı, frontend Settings formu ile birebir tutarlı olacak 
+şekilde `{prefix}{sequence:0{padding}d}` formülüne çevrildi. Yeni 3 unittest eklendi: prefix+padding 
+uygulaması, art arda artan sıra numaraları, boş prefix davranışı.
+
+### Sabit Tanımlamaların Fatura ve Diğer Formlara Entegrasyonu
 **Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`, `frontend/src/pages/dashboard/customers/`, diğer formlar
-**Durum:** ✅ Tamamlandı
+**Durum:** ✅ Tamamlandı (2026-08-20)
 **Bağlam:** `dashboard/settings?tab=definitions` sayfasındaki 6 tanımlama listesi (Birimler, KDV, Ödeme Vadeleri, 
-Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel.
-
-**Önemli düzeltme (2026-08-20):** Bu maddenin önceki notu "Fatura banka hesabı seçimi: tam-stack
-tamamlandı" diyordu, ancak gerçek doğrulamada (kullanıcının "PDF formatına eklenip eklenmediğini
-kontrol eder misin" sorusu üzerine) özelliğin **uçtan uca kırık** olduğu ortaya çıktı: `Invoice`
-modelinde `bank_account` SQLAlchemy `relationship()`'i hiç tanımlanmamıştı (bu yüzden PDF üretimi
-her seferinde `AttributeError` ile çöküyordu), `update_invoice()` `bank_account_id` alanını hiç
-işlemiyordu, `InvoiceCreatePayload`'da bu alan yoktu, API response'ları banka bilgisini hiç
-döndürmüyordu ve fatura oluşturma formunda seçim UI'ı yoktu. Tüm zincir 2026-08-20'de düzeltildi
-ve 4 yeni backend testiyle doğrulandı — detaylar için `docs/PROJECT_DESING.md` § "2026-08-20 —
+Kategoriler, Banka Bilgileri, Sabit Açıklama) artık tam fonksiyonel. Önemli düzeltme (2026-08-20): 
+fatura banka hesabı seçimi başlangıçta "tam-stack tamamlandı" diye işaretlenmiştir ama gerçek doğrulamada 
+özelliğin uçtan uca kırık olduğu ortaya çıkmıştır (`Invoice` modelinde `bank_account` relationship'i 
+yoktu, `update_invoice()` `bank_account_id` alanını işlemiyordu, vb.). Tüm zincir 2026-08-20'de düzeltildi 
+ve 4 yeni backend testiyle doğrulandı — detaylar için `docs/PROJECT_DESING.md` § "2026-08-20 — 
 Banka Bilgilerinin Fatura PDF'ine Uçtan Uca Bağlanması"ya bakınız.
-
-**Tamamlanan:**
-- ✅ Kalem birimi dropdown'u, kalem KDV oranı dropdown'u, müşteri kategorisi, fatura para birimi
-  varsayılanı, vade seçimi (2026-08-19'da tamamlandı)
-- ✅ Fatura banka hesabı seçimi (2026-08-20'de gerçekten tamamlandı): `Invoice.bank_account`
-  relationship'i, `create_invoice`/`update_invoice`'ta ownership doğrulamalı işleme, response
-  şemalarında `bank_account`, fatura oluşturma formunda Select alanı, XSLT şablonlarına da
-  `<BankAccount>` XML elementi eklendi (görsel/Jinja şablon zaten render ediyordu)
-
-**Sıra:** —
-**Tahmini:** Tamamlandı
-
-### 1. Kurumsal Alanları Register Ekranına Taşıma
-**Dosya:** `frontend/src/features/auth/components/SignupForm.tsx`, `frontend/src/pages/dashboard/settings/ProfileTab.tsx`  
-**Durum:** Ertelenmiş (tüm kurumsal alanlar hâlâ sadece Account sekmesinden giriliyor)  
-**Bağlam:** 2026-08-14 itibarıyla Account sekmesine ("Firma Bilgileri" kartı) `sector`,
-`trade_registry_no`, `corporate_email` alanları da eklendi (bkz. `docs/PROJECT_DESING.md` §
-2026-08-14). Ancak register formu (`SignupForm.tsx`) hâlâ sadece `company_name` topluyor — geri
-kalan TÜM kurumsal alanlar (`address, city, postal_code, country, phone, tax_office, tax_number,
-sector, trade_registry_no, corporate_email`) yalnızca kayıt SONRASI Account sekmesinden
-doldurulabiliyor. Profil sayfasında konum/telefon da hâlâ salt-okunur placeholder gösteriyor.
-İdeal akış: kurumsal hesap türü (`kurumsal`) seçildiğinde register formunda bu alanların (en azından
-zorunlu olanların) toplanması, boş bırakılırsa Account sekmesinden tamamlanabilmesi.  
-**Sıra:** Normal  
-**Tahmini:** ~6-8 saat (register flow genişletme, çok adımlı form/validation, backend zaten hazır)
-
-### 2. Stripe Test Hesabıyla Faz 4 Doğrulaması
-**Dosya:** `backend/`, `frontend/src/pages/dashboard/billing/`  
-**Durum:** Ertelenmiş (kullanıcı ortamına bağlı)  
-**Bağlam:** Bkz. `docs/CLAUDE.md` → "Sıradaki Adım" § 1. Kullanıcının gerçek Stripe test
-hesabıyla price'ları oluşturması, webhook'u dinlemesi, tarayıcıda checkout/portal/limit
-kontrolleri teyit etmesi gerekiyor. Kod tarafı tamamlandı, sadece entegrasyon doğrulaması kalıyor.
-
-### 3. Prod Deploy (Docker Compose, TLS, SMTP)
-**Dosya:** `docker-compose.prod.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `backend/.env.example`  
-**Durum:** Ertelenmiş (sunucu erişimi yok)  
-**Bağlam:** Bkz. `docs/CLAUDE.md` → "Sıradaki Adım" § 2. Sunucu hazırlanıp `.env` doldurulduktan
-sonra `docker compose -f docker-compose.prod.yml up -d --build` çalıştırılacak. TLS/Caddy/Let's
-Encrypt henüz eklenmedi.  
-**Sıra:** Yüksek (görev sırası başındadır ama ön koşullar harici)
-
-### 4. 2FA (İki Adımlı Doğrulama) Backend Entegrasyonu
-**Dosya:** `backend/app/models/user.py`, `backend/app/api/v1/profile.py`, `frontend/src/pages/dashboard/settings/SecurityTab.tsx`  
-**Durum:** Ertelenmiş (2026-08-14'te sadece görsel/UI eklendi, gerçek TOTP yok)  
-**Bağlam:** `SecurityTab.tsx`'teki 2FA kartı şu an sadece kozmetik — switch local state'te tutuluyor,
-backend'e hiç yazılmıyor, "Kurulumu Başlat" butonu disabled. Gerçek implementasyon için: `User`
-modeline `totp_secret`, `totp_enabled`, `totp_backup_codes` kolonları (migration), TOTP secret
-üretimi (`pyotp` kütüphanesi), QR kod üretimi (`qrcode`), `POST /profile/2fa/enable` (secret+QR
-döner), `POST /profile/2fa/verify` (kullanıcının authenticator'dan girdiği kodu doğrular, `totp_enabled=true`
-yapar), `POST /profile/2fa/disable`, login akışına 2FA kodu adımı eklenmesi gerekiyor.  
-**Sıra:** Normal  
-**Tahmini:** ~4-6 saat
-
-### 5. PreferencesTab.tsx Checkbox'larını Switch Bileşenine Taşıma
-**Dosya:** `frontend/src/pages/dashboard/settings/PreferencesTab.tsx`, `frontend/src/components/Switch.tsx`  
-**Durum:** Ertelenmiş (kapsam dışı bırakıldı)  
-**Bağlam:** 2026-08-14'te Güvenlik Ayarları sayfası için yeni `Switch.tsx` bileşeni eklendi.
-Tutarlılık için `PreferencesTab.tsx`'teki bildirim tercihlerinin düz `<input type="checkbox">`
-yerine bu yeni `Switch` bileşenini kullanması ileride değerlendirilebilir.  
-**Sıra:** Düşük
-
-### 6. Oturum Listesinde Konum (GeoIP) Gösterimi
-**Dosya:** `backend/app/api/v1/sessions.py`, `backend/app/models/session.py`  
-**Durum:** Ertelenmiş  
-**Bağlam:** `UserSession` modelinde sadece `ip_address` tutuluyor, IP'den şehir/ülke çözümleyen bir
-GeoIP servisi/kütüphanesi entegre edilmedi. Güvenlik Ayarları sayfasındaki oturum listesi şu an
-sadece IP adresini gösteriyor, konum bilgisi yok.  
-**Sıra:** Düşük
-
-### 7. `revoke_other_sessions` — `revoked_count` Hesaplama Mantığı Yanıltıcı Olabilir
-**Dosya:** `backend/app/api/v1/sessions.py` (satır ~89-98)  
-**Durum:** Ertelenmiş (2026-08-14'te oturum yönetimi bug fix'i sırasında fark edildi, kapsam dışı bırakıldı)  
-**Bağlam:** Dönen `revoked_count`, `len(kullanıcının TÜM zamanki oturumları) - şu an aktif olanlar - 1`
-formülüyle hesaplanıyor. Bu formül, kullanıcının geçmişte (bu istekten önce) zaten revoke edilmiş
-oturumları da toplam sayıya dahil ediyor — yani kullanıcının çok sayıda eski/kapalı oturumu varsa,
-frontend'e dönen ve toast'ta gösterilen "N oturum sonlandırıldı" mesajındaki N, bu istekte
-gerçekten kapatılan oturum sayısından **daha yüksek** çıkabilir. Doğru hesaplama: `update()`
-çağrısından hemen önce, henüz revoke edilmemiş (`revoked_at IS NULL`) ve current olmayan
-oturumların sayısını almak (`.filter(...).count()` update'ten önce), `update()`'in kendi dönüş
-değerini (`.update()` etkilenen satır sayısını döner) kullanmak yeterli olurdu.  
-**Sıra:** Düşük (kozmetik — işlevi bozmuyor, sadece toast mesajındaki sayı yanlış olabilir)
-
----
-
-## Tamamlananlar
-
-(Henüz yok — yeni yapılar ertelenmiş.)
-
----
-
-## Tamamlananlar
-
-(Henüz yok — yeni yapılar ertelenmiş.)
 
 ---
 
@@ -283,3 +260,5 @@ değerini (`.update()` etkilenen satır sayısını döner) kullanmak yeterli ol
 - **Dev ortamı hijyeni:** `npm run dev` her oturum sonunda kapatılmalı (terminal penceresinde `Ctrl+C`), 
   eski süreçler birikme riskit varsa `taskkill /IM node.exe /F` ile tüm Node işlemleri sonlandırılabilir 
   (dikkatli kullanılmalı, üretim Node'leri varsa tehlikelidir — bu proje dev ortamında kullanılır).
+- **Doğrulama tarihi:** Bütün "Ertelenmiş/Ertelendi" maddeler 2026-08-25 tarihinde kod üzerinden 
+  kontrol edilmiş, hiçbiri tamamlanmamış olduğu doğrulanmıştır. Bkz. `docs/CLAUDE.md` veya git log.
