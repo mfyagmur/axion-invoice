@@ -7,22 +7,17 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
-### Mail Gönderim Sistemi (SMTP) — Temel Uçtan Uca
-**Dosya:** `backend/app/services/email_service.py`, `backend/app/tasks/email_tasks.py`, `frontend/src/features/invoices/components/InvoiceSendEmailModal.tsx`
-**Durum:** Ertelendi (2026-08-25, güncellendi 2026-08-25)
-**Bağlam:** Gerçek SMTP gönderimi uygulandı. E-posta gönderim durumu artık DB'de izleniyor
-(`invoices.email_sent_at`/`email_sent_to`, `send_invoice_email_task` tarafından yazılıyor) ve
-çoklu alıcı (`recipient_contact_ids`) Fatura Detay ekranındaki "E-Posta Gönder" modalından
-düzenlenebiliyor — bu iki madde tamamlandı. Kalan ertelenen alt özellikler:
-- Mail şablonu (HTML/branded tasarım) — şu an düz metin mesaj (`"Fatura Numarası: {num}..."`)
-- Fatura PDF eki — `email_tasks.py` PDF bağımlılığını kaldırdı, mail gönderimi PDF üretimini beklemez
-- Per-recipient gönderim başarı/hata takibi — `send_invoice_email_task` şu an "denendi" = "gönderildi"
-  kabul ediyor, `email_service.send_invoice_email` içindeki SMTP hataları sadece loglanıyor,
-  `email_sent_to` listesine hangi adreslerin gerçekten başarılı gittiği ayrımı yansımıyor
-- `InvoiceRowActions.tsx`'teki liste sayfası "Mail Gönder" hızlı-gönder menü öğesi hâlâ alıcı
-  düzenlemeden anlık gönderim yapıyor (detay sayfasındaki modal'a yönlendirilmedi, bilinçli olarak
-  iki ayrı yol korundu)
-**Sıra:** Orta (serideki sonraki adım)
+### Ödeme Bağlantısı ve İletişim Sayfalarının Gerçek Hedefe Bağlanması
+**Dosya:** `frontend/src/pages/PaymentPlaceholderPage.tsx`, `frontend/src/pages/ContactPlaceholderPage.tsx`, `frontend/src/routes/index.tsx`, `backend/app/services/email_service.py`
+**Durum:** Ertelendi (2026-08-26)
+**Bağlam:** Fatura bildirim mailindeki "Ödeme Bağlantısına Git" butonu şu an
+`{FRONTEND_URL}/odeme?fatura=...` adresine, "bize ulaşın" linki `{FRONTEND_URL}/iletisim`
+adresine gidiyor — ikisi de sadece "yakında aktif olacak" mesajı gösteren statik placeholder
+sayfalar (bkz. `docs/PROJECT_DESING.md` § 2026-08-26). Gerçek implementasyon için: (1) ödeme
+bağlantısı — banka havalesi takip ekranı veya Stripe/iyzico tipi bir checkout entegrasyonu,
+faturayla ilişkili bir tek-kullanımlık token/URL üretimi; (2) iletişim sayfası — gerçek bir
+destek formu veya `mailto:`/canlı destek entegrasyonu.
+**Sıra:** Düşük
 
 ### Banka Bilgilerinde TR Dışı Banka Desteği
 **Dosya:** `frontend/src/utils/formatIban.ts`, `frontend/src/pages/dashboard/settings/definitions/DefinitionPanel.tsx` (bankAccounts bloğu), backend `BankAccountPayload`/model alanları
@@ -159,6 +154,85 @@ için TRY banka hesabı seçebilir. Şu an backend/frontend bunu engellemiyor ve
 ## Tamamlananlar
 
 Aşağıdaki maddeler başarıyla tamamlanmış ve canlı sistemde aktiftir.
+
+### Mail Gönderim Sistemi — 3 Bug Düzeltmesi (Eski Şablon, PDF Durumu Takılması, Dil Desteği)
+**Dosya:** `backend/app/tasks/email_tasks.py`, `backend/app/services/email_service.py`,
+`backend/app/templates_html/email_invoice.html`
+**Durum:** ✅ Tamamlandı (2026-08-26)
+**Bağlam:** Bir önceki mail sistemi işinden hemen sonra kullanıcı 3 sorun bildirdi:
+1. **Gerçek gönderilen mail eski düz-metin şablonunu kullanıyordu.** Kök neden kod değil,
+   operasyoneldi: `backend/docker-compose.yml`'deki `celery-worker` servisi `./app:/app/app`
+   bind-mount kullanıyor (kod container'a anında yansıyor) ama `uvicorn --reload` gibi otomatik
+   yeniden yükleme YAPMIYOR — worker process'i kod değiştiğinde elle restart edilmedikçe eski
+   modülü bellekte tutmaya devam ediyor. Önceki oturumda dosyalar güncellendi ama worker hiç
+   restart edilmemişti. **Çözüm:** `docker compose restart celery-worker backend` çalıştırıldı.
+   **Not:** Bundan sonra `email_tasks.py`/`email_service.py` gibi worker tarafından import edilen
+   herhangi bir dosya değiştiğinde `celery-worker` container'ının restart edilmesi gerekiyor.
+2. **E-posta gönderiminden sonra "PDF yeniden oluşturuluyor" arayüzde takılı kalıyor, indir
+   butonu pasifleşiyordu.** Kök neden: `email_tasks.py`'deki `_resolve_pdf_bytes`, PDF `READY`
+   değilse **kendi başına** `pdf_service.generate_invoice_pdf(...)` çağırıp `invoice.pdf_status`'u
+   değiştiriyordu — bu, PDF üretiminin asıl sorumlusu olan `generate_invoice_pdf_task`/`retry-pdf`
+   endpoint'iyle aynı `output_path` dosyasına eşzamanlı iki Playwright render'ının çakışmasına yol
+   açıyordu; bu çakışma asıl üretim task'ını hataya düşürüp/kilitleyebiliyordu ve
+   `_resolve_pdf_bytes` kendi hatasını sessizce yuttuğu için `pdf_status` hiçbir zaman `FAILED`'a
+   dönmüyor, `pending`'te sonsuza dek kalabiliyordu. **Çözüm:** `_resolve_pdf_bytes` sadeleştirildi
+   — artık PDF üretimini asla tetiklemiyor/`pdf_status`'a dokunmuyor, yalnızca `pdf_status ==
+   READY` ise diskteki dosyayı okuyup ekliyor, değilse PDF eki olmadan gönderiyor (proje genelindeki
+   "mail gönderimi PDF üretimini beklemez" ilkesiyle tam uyumlu).
+3. **E-posta her zaman Türkçe gidiyordu, kullanıcının profildeki dil tercihi (`User.locale`,
+   tr/en) dikkate alınmıyordu.** **Çözüm:** `email_service.py`'ye `invoice.user.locale`'e göre
+   seçilen tam bir `LABELS` (tr/en) sözlüğü eklendi — selamlama, "İşlem Detayları"/"Transaction
+   Details", alan etiketleri, "Ne Yapmanız Gerekli?"/"What Do You Need To Do?", buton/link
+   metinleri, e-posta konusu, `<html lang="...">` hepsi artık kullanıcının dil tercihine göre
+   render ediliyor; `email_invoice.html` sabit Türkçe metinler yerine `{{ labels.xxx }}`
+   değişkenlerini kullanacak şekilde güncellendi.
+**Doğrulama:** Gerçek bir üretim faturasıyla (SAVEPOINT + rollback, gerçek veri değişmedi) hem
+`tr` hem `en` locale için `_render_bodies` doğru dilde metin/HTML üretti; `_resolve_pdf_bytes`'in
+`PENDING`/`FAILED` durumda `pdf_status`'a hiç dokunmadan `None` döndürdüğü izole test edildi.
+`docker compose exec backend pytest -q` — 60/61 geçti (kalan hata önceden mevcut, bağımsız).
+`celery-worker`/`backend` restart edildi, worker loglarında güncel kod ile task'ların normal
+çalıştığı görüldü. Artifact önizlemesi (aynı URL) gerçek backend render çıktısıyla ve tr/en dil
+geçiş butonuyla güncellendi: https://claude.ai/code/artifact/eb83949e-308c-4c55-b04d-0784ec9cb41e
+`tsc --noEmit` temiz (frontend'e dokunulmadı, regresyon kontrolü amaçlı).
+
+### Mail Gönderim Sistemi — Branded HTML Şablon, PDF Eki, Gerçek Durum Takibi
+**Dosya:** `backend/app/templates_html/email_invoice.html` (yeni), `backend/app/services/email_service.py`,
+`backend/app/tasks/email_tasks.py`, `frontend/src/pages/PaymentPlaceholderPage.tsx` (yeni),
+`frontend/src/pages/ContactPlaceholderPage.tsx` (yeni), `frontend/src/routes/index.tsx`,
+`frontend/src/i18n/locales/tr.json`/`en.json`,
+`frontend/src/features/invoices/components/InvoiceRowActions.tsx`,
+`frontend/src/features/invoices/components/InvoiceSendEmailModal.tsx`
+**Durum:** ✅ Tamamlandı (2026-08-26)
+**Bağlam:** Üç ertelenmiş alt özellik tamamlandı: (1) Düz metin yerine slate-900/beyaz temalı,
+"İşlem Detayları" ve "Ne Yapmanız Gerekli?" bölümlü branded bir HTML mail şablonu eklendi
+(`email_invoice.html`, Jinja2 ile render ediliyor, `multipart/alternative` düz-metin fallback'i
+ile birlikte gönderiliyor). (2) `email_tasks.py` artık `pdf_tasks.py`'deki üretim desenini
+(`pdf_service.generate_invoice_pdf`, plan bazlı watermark) yeniden kullanarak faturanın PDF'ini
+diskten okuyup (hazır değilse üreterek) mail ekine ekliyor — PDF üretimi/okuması başarısız olursa
+mail eksiz gönderilmeye devam ediyor (mail gönderimi hâlâ PDF üretimine bağımlı değil).
+(3) `email_service.send_invoice_email` artık SMTP hatasını yutmuyor, `bool` dönüyor;
+`email_tasks.py` sadece **gerçekten başarılı** giden alıcıları `email_sent_to`'ya yazıyor ve
+`email_sent_at`'i yalnızca en az bir başarılı gönderim varsa set ediyor (önceki "denendi" =
+"gönderildi" davranışı düzeltildi). Ayrıca `email_service.py`'deki `invoice.total` →
+`invoice.grand_total` latent bug'ı (model alanı yanlış referanslıydı) düzeltildi.
+`InvoiceRowActions.tsx`'teki hızlı "Mail Gönder" akışı incelendi: bug değil, bilinçli tasarım —
+DB'de o an kayıtlı alıcılara (müşteri e-postası + `recipient_contact_ids`) doğru şekilde
+gönderiyor. Gerçek eksik, hem bu buton hem detay sayfasındaki modalın `onError` handler'larının
+backend'in döndürdüğü asıl hata mesajını (`detail`) hiç göstermeyip sabit jenerik bir toast
+basmasıydı — `axios.isAxiosError(error)?.response?.data?.detail` deseniyle (projede zaten
+`TemplatesPage.tsx`/`useChangePassword.ts`'te kullanılan) düzeltildi.
+**Kapsam dışı (bilinçli):** Mail şablonundaki "Ödeme Bağlantısına Git" ve "bize ulaşın" linkleri
+şimdilik statik placeholder sayfalara (`/odeme`, `/iletisim`) gidiyor — gerçek ödeme/iletişim
+entegrasyonu ayrı bir iş kalemi olarak `docs/todo.md`'ye eklendi (bkz. "Ödeme Bağlantısı ve
+İletişim Sayfalarının Gerçek Hedefe Bağlanması"). Repoda gerçek bir "Axion Invoice" logo dosyası
+olmadığından header'da tipografik bir wordmark kullanıldı (gerçek logo eklenince `<img>` ile
+değiştirilebilir).
+**Doğrulama:** `docker compose exec backend pytest -v` — 60/61 geçti (kalan hata bu değişiklikten
+bağımsız, önceden mevcut bilinen bir sorun). Gerçek bir üretim faturasıyla mock'lanmış SMTP
+üzerinden mesaj yapısı (`multipart/mixed` → `multipart/alternative` + `application/pdf` eki),
+başarı/hata dönüş değerleri ve SMTP-yapılandırılmamış dev-log yolu doğrulandı — hiçbir gerçek
+e-posta gönderilmedi, hiçbir üretim verisi kalıcı olarak değiştirilmedi (transaction rollback ile
+test edildi). `tsc --noEmit` temiz geçti.
 
 ### Şablon Tasarımcısı — Image Elemanı için Gerçek Asset Storage
 **Dosya:** `backend/app/api/v1/template_assets.py` (yeni), `backend/app/core/config.py`,

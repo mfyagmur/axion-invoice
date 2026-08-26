@@ -17,12 +17,16 @@ import { TemplateEditorPage } from '@/pages/dashboard/TemplateEditorPage'
 import { TemplatesPage } from '@/pages/dashboard/TemplatesPage'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { PaymentPlaceholderPage } from '@/pages/PaymentPlaceholderPage'
+import { ContactPlaceholderPage } from '@/pages/ContactPlaceholderPage'
 
 export const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
       { path: '/', element: <LandingPage /> },
+      { path: '/odeme', element: <PaymentPlaceholderPage /> },
+      { path: '/iletisim', element: <ContactPlaceholderPage /> },
       {
         element: <PublicOnlyRoute />,
         children: [

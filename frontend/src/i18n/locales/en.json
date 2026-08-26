@@ -116,6 +116,14 @@
     "body": "The page you're looking for doesn't exist.",
     "backHome": "Back to home"
   },
+  "paymentPlaceholder": {
+    "title": "Payment page coming soon",
+    "body": "This payment link isn't active yet. You'll be able to pay securely here very soon."
+  },
+  "contactPlaceholder": {
+    "title": "Contact page coming soon",
+    "body": "This page will be active very soon so you can reach us."
+  },
   "templates": {
     "list": {
       "newTemplate": "New Template",

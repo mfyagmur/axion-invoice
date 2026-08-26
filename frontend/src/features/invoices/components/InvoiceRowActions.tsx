@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import axios from 'axios'
 import { MoreHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -204,7 +205,10 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
                 setIsOpen(false)
                 sendEmail.mutate(invoiceId, {
                   onSuccess: () => pushToast(t('invoices.detail.emailSent'), 'success'),
-                  onError: () => pushToast(t('invoices.detail.emailSendError') || 'E-posta gönderilemedi'),
+                  onError: (error) => {
+                    const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined
+                    pushToast(detail || t('invoices.detail.emailSendError') || 'E-posta gönderilemedi')
+                  },
                 })
               }}
               className={activeItemClass}

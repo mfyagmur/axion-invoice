@@ -116,6 +116,14 @@
     "body": "Aradığınız sayfa mevcut değil.",
     "backHome": "Ana sayfaya dön"
   },
+  "paymentPlaceholder": {
+    "title": "Ödeme sayfası yakında aktif olacak",
+    "body": "Bu ödeme bağlantısı henüz aktif değil. Çok yakında burada güvenli ödeme yapabileceksiniz."
+  },
+  "contactPlaceholder": {
+    "title": "İletişim sayfası yakında aktif olacak",
+    "body": "Bize ulaşmak için bu sayfa çok yakında aktif olacak."
+  },
   "templates": {
     "list": {
       "newTemplate": "Yeni Şablon",

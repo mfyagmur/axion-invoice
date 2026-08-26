@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import axios from 'axios'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/Button'
@@ -71,7 +72,10 @@ export function InvoiceSendEmailModal({ invoice, isOpen, onClose }: InvoiceSendE
           pushToast(t('invoices.detail.emailSent'), 'success')
           onClose()
         },
-        onError: () => pushToast(t('invoices.detail.emailSendError')),
+        onError: (error) => {
+          const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined
+          pushToast(detail || t('invoices.detail.emailSendError'))
+        },
       })
     }
 
