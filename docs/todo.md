@@ -7,27 +7,6 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
-### Fatura Önizleme — Çok Sayfalı Fatura Desteği
-**Dosya:** `backend/app/templates_html/template_designer_base.html`, `invoice_base.html`,
-`backend/app/services/pdf_service.py`
-**Durum:** Ertelendi (kullanıcıyla netleştirildi) — eklendi 2026-08-21
-**Bağlam:** `docs/Template_Invoice.md` §12 çok sayfalı fatura desteği istiyor ama mevcut renderer
-(hem PDF üretimi hem de yeni eklenen `/invoices/{id}/preview` tabanlı önizleme — ikisi de aynı
-`pdf_service.render_invoice_html()` fonksiyonunu kullanıyor) tek sabit boyutlu `.page` div'i ve
-`.el { overflow: hidden }` varsayıyor. 20+ kalemli bir faturada tablo taşarsa hem PDF'te hem
-önizlemede kesiliyor (bu önceden var olan bir sınırlama, bu oturumdaki değişiklikle
-oluşmadı/kötüleşmedi). Doğru çözüm: şablon modeline eleman bazında "her sayfada tekrarla"
-(header/footer) bayrağı eklemek + backend'de tabloyu satır satır A4 sayfa sınırlarına göre bölüp
-çok sayfalı HTML üretmek — ayrı ve dikkatli bir iterasyon gerektiriyor.
-**Not (2026-08-25):** v2 şablon tasarımcısı sonrası `pdf_service.py:174-247`'deki
-`_reflow_elements_below_table()` fonksiyonu (eklendi ~2026-08-20) v2 şablonlarda
-tablo yüksekliğini gerçek render'a göre hesaplayıp altındaki elemanları kaydırıyor; bu şekilde
-taşan tablo ikinci fiziksel sayfaya taşabiliyor (browser-level paging). Fakat bu "kısmi
-workaround"dur — gerçek multi-page destek (page-break CSS, header/footer tekrarı, per-element
-repeat flag) hâlâ yapılmamıştır. Belgelenmiş çözüm (per-element flag + explicit page-slicing)
-henüz uygulanmadı.
-**Sıra:** Orta
-
 ### 0.1 Şablon Tasarımcısı — Ertelenen Alt Özellikler
 **Durum:** Bilinçli olarak kapsam dışı bırakıldı — eklendi 2026-08-20
 **Bağlam:** `docs/A4_Invoice_template.md`'nin ana maddeleri teslim edildi ama şu detaylar düşük
@@ -193,6 +172,21 @@ için TRY banka hesabı seçebilir. Şu an backend/frontend bunu engellemiyor ve
 ## Tamamlananlar
 
 Aşağıdaki maddeler başarıyla tamamlanmış ve canlı sistemde aktiftir.
+
+### Fatura Önizleme — Çok Sayfalı Fatura Desteği (v2 Şablon)
+**Dosya:** `backend/app/services/pdf_service.py`, `backend/app/templates_html/template_designer_base.html`,
+`backend/tests/test_pdf_pagination.py` (yeni), `backend/tests/test_templates.py`
+**Durum:** ✅ Tamamlandı (2026-08-26)
+**Bağlam:** v2 canvas şablonlarında kalem sayısı sayfaya sığmadığında tablo, banka bilgileri
+tablosu ve toplam/açıklama kutularının üzerine biniyordu. Gerçek çok sayfalı render eklendi:
+üst bilgiler (gönderen/alıcı/başlık) her sayfada tekrarlanır, kalemler satır bölünmeden sayfalar
+arası devam eder, toplam/banka/açıklama/imza sadece son sayfada görünür, sağ altta "Sayfa X/Y"
+etiketi eklendi. Hem PDF üretimi hem `/invoices/{id}/preview` önizlemesi aynı
+`render_invoice_html()` fonksiyonunu paylaştığı için tek değişiklik ikisini de kapsadı. Kullanıcının
+gerçek faturasıyla (33 kalem) doğrulandı, 60/61 backend testi geçti (kalan 1 hata bu değişiklikten
+bağımsız, önceden mevcut). Detaylar: `docs/PROJECT_DESING.md` § 2026-08-26.
+**Not:** v1 legacy (`invoice_base.html`) ve XSLT motoru bilinçli olarak kapsam dışı bırakıldı
+(kullanıcı onayıyla) — aktif kullanımda değiller, aynı düzeltme onlara uygulanmadı.
 
 ### Fatura Oluşturma Ekranında Kaydedilmemiş Taslak Önizlemesi
 **Dosya:** `frontend/src/features/invoices/components/InvoiceForm.tsx`

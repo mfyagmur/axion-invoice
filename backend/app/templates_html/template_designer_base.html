@@ -14,6 +14,10 @@
   }
   .el { position: absolute; box-sizing: border-box; overflow: hidden; }
   .el-table { height: auto !important; overflow: visible !important; }
+  .page.page-break { page-break-after: always; break-after: page; }
+  @media screen {
+    .page.page-break { margin-bottom: 6mm; box-shadow: 0 0 4mm rgba(0, 0, 0, 0.15); }
+  }
   .el-table table { width: 100%; height: auto; border-collapse: collapse; table-layout: fixed; }
   .el-table th, .el-table td { padding: 1mm 1.5mm; overflow-wrap: break-word; }
   .el-table tfoot td { padding: 1mm 1.5mm; }
@@ -32,14 +36,15 @@
 </style>
 </head>
 <body>
-  <div class="page">
+  {% for page in pages %}
+  <div class="page{% if not loop.last %} page-break{% endif %}">
     {% if show_watermark %}
     <div class="watermark">
       {% for _ in range(24) %}<span>ÜCRETSİZ PLAN</span>{% endfor %}
     </div>
     {% endif %}
 
-    {% for element in elements %}
+    {% for element in page.elements %}
     {% if not element.hidden %}
     <div class="el {% if element.type == 'table' %}el-table{% elif element.type == 'signature' %}el-signature{% endif %}" style="
         left:{{ element.x_mm }}mm; top:{{ element.y_mm }}mm;
@@ -140,7 +145,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for row in line_items %}
+            {% for row in element._page_rows %}
             <tr style="height:{{ element.row_height_mm }}mm; {% if element.zebra_striping and loop.index0 % 2 == 1 %}background-color:#f8fafc;{% endif %}">
               {% for column in visible_columns %}
               <td style="text-align:{{ column.align }}; border-bottom:{{ element.border_width }}mm solid {{ element.border_color }};">{{ row.get(column.key, '') }}</td>
@@ -170,5 +175,6 @@
     {% endif %}
     {% endfor %}
   </div>
+  {% endfor %}
 </body>
 </html>

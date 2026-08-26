@@ -337,6 +337,128 @@ def test_render_v2_template_resolves_new_totals_fields(
     assert "32.40" in html  # totals.total_tax: tax_amount + other_tax_amount
 
 
+def _footer_text_element(element_id: str, content: str, y: float) -> dict:
+    return {
+        "id": element_id,
+        "type": "text",
+        "x_mm": 10,
+        "y_mm": y,
+        "width_mm": 100,
+        "height_mm": 8,
+        "rotation": 0,
+        "z_index": 0,
+        "locked": False,
+        "hidden": False,
+        "content": content,
+        "font_size": 8,
+        "font_weight": "normal",
+        "font_style": "normal",
+        "color": "#1a1a1a",
+        "text_align": "left",
+        "line_height": 1.3,
+        "letter_spacing": 0,
+    }
+
+
+def test_render_v2_template_paginates_table_across_pages_when_items_overflow(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+
+    table_element = _table_element("el_table")
+    table_element["y_mm"] = 250
+    table_element["height_mm"] = 30
+    table_element["show_totals"] = True
+
+    template = InvoiceTemplate(
+        user_id=test_user.id,
+        name="V2 Pagination Test Template",
+        is_system_template=False,
+        layout_version=2,
+        orientation="portrait",
+        layout_json=[
+            _text_element("el_header", "customer.name", "Müşteri Adı", y=10),
+            table_element,
+            _footer_text_element("el_notes", "Ödeme koşulları burada yazar.", y=256),
+        ],
+    )
+    db_session.add(template)
+    db_session.flush()
+    db_session.commit()
+    db_session.refresh(template)
+
+    payload = InvoiceCreatePayload(
+        template_id=template.id,
+        customer_id=test_customer.id,
+        line_items=[
+            LineItemPayload(description=f"Kalem {i}", quantity="1", unit_price="10") for i in range(42)
+        ],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+
+    html = pdf_service.render_invoice_html(invoice, template)
+
+    page_count = html.count('class="page')
+    assert page_count > 1, "42 kalem tek sayfaya sığmamalı"
+    assert html.count('class="page page-break"') == page_count - 1
+
+    # Header tekrarlanan grup her sayfada görünmeli.
+    assert html.count("Test Müşteri") == page_count
+
+    # Footer grubu (notlar) sadece son sayfada bir kez görünmeli.
+    assert html.count("Ödeme koşulları burada yazar.") == 1
+
+    # Toplam KDV/Genel Toplam (tfoot) sadece son sayfada bir kez görünmeli.
+    assert html.count("Genel Toplam") == 1
+
+    # "Sayfa X/Y" göstergesi her sayfada bir kez.
+    assert html.count(f"Sayfa 1/{page_count}") == 1
+    assert html.count(f"Sayfa {page_count}/{page_count}") == 1
+
+    # Hiçbir kalem kaybolmamalı/tekrarlanmamalı.
+    for i in range(42):
+        assert html.count(f"Kalem {i}</td>") == 1
+
+
+def test_render_v2_template_single_page_unchanged_when_items_fit(
+    db_session, test_customer: InvoiceCustomer, test_user: User
+):
+    from app.services.invoice_service import create_invoice
+    from app.schemas.invoice import InvoiceCreatePayload, LineItemPayload
+
+    template = InvoiceTemplate(
+        user_id=test_user.id,
+        name="V2 Single Page Test Template",
+        is_system_template=False,
+        layout_version=2,
+        orientation="portrait",
+        layout_json=[
+            _text_element("el_header", "customer.name", "Müşteri Adı", y=10),
+            _table_element("el_table"),
+            _footer_text_element("el_notes", "Ödeme koşulları burada yazar.", y=140),
+        ],
+    )
+    db_session.add(template)
+    db_session.flush()
+    db_session.commit()
+    db_session.refresh(template)
+
+    payload = InvoiceCreatePayload(
+        template_id=template.id,
+        customer_id=test_customer.id,
+        line_items=[LineItemPayload(description="Hizmet", quantity="1", unit_price="100")],
+    )
+    invoice = create_invoice(db_session, test_user, payload)
+
+    html = pdf_service.render_invoice_html(invoice, template)
+
+    assert html.count('class="page') == 1
+    assert 'class="page page-break"' not in html
+    assert "Sayfa " not in html
+    assert html.count("Ödeme koşulları burada yazar.") == 1
+
+
 def test_legacy_layout_version_1_system_template_still_renders(
     db_session, test_customer: InvoiceCustomer, test_user: User
 ):

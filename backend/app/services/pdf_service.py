@@ -247,6 +247,134 @@ def _reflow_elements_below_table(elements: list[dict], line_items: list[dict], b
     return elements
 
 
+def _classify_elements(elements: list[dict]) -> tuple[dict | None, list[dict], list[dict]]:
+    """Split a v2 element list into (table_element, repeat_elements, footer_elements) using a
+    position-based heuristic: the single `type == "table"` element is the pagination anchor.
+    Elements fully above its top edge repeat on every page (header/sender/receiver info);
+    everything at/below its top edge (totals, bank accounts, notes, signature) is deferred to
+    the last page only, matching how `_reflow_elements_below_table` already treats "elements
+    following the table" today.
+
+    Returns (None, elements, []) when there is no table element — nothing to paginate.
+    """
+    table_element = next((el for el in elements if el.get("type") == "table"), None)
+    if table_element is None:
+        return None, elements, []
+
+    table_y = table_element.get("y_mm", 0)
+    repeat_elements: list[dict] = []
+    footer_elements: list[dict] = []
+    for el in elements:
+        if el is table_element:
+            continue
+        if el.get("y_mm", 0) + el.get("height_mm", 0) <= table_y:
+            repeat_elements.append(el)
+        else:
+            footer_elements.append(el)
+    return table_element, repeat_elements, footer_elements
+
+
+def _footer_group_top_mm(footer_elements: list[dict], table_bottom_mm: float) -> float | None:
+    """Topmost y (mm) among the footer-group elements that are FAR from the table's designed
+    bottom edge (further than `_FOLLOW_GAP_THRESHOLD_MM`) — e.g. a bank-account table or notes
+    box anchored near the bottom of the page. These sit at a fixed, designed position and
+    impose a hard boundary the last page's table rows must not cross.
+
+    Elements CLOSE to the table's bottom (typically a totals summary that visually "follows"
+    the table) are deliberately excluded: `_reflow_elements_below_table` already moves those
+    down together with the table's real content, so they don't cap how many rows fit on a
+    page — only elements the reflow leaves in place do.
+
+    Returns `None` when there is no far-anchored footer element (nothing hard-caps the page).
+    """
+    far_elements = [
+        el for el in footer_elements if el.get("y_mm", 0) - table_bottom_mm > _FOLLOW_GAP_THRESHOLD_MM
+    ]
+    if not far_elements:
+        return None
+    return min(el.get("y_mm", 0) for el in far_elements)
+
+
+def _paginate_table_rows(
+    table_element: dict,
+    line_items: list[dict],
+    footer_top_mm: float | None,
+    page_height_mm: float,
+    bottom_margin_mm: float = 10.0,
+) -> list[list[dict]]:
+    """Split `line_items` into per-page row chunks so each page's table (header + N rows,
+    estimated via `_natural_row_height_mm`) fits the vertical space available on its page.
+    Rows are never split across pages. Pages before the last may use the full page height (the
+    footer group only renders on the true last page); the last page's rows must additionally
+    stay above `footer_top_mm` — the footer's fixed, designed position — so it isn't overlapped.
+
+    If everything fits above the footer's position on one page, returns `[line_items]` — the
+    single chunk that keeps today's single-page rendering byte-identical (no regression for the
+    common few-item case).
+    """
+    row_height_mm = max(
+        table_element.get("row_height_mm", 6),
+        _natural_row_height_mm(table_element.get("row_font_size", 8)),
+    )
+    header_height_mm = max(
+        table_element.get("row_height_mm", 6),
+        _natural_row_height_mm(table_element.get("header_font_size", 8)),
+    )
+    table_top_mm = table_element.get("y_mm", 0)
+    usable_bottom_mm = page_height_mm - bottom_margin_mm
+    last_page_boundary_mm = usable_bottom_mm if footer_top_mm is None else min(usable_bottom_mm, footer_top_mm)
+
+    def rows_capacity(available_content_mm: float) -> int:
+        capacity_mm = available_content_mm - header_height_mm
+        if capacity_mm <= 0:
+            return 0
+        return max(1, int(capacity_mm / (row_height_mm * 1.05)))
+
+    no_footer_rows = rows_capacity(usable_bottom_mm - table_top_mm)
+    single_page_capacity_rows = rows_capacity(last_page_boundary_mm - table_top_mm)
+
+    if not line_items:
+        return [[]]
+
+    if len(line_items) <= single_page_capacity_rows:
+        return [line_items]
+
+    chunks: list[list[dict]] = []
+    remaining = line_items
+    while True:
+        if len(remaining) <= single_page_capacity_rows:
+            chunks.append(remaining)
+            break
+        take = max(1, no_footer_rows)
+        chunks.append(remaining[:take])
+        remaining = remaining[take:]
+    return chunks
+
+
+def _page_number_element(page_num: int, page_count: int, page_width_mm: float, page_height_mm: float) -> dict:
+    """Synthetic text element stamped at a fixed bottom-right coordinate on every page of a
+    multi-page invoice ("Sayfa X/Y"). Only added when a template actually paginates into more
+    than one page — single-page invoices never get this element, so their output is unchanged.
+    """
+    return {
+        "id": f"__page_number_{page_num}",
+        "type": "text",
+        "x_mm": page_width_mm - 35,
+        "y_mm": page_height_mm - 10,
+        "width_mm": 30,
+        "height_mm": 6,
+        "z_index": 999,
+        "content": f"Sayfa {page_num}/{page_count}",
+        "font_size": 8,
+        "font_weight": "normal",
+        "font_style": "normal",
+        "color": "#666666",
+        "text_align": "right",
+        "line_height": 1.2,
+        "letter_spacing": 0,
+    }
+
+
 def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_watermark: bool) -> str:
     _, line_items, totals = _collect_render_data(invoice)
 
@@ -309,11 +437,41 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
     orientation = getattr(template, "orientation", "portrait")
     page_width_mm, page_height_mm = (297, 210) if orientation == "landscape" else (210, 297)
 
+    table_element, repeat_elements, footer_elements = _classify_elements(template.layout_json)
+
+    if table_element is None:
+        pages = [{"elements": _reflow_elements_below_table(template.layout_json, line_items, bank_accounts)}]
+    else:
+        table_bottom_mm = table_element.get("y_mm", 0) + table_element.get("height_mm", 0)
+        footer_top_mm = _footer_group_top_mm(footer_elements, table_bottom_mm)
+        row_chunks = _paginate_table_rows(table_element, line_items, footer_top_mm, page_height_mm)
+
+        pages = []
+        for index, chunk in enumerate(row_chunks):
+            is_last = index == len(row_chunks) - 1
+            page_table = copy.deepcopy(table_element)
+            page_table["_page_rows"] = chunk
+            page_table["show_totals"] = bool(table_element.get("show_totals")) and is_last
+
+            page_elements = copy.deepcopy(repeat_elements)
+            page_elements.append(page_table)
+
+            if is_last:
+                reflowed = _reflow_elements_below_table([page_table] + footer_elements, chunk, bank_accounts)
+                reflowed_table = next(el for el in reflowed if el.get("type") == "table")
+                page_elements[-1] = reflowed_table
+                page_elements.extend(el for el in reflowed if el is not reflowed_table)
+
+            pages.append({"elements": page_elements})
+
+        if len(pages) > 1:
+            for page_num, page in enumerate(pages, start=1):
+                page["elements"].append(_page_number_element(page_num, len(pages), page_width_mm, page_height_mm))
+
     jinja_template = _env.get_template("template_designer_base.html")
     return jinja_template.render(
-        elements=_reflow_elements_below_table(template.layout_json, line_items, bank_accounts),
+        pages=pages,
         resolved_text=resolved_text,
-        line_items=line_items,
         totals=totals,
         bank_accounts=bank_accounts,
         logo_data_uri=_logo_data_uri(invoice),

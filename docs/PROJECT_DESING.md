@@ -4,6 +4,53 @@ Bu dosya, proje genelinde yapılan değişikliklerin ve regresyon düzeltmelerin
 
 ---
 
+## 2026-08-26 — Fatura Önizleme/PDF — Çok Sayfalı Fatura Desteği (v2 Şablon)
+
+**Bağlam:** v2 canvas şablonlarıyla (`layout_version >= 2`) oluşturulan faturalarda, kalem
+(Mal/Hizmet satırı) sayısı sayfaya sığmadığında tablo taşıyordu. Mevcut kısmi çözüm
+(`_reflow_elements_below_table`, `pdf_service.py:174-247`, ~2026-08-20'de eklendi) tabloyu tek
+bir sayfada büyütüp altındaki yakın elemanları kaydırıyordu ama sayfa tek kalıyordu — taşan
+içerik Chromium'un otomatik oluşturduğu kontrolsüz 2. fiziksel sayfaya dökülüyor, banka bilgileri
+tablosu ve toplam/açıklama kutuları dökülen satırların üzerine biniyordu (`docs/todo.md`'deki
+"Fatura Önizleme — Çok Sayfalı Fatura Desteği" maddesi, eklendi 2026-08-21). Bu görev gerçek,
+kontrollü çok sayfalı render ekledi: üstteki (gönderen/alıcı/başlık) bilgiler her sayfada
+tekrarlanır, kalemler satır bölünmeden sayfalar arasında devam eder, toplam/banka/açıklama/imza
+sadece SON sayfada görünür. Hem PDF üretimi (Playwright) hem canlı önizleme
+(`GET /invoices/{id}/preview`, `POST /invoices/preview`) aynı `render_invoice_html()` →
+`_render_visual_v2_html()` fonksiyonunu kullandığı için tek değişiklik her ikisini de kapsadı.
+
+**Kapsam kararı (kullanıcı onayıyla):** Sadece v2 canvas şablonları (`template_designer_base.html`,
+`_render_visual_v2_html`) düzeltildi. v1 legacy (`invoice_base.html`) ve XSLT motoruna
+dokunulmadı — aktif kullanımda değiller. Sağ alt köşeye sabit koordinatlı "Sayfa X/Y" etiketi
+eklendi (kullanıcı onayı), sadece fatura gerçekten birden fazla sayfaya bölündüğünde görünür.
+
+**Çözüm:**
+
+| Dosya | İşlem | Özet |
+|-------|-------|------|
+| `backend/app/services/pdf_service.py` | Değiştirme | `_classify_elements()` (tablo elemanını bulup üstündeki/altındaki elemanları ayırır), `_footer_group_top_mm()` (son sayfanın hard boundary'sini hesaplar — tabloya `_FOLLOW_GAP_THRESHOLD_MM=50mm`'den yakın "takip eden" elemanları hariç tutar), `_paginate_table_rows()` (satırları sayfa kapasitesine göre böler, satır bölünmez), `_page_number_element()` (Sayfa X/Y sentetik metin elemanı) eklendi. `_render_visual_v2_html()` yeniden yazıldı: artık düz `elements` yerine `pages` listesi (her biri kendi `_page_rows`'a sahip tablo dahil) üretip Jinja'ya öyle geçiyor. `_reflow_elements_below_table()` değişmedi, artık sadece son sayfanın footer grubu için çağrılıyor. |
+| `backend/app/templates_html/template_designer_base.html` | Değiştirme | Tek `.page` div'i yerine `{% for page in pages %}` döngüsü; her sayfaya (sonuncusu hariç) `page-break-after: always` CSS class'ı; tablo satırları artık `element._page_rows` üzerinden; `@media screen`'de sayfalar arası görsel ayrım (gölge/boşluk) eklendi. |
+| `backend/tests/test_pdf_pagination.py` | Ekleme | Yeni dosya, 12 unit test — `_classify_elements`, `_footer_group_top_mm` (yakın/uzak eleman ayrımı dahil), `_paginate_table_rows` (tek sayfa, çok sayfa, boş liste, patolojik font, satır kaybı/bölünmesi olmadığı garantisi). |
+| `backend/tests/test_templates.py` | Ekleme | 2 entegrasyon testi: çok kalemli fatura → birden fazla `.page`, başlık her sayfada tekrar, toplam/footer sadece son sayfada, "Sayfa X/Y" etiketleri doğru; az kalemli fatura → tek sayfa, `page-break` class'ı yok, "Sayfa" etiketi yok (regresyon guard). |
+
+**Hata ayıklama (2 tur):** İlk uygulamada footer kapasite formülünde cebirsel hata vardı (`table.y_mm`
+terimi formülde iptal oluyordu, anlamsız bir sınır üretiyordu) — kullanıcının gerçek faturasıyla
+test edilince (28 kalem sayfa 1'e, 5 kalem sayfa 2'ye ama toplam/banka/açıklama yanlışlıkla 3.
+boş bir sayfaya gidiyordu) tespit edilip düzeltildi. İkinci turda, düzeltilmiş formül toplam
+kutusunu (Ara Toplam/İskonto/KDV/Genel Toplam/Net Alacak) da "sert sınır" olarak ele alıyordu —
+oysa bu kutu tabloya sadece ~2.24mm uzaklıkta, `_reflow_elements_below_table`'ın zaten "tabloyu
+takip eden eleman" (50mm eşiği altı) olarak sınıflandırdığı bir eleman. `_footer_group_top_mm`'e
+`table_bottom_mm` parametresi eklenip sadece 50mm'den uzak elemanlar sert sınır sayılacak şekilde
+düzeltildi. Kullanıcının gerçek faturası (INV202600016, 33 kalem) Docker üzerinden yeniden render
+edilip doğrulandı: 2 sayfa, sayfa 1 = 28 satır, sayfa 2 = 5 satır + toplamlar + banka tablosu +
+açıklama birlikte, örtüşme yok. Backend test suite: 60 geçti / 1 hata (`test_download_pdf_not_ready_returns_404`
+— bu değişiklikten önce de mevcut, ilgisiz, `git stash` ile doğrulandı, kapsam dışı bırakıldı).
+
+**Etkilenmeyen:** `invoice_base.html`, `_render_visual_html()` (v1), `xslt_service.py`,
+`generate_invoice_pdf()` Playwright kwargs'ı, template designer/editor frontend, Docker dosyaları.
+
+---
+
 ## 2026-08-25 — Şablonlar — Admin Sistem Şablonu Yönetimi (Promote/Demote)
 
 **Bağlam:** Admin kullanıcı (mfyagmur@gmail.com), dashboard/templates/new görsel editörüyle kendi "E-Fatura" şablonunu hazırlayabilecek, fakat bu şablon yalnızca kullanıcı şablonu olarak DB'de tutuluyordu (`user_id = <admin>`, `is_system_template = false`). Şablonu "Sistem Şablonu" yapabilmek için yalnızca XSLT admin panelindeki `/admin/templates/xslt` endpoint'i üzerinde mümkündü, görsel şablonlar için yol yoktu. Bu görev admin'e kendi görsel şablonlarını sisteme terfi ettirip, sistemden geri alabilmesi için iki yeni endpoint + frontend UI'ı ekledi.
