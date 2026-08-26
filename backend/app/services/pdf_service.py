@@ -137,6 +137,17 @@ def _logo_data_uri(invoice: Invoice) -> str | None:
     return f"data:{mime};base64,{base64.b64encode(file_path.read_bytes()).decode('ascii')}"
 
 
+def _image_element_data_uri(src: str | None) -> str | None:
+    if not src or not src.startswith("/static/template-assets/"):
+        return src
+    file_path = Path(settings.template_asset_storage_dir) / Path(src).name
+    if not file_path.exists():
+        return None
+    ext = file_path.suffix.lstrip(".").lower() or "png"
+    mime = f"image/{'jpeg' if ext in ('jpg', 'jpeg') else ('svg+xml' if ext == 'svg' else ext)}"
+    return f"data:{mime};base64,{base64.b64encode(file_path.read_bytes()).decode('ascii')}"
+
+
 def _qr_data_uri(value: str) -> str | None:
     if not value:
         return None
@@ -391,11 +402,15 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
         if bank_account is not None
     ]
 
+    layout_elements = copy.deepcopy(template.layout_json)
+
     resolved_text: dict[str, str] = {}
-    for element in template.layout_json:
+    for element in layout_elements:
         element_id = element.get("id")
         element_type = element.get("type")
-        if element_type == "dynamic-field":
+        if element_type == "image":
+            element["src"] = _image_element_data_uri(element.get("src"))
+        elif element_type == "dynamic-field":
             value = template_field_resolver.resolve_field(element["field_key"], invoice)
             resolved_text[element_id] = value or element.get("default_value") or ""
         elif element_type == "bank-account":
@@ -437,10 +452,10 @@ def _render_visual_v2_html(invoice: Invoice, template: InvoiceTemplate, show_wat
     orientation = getattr(template, "orientation", "portrait")
     page_width_mm, page_height_mm = (297, 210) if orientation == "landscape" else (210, 297)
 
-    table_element, repeat_elements, footer_elements = _classify_elements(template.layout_json)
+    table_element, repeat_elements, footer_elements = _classify_elements(layout_elements)
 
     if table_element is None:
-        pages = [{"elements": _reflow_elements_below_table(template.layout_json, line_items, bank_accounts)}]
+        pages = [{"elements": _reflow_elements_below_table(layout_elements, line_items, bank_accounts)}]
     else:
         table_bottom_mm = table_element.get("y_mm", 0) + table_element.get("height_mm", 0)
         footer_top_mm = _footer_group_top_mm(footer_elements, table_bottom_mm)

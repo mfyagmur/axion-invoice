@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { twMerge } from 'tailwind-merge'
 import { Input } from '@/components/Input'
 import { TableColumnEditor } from '@/features/invoice-editor/components/TableColumnEditor'
+import { useUploadTemplateAsset } from '@/features/invoice-editor/hooks/useUploadTemplateAsset'
 import { useEditorStore } from '@/features/invoice-editor/store/editorStore'
 import type { Align } from '@/types/template'
 
@@ -52,6 +53,7 @@ export function PropertiesPanel() {
   const toggleHidden = useEditorStore((state) => state.toggleHidden)
   const bringToFront = useEditorStore((state) => state.bringToFront)
   const sendToBack = useEditorStore((state) => state.sendToBack)
+  const uploadAsset = useUploadTemplateAsset()
 
   if (selectedIds.length === 0) {
     return <div className="w-full text-sm text-slate-400 lg:w-72 lg:shrink-0">{t('editor.properties.emptyState')}</div>
@@ -197,12 +199,11 @@ export function PropertiesPanel() {
           <input
             type="file"
             accept="image/*"
+            disabled={uploadAsset.isPending}
             onChange={(e) => {
               const file = e.target.files?.[0]
               if (!file) return
-              const reader = new FileReader()
-              reader.onload = () => set({ src: String(reader.result) })
-              reader.readAsDataURL(file)
+              uploadAsset.mutate(file, { onSuccess: (data) => set({ src: data.url }) })
             }}
             className="text-xs"
           />

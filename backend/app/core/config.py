@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     pdf_storage_dir: str = "/app/generated_pdfs"
     logo_storage_dir: str = "/app/generated_logos"
+    template_asset_storage_dir: str = "/app/generated_template_assets"
 
     smtp_host: str = ""
     smtp_port: int = 587

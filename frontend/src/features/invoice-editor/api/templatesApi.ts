@@ -22,4 +22,14 @@ export const templatesApi = {
 
   demote: (id: string) =>
     apiClient.post<TemplateSummary>(`/templates/${id}/demote`).then((res) => res.data),
+
+  uploadAsset: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiClient
+      .post<{ url: string }>('/template-assets', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((res) => res.data)
+  },
 }

@@ -7,19 +7,6 @@ Bu dosya, projede kalan ve ertelenmiş işlerin kaydını tutar. Tamamlanan işl
 
 ## Aktif Yapılacaklar
 
-### 0.1 Şablon Tasarımcısı — Ertelenen Alt Özellikler
-**Durum:** Bilinçli olarak kapsam dışı bırakıldı — eklendi 2026-08-20
-**Bağlam:** `docs/A4_Invoice_template.md`'nin ana maddeleri teslim edildi ama şu detaylar düşük
-değer/yüksek efor nedeniyle ertelendi:
-- **Equal-spacing snap:** 3+ eleman arasında eşit boşluk tespiti (`canvasGeometry.ts` şu an sadece
-  grid/kenar/merkez/sayfa-merkezi snap destekliyor).
-- **`GET /templates/{id}/preview-data`:** Editördeki "Önizle" modu şu an sadece element
-  etiketlerini/placeholder'larını gösteriyor, gerçek bir faturanın verisiyle doldurmuyor.
-- **Gerçek asset storage:** `image` elemanı seçilen dosyayı base64 data URL olarak `layout_json`
-  içine gömüyor (backend'deki logo upload akışıyla aynı diske-yazma deseni kullanılmıyor) — büyük
-  görsellerde JSONB satırını şişirebilir.
-**Sıra:** Düşük
-
 ### Mail Gönderim Sistemi (SMTP) — Temel Uçtan Uca
 **Dosya:** `backend/app/services/email_service.py`, `backend/app/tasks/email_tasks.py`, `frontend/src/features/invoices/components/InvoiceSendEmailModal.tsx`
 **Durum:** Ertelendi (2026-08-25, güncellendi 2026-08-25)
@@ -172,6 +159,31 @@ için TRY banka hesabı seçebilir. Şu an backend/frontend bunu engellemiyor ve
 ## Tamamlananlar
 
 Aşağıdaki maddeler başarıyla tamamlanmış ve canlı sistemde aktiftir.
+
+### Şablon Tasarımcısı — Image Elemanı için Gerçek Asset Storage
+**Dosya:** `backend/app/api/v1/template_assets.py` (yeni), `backend/app/core/config.py`,
+`backend/app/main.py`, `backend/app/services/pdf_service.py`,
+`frontend/src/features/invoice-editor/api/templatesApi.ts`,
+`frontend/src/features/invoice-editor/hooks/useUploadTemplateAsset.ts` (yeni),
+`frontend/src/features/invoice-editor/components/PropertiesPanel.tsx`,
+`frontend/src/features/invoice-editor/components/A4Canvas/CanvasElement.tsx`
+**Durum:** ✅ Tamamlandı (2026-08-26)
+**Bağlam:** `image` elemanı artık seçilen dosyayı `FileReader.readAsDataURL` ile base64'e çevirip
+`layout_json`'a gömmüyor — logo upload akışıyla aynı desende yeni bir `POST /template-assets`
+endpoint'i eklendi (validasyon, magic-byte kontrolü, `uuid` dosya adıyla diske yazma), dosya
+`/static/template-assets/...` altında servis ediliyor ve `layout_json`'a sadece bu kısa URL
+yazılıyor. PDF/önizleme render'ı (`page.set_content` ile origin'i olmayan bir HTML string
+kullandığı için `/static/...` URL'lerini çözemiyor) için `_render_visual_v2_html` içinde yeni
+`_image_element_data_uri()` helper'ı, logonun `_logo_data_uri()`'sindeki desenle diskten okuyup
+render anında base64 `data:` URI'ye çeviriyor — kalıcı depoda base64 hiç tutulmuyor. Canvas'ta
+(tarayıcıda doğrudan render edildiği için) `getAssetUrl()` ile API origin'ine karşı çözülüyor.
+Mevcut base64 `data:` URI'li eski şablonlar hem canvas'ta hem PDF/önizlemede değişmeden çalışmaya
+devam ediyor (geriye dönük migration gerekmedi). Uçtan uca `curl` ile doğrulandı: upload → disk
+yazma → static mount üzerinden servis → `_image_element_data_uri` tüm dallarıyla (gerçek asset,
+legacy data URI, `None`, eksik dosya) doğru davranıyor.
+**Not:** Orphan/kullanılmayan görsel temizliği bilinçli olarak kapsam dışı bırakıldı — logo
+akışının da böyle bir temizlik hikayesi yok, doğru bir GC referans sayımı gerektirir ve bu
+istenmeyen bir sağlamlaştırma olurdu.
 
 ### Fatura Önizleme — Çok Sayfalı Fatura Desteği (v2 Şablon)
 **Dosya:** `backend/app/services/pdf_service.py`, `backend/app/templates_html/template_designer_base.html`,

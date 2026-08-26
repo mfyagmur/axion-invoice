@@ -14,6 +14,7 @@ from app.api.v1.plans import router as plans_router
 from app.api.v1.profile import router as profile_router
 from app.api.v1.sessions import router as sessions_router
 from app.api.v1.subscriptions import router as subscriptions_router
+from app.api.v1.template_assets import router as template_assets_router
 from app.api.v1.templates import router as templates_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.core.config import settings
@@ -31,11 +32,19 @@ app.add_middleware(
 Path(settings.logo_storage_dir).mkdir(parents=True, exist_ok=True)
 app.mount("/static/logos", StaticFiles(directory=settings.logo_storage_dir), name="logos")
 
+Path(settings.template_asset_storage_dir).mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/static/template-assets",
+    StaticFiles(directory=settings.template_asset_storage_dir),
+    name="template-assets",
+)
+
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(profile_router, prefix="/api/v1")
 app.include_router(sessions_router, prefix="/api/v1")
 app.include_router(definitions_router, prefix="/api/v1")
 app.include_router(templates_router, prefix="/api/v1")
+app.include_router(template_assets_router, prefix="/api/v1")
 app.include_router(admin_templates_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
 app.include_router(fx_router, prefix="/api/v1")

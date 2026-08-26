@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 import { mmToPx } from '@/features/invoice-editor/canvasGeometry'
 import type { PaletteDragData } from '@/features/invoice-editor/dndTypes'
 import type { CanvasElementData } from '@/features/invoice-editor/types/element'
+import { getAssetUrl } from '@/lib/assetUrl'
 
 interface CanvasElementProps {
   element: CanvasElementData
@@ -66,7 +67,11 @@ function ElementContent({ element }: { element: CanvasElementData }) {
       return <div className="flex h-full w-full items-center justify-center border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400">Logo</div>
     case 'image':
       return element.src ? (
-        <img src={element.src} className="h-full w-full" style={{ objectFit: element.object_fit === 'original' ? 'none' : element.object_fit }} />
+        <img
+          src={element.src.startsWith('/static/') ? (getAssetUrl(element.src) ?? element.src) : element.src}
+          className="h-full w-full"
+          style={{ objectFit: element.object_fit === 'original' ? 'none' : element.object_fit }}
+        />
       ) : (
         <div className="flex h-full w-full items-center justify-center border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400">Resim</div>
       )
