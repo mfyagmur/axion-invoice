@@ -22,7 +22,7 @@ interface LineItemCardProps {
   currency: string
   onRemove: () => void
   removeDisabled: boolean
-  fieldErrors?: { item_code?: { message?: string }; description?: { message?: string } }
+  fieldErrors?: { item_code?: { message?: string }; description?: { message?: string }; quantity?: { message?: string }; unit_price?: { message?: string } }
   units?: DefinitionUnit[]
 }
 
@@ -90,26 +90,27 @@ export function LineItemCard({
         </div>
       </div>
 
-      <div className="flex flex-nowrap items-start gap-3 overflow-x-auto pt-1">
-        <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden relative">
-          <div className="relative">
-            <label className="sr-only">{t('invoices.form.quantity')}</label>
-            <input
-              type="number"
-              //step="0.01"
-              min="0"
-              placeholder={t('invoices.form.quantity')}
-              className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400"
-              aria-label={t('invoices.form.quantity')}
-              {...register(`line_items.${index}.quantity` as const, { required: true, valueAsNumber: true })}
-            />
-            <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
-              <InfoTooltip
-                title={t('invoices.form.quantity')}
-                description={t('invoices.form.quantityTooltip')}
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-nowrap items-start gap-3 overflow-x-auto pt-1">
+          <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden relative">
+            <div className="relative">
+              <label className="sr-only">{t('invoices.form.quantity')}</label>
+              <input
+                type="number"
+                //step="0.01"
+                min="0"
+                placeholder={t('invoices.form.quantity')}
+                className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400"
+                aria-label={t('invoices.form.quantity')}
+                {...register(`line_items.${index}.quantity` as const, { required: true, valueAsNumber: true })}
               />
+              <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+                <InfoTooltip
+                  title={t('invoices.form.quantity')}
+                  description={t('invoices.form.quantityTooltip')}
+                />
+              </div>
             </div>
-          </div>
           <div className="w-px bg-slate-300" />
           <Controller
             control={control}
@@ -147,6 +148,12 @@ export function LineItemCard({
             />
           </div>
         </div>
+        {fieldErrors?.quantity && (
+          <p className="text-xs text-red-600">{t('invoices.form.errors.quantityRequired')}</p>
+        )}
+        {fieldErrors?.unit_price && (
+          <p className="text-xs text-red-600">{t('invoices.form.errors.unitPriceRequired')}</p>
+        )}
 
         <div className="relative w-26 shrink-0">
           <label className="sr-only">{t('invoices.form.discountRate')}</label>
@@ -226,6 +233,7 @@ export function LineItemCard({
             <span>{computed.lineTotal.toFixed(2)}</span>
             <span className="text-xs text-slate-500">{currency}</span>
           </div>
+        </div>
         </div>
       </div>
     </div>

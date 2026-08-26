@@ -129,21 +129,17 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   const exchangeRateQuery = useExchangeRate(paymentCurrency, currency, !isFixedRate)
 
-  useEffect(() => {
-    if (units && units.length > 0) {
-      const defaultUnit = units.find(u => u.is_default && u.is_active)
-      const fallbackUnit = units.find(u => u.is_active)
-      const unitToUse = defaultUnit || fallbackUnit
+  const defaultUnit = units?.find(u => u.is_default && u.is_active) || units?.find(u => u.is_active)
 
-      if (unitToUse) {
-        lineItems.forEach((item, idx) => {
-          if (!item.unit) {
-            setValue(`line_items.${idx}.unit`, unitToUse.name)
-          }
-        })
-      }
+  useEffect(() => {
+    if (units && units.length > 0 && defaultUnit) {
+      lineItems.forEach((item, idx) => {
+        if (!item.unit) {
+          setValue(`line_items.${idx}.unit`, defaultUnit.name)
+        }
+      })
     }
-  }, [units, setValue, lineItems])
+  }, [units, setValue, lineItems, defaultUnit])
 
   useEffect(() => {
     if (selectedPaymentTermId && paymentTerms) {
@@ -211,16 +207,17 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
     return 1 / rate
   }, [exchangeRateValue])
 
-  const isFormValid = !!(templateId && customerId && lineItemFields.length > 0)
-
-  const isPreviewReady = !!(
+  const isFormValid = !!(
     templateId &&
     customerId &&
+    lineItemFields.length > 0 &&
     lineItems?.length > 0 &&
     lineItems.every(
       (item) => item.description?.trim() && Number(item.quantity) > 0 && item.unit_price !== '' && Number(item.unit_price) >= 0
     )
   )
+
+  const isPreviewReady = isFormValid
 
   const isFirstCustomerRender = useRef(true)
   useEffect(() => {
@@ -264,7 +261,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
         description: item.description,
         quantity: Number(item.quantity),
         unit_price: Number(item.unit_price),
-        unit: item.unit || 'adet',
+        unit: item.unit || defaultUnit?.name || 'adet',
         discount_rate: Number(item.discount_rate) || 0,
         tax_rate: Number(item.tax_rate) || 0,
         other_tax_amount: Number(item.other_tax_amount) || 0,
@@ -277,11 +274,6 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   function handlePreview() {
     previewDraft.mutate(buildInvoicePayload(getValues()), { onSuccess: () => setIsPreviewOpen(true) })
-  }
-
-  function handleSubmitAndSend() {
-    const values = getValues()
-    createInvoice.mutate(buildInvoicePayload(values))
   }
 
   const onSubmit = handleSubmit((values) => {
@@ -706,8 +698,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
             <div className="flex gap-2">
               <Button
-                type="button"
-                onClick={handleSubmitAndSend}
+                type="submit"
                 disabled={!isFormValid || createInvoice.isPending}
                 className="flex-1 gap-2"
               >
@@ -732,6 +723,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
         isLoading={previewDraft.isPending}
         isError={previewDraft.isError}
         onClose={() => setIsPreviewOpen(false)}
+        onRetry={handlePreview}
       />
     </form>
   )

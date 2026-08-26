@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { invoicesApi } from '@/features/invoices/api/invoicesApi'
 
 export function useRetryInvoicePdf() {
@@ -8,6 +9,10 @@ export function useRetryInvoicePdf() {
     mutationFn: (id: string) => invoicesApi.retryPdf(id),
     onSuccess: (invoice) => {
       queryClient.setQueryData(['invoices', invoice.id], invoice)
+      void queryClient.invalidateQueries({ queryKey: ['invoices'] })
+    },
+    onError: () => {
+      toast.error('PDF yeniden oluşturulamadı')
     },
   })
 }

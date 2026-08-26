@@ -77,7 +77,7 @@ export function InvoiceSendEmailModal({ invoice, isOpen, onClose }: InvoiceSendE
 
     if (hasChanged) {
       updateInvoice.mutate(
-        { id: invoice.id, payload: { recipient_contact_ids: nextRecipientIds } },
+        { id: invoice.id, payload: { recipient_contact_ids: nextRecipientIds }, silent: true },
         { onSuccess: dispatchSend },
       )
     } else {

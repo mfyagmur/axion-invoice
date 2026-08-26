@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { invoicesApi } from '@/features/invoices/api/invoicesApi'
 
 export function useDownloadInvoicePdf() {
@@ -13,6 +14,9 @@ export function useDownloadInvoicePdf() {
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
+    },
+    onError: () => {
+      toast.error('PDF indirilemedi')
     },
   })
 }

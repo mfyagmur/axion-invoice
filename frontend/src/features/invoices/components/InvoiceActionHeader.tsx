@@ -86,7 +86,7 @@ export function InvoiceActionHeader({
               className="gap-2"
               onClick={() => retryPdf.mutate(invoice.id)}
               disabled={isPdfRegenerating}
-              title={t('invoices.detail.retryPdf')}
+              title={isPdfRegenerating ? t('invoices.detail.pdfRegenerating') : t('invoices.detail.retryPdf')}
             >
               <RefreshCw size={16} className={isPdfRegenerating ? 'animate-spin' : undefined} />
               {isPdfRegenerating

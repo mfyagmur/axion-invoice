@@ -9,10 +9,12 @@ export function useUpdateInvoice() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: InvoiceUpdatePayload }) =>
       invoicesApi.update(id, payload),
-    onSuccess: (invoice) => {
+    onSuccess: (invoice, variables: { id: string; payload: InvoiceUpdatePayload; silent?: boolean }) => {
       queryClient.setQueryData(['invoices', invoice.id], invoice)
       void queryClient.invalidateQueries({ queryKey: ['invoices'] })
-      toast.success('Değişiklikler kaydedildi')
+      if (!variables.silent) {
+        toast.success('Değişiklikler kaydedildi')
+      }
     },
     onError: () => {
       toast.error('Kaydedilemedi, lütfen tekrar deneyin')

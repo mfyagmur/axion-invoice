@@ -10,6 +10,7 @@ interface InvoiceDraftPreviewModalProps {
   isLoading: boolean
   isError: boolean
   onClose: () => void
+  onRetry: () => void
 }
 
 const PREVIEW_PADDING_PX = 48
@@ -21,6 +22,7 @@ export function InvoiceDraftPreviewModal({
   isLoading,
   isError,
   onClose,
+  onRetry,
 }: InvoiceDraftPreviewModalProps) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -84,7 +86,7 @@ export function InvoiceDraftPreviewModal({
 
         {isError && !isLoading && (
           <div className="rounded-md bg-white p-4">
-            <ErrorState onRetry={() => {}} />
+            <ErrorState onRetry={onRetry} />
           </div>
         )}
 
