@@ -694,7 +694,10 @@
       "sessionTimeoutOption": "{{count}} dakika",
       "autosaveInterval": "Şablon Otomatik Kaydetme Süresi",
       "autosaveIntervalHint": "Şablon tasarımcısında değişiklikler bu süre aralığında otomatik olarak kaydedilir.",
-      "autosaveIntervalOption": "{{count}} dakika"
+      "autosaveIntervalOption": "{{count}} dakika",
+      "system": "Sistem",
+      "systemDescription": "Sistem genelinde tercihler ve ayarlar.",
+      "systemInfo": "Sistem ayarları yapılandırması ve tercihler burada görüntülenecektir."
     },
     "security": {
       "changePassword": "Şifreyi Değiştir",

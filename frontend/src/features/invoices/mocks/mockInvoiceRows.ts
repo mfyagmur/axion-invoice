@@ -16,6 +16,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     status: 'draft',
     paymentReminderActive: false,
     archived: false,
+    reminderSteps: [],
   },
   {
     id: 'mock-2',
@@ -32,6 +33,7 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     status: 'sent',
     paymentReminderActive: false,
     archived: false,
+    reminderSteps: [],
   },
   {
     id: 'mock-3',
@@ -47,5 +49,6 @@ export const MOCK_INVOICE_ROWS: InvoiceRow[] = [
     status: 'paid',
     paymentReminderActive: false,
     archived: false,
+    reminderSteps: [],
   },
 ]

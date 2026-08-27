@@ -694,7 +694,10 @@
       "sessionTimeoutOption": "{{count}} minutes",
       "autosaveInterval": "Template Auto-Save Interval",
       "autosaveIntervalHint": "Changes in the template designer are automatically saved at this interval.",
-      "autosaveIntervalOption": "{{count}} minutes"
+      "autosaveIntervalOption": "{{count}} minutes",
+      "system": "System",
+      "systemDescription": "System-wide preferences and settings.",
+      "systemInfo": "System settings configuration and preferences will appear here."
     },
     "security": {
       "changePassword": "Change Password",

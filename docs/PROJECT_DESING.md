@@ -74,3 +74,21 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 - `frontend/src/layouts/Sidebar.tsx` — Değiştirme: Çıkış Yap `<button>` elemanına `border-t border-slate-200` className'i eklendi (Ayarlar/Destek bölümünden visual ayrım sağlar).
 
 **Doğrulama:** `npx tsc --noEmit` hatasız geçti. Görsel testi yapılmadı.
+
+---
+
+## 2026-08-27 — Preferences Tab'ında 3 Kolon Responsive Yapı
+
+**Durum:** Değiştirme
+
+**Özet:** `dashboard/settings?tab=preferences` sekmesinde seçenekler lineer/sıralı liste olarak gösteriliyordu. Proje responsive tasarım tercihlerine uygun olarak 3 kolon kart yapısına dönüştürüldü: (1) Bildirim Tercihleri, (2) Süreler, (3) Sistem. Responsive breakpoints: `grid-cols-1` (mobil), `md:grid-cols-2` (tablet), `lg:grid-cols-3` (desktop).
+
+**Yapılan dosyalar:**
+- `frontend/src/pages/dashboard/settings/PreferencesTab.tsx` — Değiştirme: mevcut `max-w-xl` container yerine `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6` eklendi; her tercih kartı (Bildirim, Süreler, Sistem) içine yerleştirildi. "Sistem" kartı yapısal olarak açık kalıyor — ileride tema/zaman dilimi/tarih formatı gibi tercihler eklenebilecek şekilde tasarlandı.
+- `frontend/src/i18n/locales/en.json` — Ekleme: `settings.preferences.system`, `settings.preferences.systemDescription`, `settings.preferences.systemInfo` anahtarları.
+- `frontend/src/i18n/locales/tr.json` — Ekleme: `settings.preferences.system`, `settings.preferences.systemDescription`, `settings.preferences.systemInfo` anahtarları (Türkçe çeviri).
+- `frontend/src/features/invoices/mocks/mockInvoiceRows.ts` — Ekleme: Mock invoice'lardaki `reminderSteps: []` alanı (payment reminder özelliğinden gelen zorunlu alan, önceki oturumda eklenmişti ama mock'ler güncellenmemişti).
+
+**Doğrulama:** `npx tsc -b` derlemesi, mock'ler güncellendikten sonra başarılı. Görsel/tarayıcı testi yapılmadı.
+
+**Not:** Sistem kartı şimdilik boş yer tutucu içeriyor — ileride tema switcher, zaman dilimi, tarih formatı vb. tercihler eklenebilir.

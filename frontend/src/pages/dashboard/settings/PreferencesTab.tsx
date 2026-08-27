@@ -39,56 +39,69 @@ export function PreferencesTab() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-xl">
-      <Card title={t('settings.preferences.notifications')}>
-        <div className="flex flex-col gap-3">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.notify_invoice_reminders}
-              onChange={() => handleNotificationChange('notify_invoice_reminders')}
-              className="w-4 h-4 rounded border-slate-300 text-slate-900 cursor-pointer"
-            />
-            <span className="text-sm text-slate-700">{t('settings.preferences.invoiceReminders')}</span>
-          </label>
-        </div>
-      </Card>
-
-      <Card title={t('settings.preferences.durations')}>
-        <div className="flex flex-col gap-5">
-          <div>
-            <Select
-              label={t('settings.preferences.sessionTimeout')}
-              value={String(formData.session_timeout_minutes)}
-              onChange={(value) => setFormData((prev) => ({ ...prev, session_timeout_minutes: Number(value) }))}
-              options={SESSION_TIMEOUT_OPTIONS.map((minutes) => ({
-                value: String(minutes),
-                label: t('settings.preferences.sessionTimeoutOption', { count: minutes }),
-              }))}
-              className="max-w-xs"
-            />
-            <p className="mt-2 text-xs text-slate-500">{t('settings.preferences.sessionTimeoutHint')}</p>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card title={t('settings.preferences.notifications')}>
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.notify_invoice_reminders}
+                onChange={() => handleNotificationChange('notify_invoice_reminders')}
+                className="w-4 h-4 rounded border-slate-300 text-slate-900 cursor-pointer"
+              />
+              <span className="text-sm text-slate-700">{t('settings.preferences.invoiceReminders')}</span>
+            </label>
           </div>
+        </Card>
 
-          <div>
-            <Select
-              label={t('settings.preferences.autosaveInterval')}
-              value={String(formData.template_autosave_interval_minutes)}
-              onChange={(value) => setFormData((prev) => ({ ...prev, template_autosave_interval_minutes: Number(value) }))}
-              options={AUTOSAVE_INTERVAL_OPTIONS.map((minutes) => ({
-                value: String(minutes),
-                label: t('settings.preferences.autosaveIntervalOption', { count: minutes }),
-              }))}
-              className="max-w-xs"
-            />
-            <p className="mt-2 text-xs text-slate-500">{t('settings.preferences.autosaveIntervalHint')}</p>
+        <Card title={t('settings.preferences.durations')}>
+          <div className="flex flex-col gap-5">
+            <div>
+              <Select
+                label={t('settings.preferences.sessionTimeout')}
+                value={String(formData.session_timeout_minutes)}
+                onChange={(value) => setFormData((prev) => ({ ...prev, session_timeout_minutes: Number(value) }))}
+                options={SESSION_TIMEOUT_OPTIONS.map((minutes) => ({
+                  value: String(minutes),
+                  label: t('settings.preferences.sessionTimeoutOption', { count: minutes }),
+                }))}
+                className="max-w-xs"
+              />
+              <p className="mt-2 text-xs text-slate-500">{t('settings.preferences.sessionTimeoutHint')}</p>
+            </div>
+
+            <div>
+              <Select
+                label={t('settings.preferences.autosaveInterval')}
+                value={String(formData.template_autosave_interval_minutes)}
+                onChange={(value) => setFormData((prev) => ({ ...prev, template_autosave_interval_minutes: Number(value) }))}
+                options={AUTOSAVE_INTERVAL_OPTIONS.map((minutes) => ({
+                  value: String(minutes),
+                  label: t('settings.preferences.autosaveIntervalOption', { count: minutes }),
+                }))}
+                className="max-w-xs"
+              />
+              <p className="mt-2 text-xs text-slate-500">{t('settings.preferences.autosaveIntervalHint')}</p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Button type="submit" disabled={updatePreferences.isPending} className="mt-1 w-fit">
-        {updatePreferences.isPending ? t('common.loading') : t('common.save')}
-      </Button>
+        <Card title={t('settings.preferences.system')}>
+          <div className="flex flex-col gap-4 text-sm text-slate-600">
+            <p className="text-xs text-slate-500">{t('settings.preferences.systemDescription')}</p>
+            <div className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">
+              {t('settings.preferences.systemInfo')}
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="flex justify-start">
+        <Button type="submit" disabled={updatePreferences.isPending} className="w-fit">
+          {updatePreferences.isPending ? t('common.loading') : t('common.save')}
+        </Button>
+      </div>
     </form>
   )
 }
