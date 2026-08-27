@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="{{ labels.lang }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ödeme Hatırlatması</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f1f5f9; font-family:'Segoe UI', Arial, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9; padding:32px 16px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0;">
+
+        <!-- Header / Wordmark -->
+        <tr>
+          <td style="background-color:#0f172a; padding:28px 32px;">
+            <span style="font-size:20px; font-weight:600; color:#ffffff; letter-spacing:0.2px;">
+              Axion<span style="font-weight:300; color:#94a3b8;"> Invoice</span>
+            </span>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px;">
+            <p style="margin:0 0 16px 0; font-size:15px; color:#0f172a;">
+              {{ labels.greeting.format(customer_name=customer_name) }}
+            </p>
+            <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#475569;">
+              {{ labels.outstanding_notice.format(invoice_number=invoice_number, sender_name=sender_name) }}
+            </p>
+
+            <!-- Detaylar / Details -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:28px;">
+              <tr>
+                <td style="padding:16px 20px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px; color:#334155;">
+                    <tr>
+                      <td style="padding:4px 0; color:#64748b;">{{ labels.amount }}</td>
+                      <td style="padding:4px 0; text-align:right; font-weight:600; color:#0f172a;">{{ grand_total }} {{ currency }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0; color:#64748b;">{{ labels.issued_date }}</td>
+                      <td style="padding:4px 0; text-align:right; font-weight:600; color:#0f172a;">{{ issued_date }}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 12px 0; font-size:14px; line-height:1.6; color:#475569;">
+              {{ labels.payment_line }}
+            </p>
+
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0;">
+              <tr>
+                <td style="border-radius:6px; background-color:#0f172a;">
+                  <a href="{{ payment_url }}" target="_blank"
+                     style="display:inline-block; padding:12px 24px; font-size:14px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:6px;">
+                    {{ labels.payment_button }}
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 12px 0; font-size:14px; line-height:1.6; color:#475569;">
+              {{ labels.already_paid_note }}
+            </p>
+
+            <p style="margin:0 0 4px 0; font-size:14px; line-height:1.6; color:#475569;">
+              {% set contact_link -%}
+                <a href="{{ contact_url }}" target="_blank" style="color:#0f172a; font-weight:600; text-decoration:underline;">{{ labels.contact_link_text }}</a>
+              {%- endset %}
+              {{ labels.contact_line.format(contact_link=contact_link)|safe }}
+            </p>
+
+            <hr style="border:none; border-top:1px solid #e2e8f0; margin:28px 0;" />
+
+            <p style="margin:0; font-size:14px; color:#475569;">
+              {{ labels.text_regards }}<br />
+              {{ sender_name }}
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#f8fafc; padding:20px 32px; border-top:1px solid #e2e8f0;">
+            <p style="margin:0; font-size:12px; color:#94a3b8; text-align:center;">
+              © {{ current_year }} Axion Invoice — {{ labels.footer }}
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -68,6 +68,23 @@ services:
         condition: service_healthy
     command: celery -A app.tasks.celery_app worker --loglevel=info
 
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://axion:axion@postgres:5432/axion_invoice
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+
 volumes:
   postgres_data:
   pdf_storage:

@@ -455,6 +455,8 @@
       "ruleNext": "After 3 Days",
       "emailLabel": "Email #{{n}}",
       "emailBodyPlaceholder": "Email content editing will be available soon.",
+      "emailSentOn": "Sent on {{date}}",
+      "sentBadge": "Sent",
       "close": "Close",
       "activate": "Activate payment reminder",
       "activatedMessage": "Payment reminder activated.",

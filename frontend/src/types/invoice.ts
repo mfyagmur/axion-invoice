@@ -33,6 +33,12 @@ export interface LineItemPayload {
   other_tax_amount: number
 }
 
+export interface PaymentReminderStep {
+  step_index: number
+  sent_at: string | null
+  sent_to: string[] | null
+}
+
 export interface InvoiceSummary {
   id: string
   invoice_number: string
@@ -53,6 +59,7 @@ export interface InvoiceSummary {
   created_at: string
   email_sent_at: string | null
   email_sent_to: string[] | null
+  reminder_steps: PaymentReminderStep[]
   customer: Customer
 }
 

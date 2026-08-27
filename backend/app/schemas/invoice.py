@@ -9,6 +9,14 @@ from app.schemas.customer import CustomerResponse
 from app.schemas.definitions import BankAccountResponse
 
 
+class PaymentReminderStepResponse(BaseModel):
+    step_index: int
+    sent_at: datetime | None
+    sent_to: list[str] | None
+
+    model_config = {"from_attributes": True}
+
+
 class LineItemPayload(BaseModel):
     item_code: str | None = Field(default=None, max_length=100)
     description: str = Field(min_length=1, max_length=500)
@@ -108,6 +116,7 @@ class InvoiceSummaryResponse(BaseModel):
     created_at: datetime
     email_sent_at: datetime | None
     email_sent_to: list[str] | None
+    reminder_steps: list[PaymentReminderStepResponse] = []
     customer: CustomerResponse
     bank_account_id: uuid.UUID | None
     bank_account: BankAccountResponse | None

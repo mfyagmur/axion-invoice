@@ -64,9 +64,43 @@ LABELS = {
 }
 
 
-def _labels_for(invoice: Invoice) -> dict[str, str]:
+REMINDER_LABELS = {
+    "tr": {
+        "lang": "tr",
+        "subject": "{sender_name} tarafından gönderilen {invoice_number} numaralı fatura için ödeme hatırlatması",
+        "greeting": "Merhaba {customer_name},",
+        "outstanding_notice": "{sender_name} tarafından Axion Invoice üzerinden düzenlenen {invoice_number} numaralı fatura, şu anda ödenmemiş görünmektedir.",
+        "amount": "Tutar",
+        "issued_date": "Düzenlenme Tarihi",
+        "payment_line": "Faturayı aşağıdaki bağlantı üzerinden güvenli bir şekilde görüntüleyip ödeyebilirsiniz.",
+        "payment_button": "Şimdi Öde",
+        "already_paid_note": "Ödemeyi zaten gerçekleştirdiyseniz bu mesajı dikkate almayabilirsiniz.",
+        "contact_line": "Bu mesaj size yanlışlıkla ulaştıysa veya yardıma ihtiyacınız varsa {contact_link}.",
+        "contact_link_text": "Axion destek ekibiyle iletişime geçin",
+        "footer": "Tüm hakları saklıdır.",
+        "text_regards": "Saygılarımızla,",
+    },
+    "en": {
+        "lang": "en",
+        "subject": "Payment due for invoice {invoice_number} from {sender_name}",
+        "greeting": "Hi {customer_name},",
+        "outstanding_notice": "This is a reminder that Invoice {invoice_number}, issued by {sender_name} through Axion Invoice, is currently outstanding.",
+        "amount": "Amount",
+        "issued_date": "Issued on",
+        "payment_line": "You can view and pay the invoice securely through the link below.",
+        "payment_button": "Pay Now",
+        "already_paid_note": "If you've already completed the payment, you can disregard this message.",
+        "contact_line": "If this message reached you by mistake or you need help, feel free to {contact_link}.",
+        "contact_link_text": "contact Axion support",
+        "footer": "All rights reserved.",
+        "text_regards": "Sincerely,",
+    },
+}
+
+
+def _labels_for(invoice: Invoice, labels_dict: dict[str, dict[str, str]] = LABELS) -> dict[str, str]:
     locale = getattr(invoice.user, "locale", None)
-    return LABELS.get(locale, LABELS["tr"])
+    return labels_dict.get(locale, labels_dict["tr"])
 
 
 def _render_bodies(to_email: str, invoice: Invoice) -> tuple[str, str]:
@@ -109,29 +143,28 @@ def _render_bodies(to_email: str, invoice: Invoice) -> tuple[str, str]:
     return text_body, html_body
 
 
-def send_invoice_email(to_email: str, invoice: Invoice, pdf_bytes: bytes | None = None) -> bool:
-    """Sends an invoice notification to `to_email` via SMTP.
+def _dispatch_email(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str,
+    pdf_bytes: bytes | None = None,
+    log_context: str = "",
+) -> bool:
+    """Sends a rendered email via SMTP.
 
     Returns True on genuine delivery success. When SMTP is not configured (local dev), the
     email is logged instead of sent and this still returns True so the send-flow can be
     exercised end-to-end without a real mail server.
     """
     if not settings.smtp_host:
-        logger.info(
-            "SMTP yapılandırılmamış — %s adresine %s faturası gönderilecekti (tutar: %s %s)",
-            to_email,
-            invoice.invoice_number,
-            invoice.grand_total,
-            invoice.currency,
-        )
+        logger.info("SMTP yapılandırılmamış — %s adresine gönderilecekti (%s)", to_email, log_context)
         return True
-
-    text_body, html_body = _render_bodies(to_email, invoice)
 
     msg = EmailMessage()
     msg["From"] = settings.smtp_from
     msg["To"] = to_email
-    msg["Subject"] = f"{_labels_for(invoice)['subject_prefix']}: {invoice.invoice_number}"
+    msg["Subject"] = subject
     msg.set_content(text_body)
     msg.add_alternative(html_body, subtype="html")
 
@@ -140,7 +173,7 @@ def send_invoice_email(to_email: str, invoice: Invoice, pdf_bytes: bytes | None 
             pdf_bytes,
             maintype="application",
             subtype="pdf",
-            filename=f"{invoice.invoice_number}.pdf",
+            filename=f"{log_context or 'invoice'}.pdf",
         )
 
     try:
@@ -155,8 +188,65 @@ def send_invoice_email(to_email: str, invoice: Invoice, pdf_bytes: bytes | None 
                 if settings.smtp_user:
                     smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(msg)
-        logger.info(f"E-posta gönderildi: {to_email} — {invoice.invoice_number}")
+        logger.info(f"E-posta gönderildi: {to_email} — {log_context}")
         return True
     except Exception as exc:
         logger.error(f"E-posta gönderilemedi ({to_email}): {exc}")
         return False
+
+
+def send_invoice_email(to_email: str, invoice: Invoice, pdf_bytes: bytes | None = None) -> bool:
+    """Sends an invoice notification to `to_email` via SMTP."""
+    text_body, html_body = _render_bodies(to_email, invoice)
+    subject = f"{_labels_for(invoice)['subject_prefix']}: {invoice.invoice_number}"
+    return _dispatch_email(to_email, subject, text_body, html_body, pdf_bytes, log_context=invoice.invoice_number)
+
+
+def _render_reminder_bodies(invoice: Invoice) -> tuple[str, str, str]:
+    labels = _labels_for(invoice, REMINDER_LABELS)
+    sender_name = invoice.user.company_name or invoice.user.full_name
+    issued_date_str = invoice.issued_at.strftime("%d.%m.%Y") if invoice.issued_at else invoice.created_at.strftime(
+        "%d.%m.%Y"
+    )
+    payment_url = f"{settings.frontend_url}/odeme?fatura={invoice.invoice_number}"
+    contact_url = f"{settings.frontend_url}/iletisim"
+
+    subject = labels["subject"].format(invoice_number=invoice.invoice_number, sender_name=sender_name)
+
+    text_body = f"""{labels['greeting'].format(customer_name=invoice.customer.name)}
+
+{labels['outstanding_notice'].format(invoice_number=invoice.invoice_number, sender_name=sender_name)}
+
+{labels['amount']}: {invoice.grand_total} {invoice.currency}
+{labels['issued_date']}: {issued_date_str}
+
+{labels['payment_button']}: {payment_url}
+
+{labels['already_paid_note']}
+
+{labels['text_regards']}
+{sender_name}
+"""
+
+    html_body = _env.get_template("email_payment_reminder.html").render(
+        labels=labels,
+        customer_name=invoice.customer.name,
+        sender_name=sender_name,
+        invoice_number=invoice.invoice_number,
+        grand_total=invoice.grand_total,
+        currency=invoice.currency,
+        issued_date=issued_date_str,
+        payment_url=payment_url,
+        contact_url=contact_url,
+        current_year=date.today().year,
+    )
+
+    return subject, text_body, html_body
+
+
+def send_payment_reminder_email(to_email: str, invoice: Invoice, step_index: int) -> bool:
+    """Sends a payment-reminder notification (7/10/13-day chaser) to `to_email` via SMTP."""
+    subject, text_body, html_body = _render_reminder_bodies(invoice)
+    return _dispatch_email(
+        to_email, subject, text_body, html_body, log_context=f"{invoice.invoice_number} reminder#{step_index}"
+    )

@@ -118,6 +118,7 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
             {REMINDER_STEPS.map((step, index) => {
               const isExpanded = expandedIndex === index
               const date = addDays(createdAt, step.offset)
+              const isSent = Boolean(row.reminderSteps?.[index]?.sent_at)
               return (
                 <div key={index} className="rounded-lg border border-slate-100 bg-white shadow-sm">
                   <button
@@ -126,8 +127,13 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
                     className="flex w-full items-center justify-between px-4 py-3 text-left cursor-pointer"
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-slate-900">
+                      <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                         {t('invoices.paymentChaser.emailLabel', { n: index + 1 })}
+                        {isSent && (
+                          <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                            {t('invoices.paymentChaser.sentBadge')}
+                          </span>
+                        )}
                       </span>
                       <span className="text-xs font-medium text-slate-500">
                         {/* ({t(`invoices.paymentChaser.${step.ruleKey}`)}) {formatDate(date)} */}
@@ -149,7 +155,11 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
                   >
                     <div className="overflow-hidden">
                       <div className="border-t border-slate-100 px-4 py-3 text-sm text-slate-500">
-                        {t('invoices.paymentChaser.emailBodyPlaceholder')}
+                        {row.reminderSteps?.[index]?.sent_at
+                          ? t('invoices.paymentChaser.emailSentOn', {
+                              date: formatDate(new Date(row.reminderSteps[index].sent_at as string)),
+                            })
+                          : t('invoices.paymentChaser.emailBodyPlaceholder')}
                       </div>
                     </div>
                   </div>

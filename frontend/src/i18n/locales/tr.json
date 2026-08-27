@@ -455,6 +455,8 @@
       "ruleNext": "3 Gün Sonrasına",
       "emailLabel": "E-posta #{{n}}",
       "emailBodyPlaceholder": "E-posta içeriği yakında düzenlenebilir olacak.",
+      "emailSentOn": "{{date}} tarihinde gönderildi",
+      "sentBadge": "Gönderildi",
       "close": "Kapat",
       "activate": "Ödeme hatırlatıcısını etkinleştir",
       "activatedMessage": "Ödeme hatırlatıcısı etkinleştirildi.",

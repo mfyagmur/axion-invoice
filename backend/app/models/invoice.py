@@ -3,7 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Numeric, String, func
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -145,6 +145,7 @@ class Invoice(Base):
     line_items: Mapped[list["InvoiceLineItem"]] = relationship(
         back_populates="invoice", cascade="all, delete-orphan"
     )
+    reminder_steps: Mapped[list["InvoicePaymentReminder"]] = relationship(cascade="all, delete-orphan")
 
 
 class InvoiceLineItem(Base):
@@ -166,3 +167,20 @@ class InvoiceLineItem(Base):
     other_tax_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=Decimal("0"))
 
     invoice: Mapped["Invoice"] = relationship(back_populates="line_items")
+
+
+class InvoicePaymentReminder(Base):
+    """7/10/13 günlük ödeme hatırlatıcı adımlarının gönderim kaydı - her adım en fazla bir kez gönderilir."""
+
+    __tablename__ = "invoice_payment_reminders"
+    __table_args__ = (UniqueConstraint("invoice_id", "step_index", name="uq_invoice_payment_reminder_step"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    invoice_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    step_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    offset_days: Mapped[int] = mapped_column(Integer, nullable=False)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sent_to: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
