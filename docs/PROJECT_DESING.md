@@ -45,3 +45,19 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 **Neden oluştu:** Migration dosyası oluşturulurken zincirin ucu (`down_revision`) elle tahmin edilmiş, gerçek DB `alembic_version` durumu doğrulanmamıştı. İleride yeni migration eklenirken önce `alembic heads` / `SELECT version_num FROM alembic_version` ile gerçek zincir ucu teyit edilmeli.
 
 **Doğrulama:** `docker compose exec backend alembic heads` tek head (`f3g4h5i6j7k8`) gösterdi; `alembic upgrade head` hatasız tamamlandı; backend yeniden başlatıldıktan sonra loglarda hata yok. Kullanıcı arayüzünden gerçek oturumla tam doğrulama önerilir (frontend'den faturalar sekmesi tekrar açılarak).
+
+---
+
+## 2026-08-27 — PaymentChaserPanel Accordion İçeriği: Gerçek Mail Özeti
+
+**Durum:** Değiştirme
+
+**Özet:** "Ödeme Hatırlatıcısı" panelinde her e-posta adımının accordion'ı açıldığında sadece "E-posta içeriği yakında düzenlenebilir olacak." placeholder metni gösteriliyordu. Bu metin, `email_payment_reminder.html` şablonunun gerçek içeriğini (kurumsal header, selamlama, ödenmemiş fatura bildirimi, tutar/düzenlenme tarihi mini tablosu, "Şimdi Öde" buton önizlemesi, "zaten ödediyseniz dikkate almayın" notu) yansıtan responsive bir özet kartıyla değiştirildi — placeholder tamamen kaldırıldı.
+
+**Yapılan dosyalar:**
+- `frontend/src/features/invoices/components/PaymentChaserPanel.tsx` — Değiştirme: accordion içeriği, `backend/app/templates_html/email_payment_reminder.html` ile aynı görsel dile (koyu "Axion Invoice" header, detay kutusu, koyu CTA rozeti) sahip statik bir önizleme kartına dönüştürüldü. Gönderici adı için `useAuthStore`'dan `user.company_name || user.full_name` okunuyor; müşteri adı, fatura numarası, tutar ve oluşturulma tarihi zaten mevcut olan `row` (`InvoiceRow`) alanlarından besleniyor. Gönderilmişse yeşil "sent on" metni özet kartının üstünde ayrıca gösterilmeye devam ediyor.
+- `frontend/src/i18n/locales/tr.json`, `en.json` — Ekleme: `paymentChaser.previewGreeting`, `previewNotice`, `previewAmountLabel`, `previewIssuedLabel`, `previewPaymentLine`, `previewPaymentButton`, `previewAlreadyPaid` anahtarları — backend'deki `REMINDER_LABELS` metinleriyle anlamca birebir eşleşecek şekilde çevrildi. `emailBodyPlaceholder` anahtarı artık kullanılmıyor ama geriye dönük uyumluluk için dosyada bırakıldı (silinmedi).
+
+**Neden statik önizleme (canlı render değil):** Gerçek mail HTML'ini iframe ile render etmek yerine, panelin zaten sahip olduğu `InvoiceRow` verisiyle Tailwind tabanlı bir özet kartı oluşturmak tercih edildi — böylece ek bir API çağrısı veya iframe/sanitization riski olmadan, kullanıcıya mail içeriğinin ne olacağına dair doğru bir fikir veriliyor.
+
+**Doğrulama:** `npx tsc --noEmit` hatasız geçti. Görsel/tarayıcı testi yapılmadı (bkz. `docs/todo.md`).
