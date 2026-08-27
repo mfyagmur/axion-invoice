@@ -61,3 +61,16 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 **Neden statik önizleme (canlı render değil):** Gerçek mail HTML'ini iframe ile render etmek yerine, panelin zaten sahip olduğu `InvoiceRow` verisiyle Tailwind tabanlı bir özet kartı oluşturmak tercih edildi — böylece ek bir API çağrısı veya iframe/sanitization riski olmadan, kullanıcıya mail içeriğinin ne olacağına dair doğru bir fikir veriliyor.
 
 **Doğrulama:** `npx tsc --noEmit` hatasız geçti. Görsel/tarayıcı testi yapılmadı (bkz. `docs/todo.md`).
+
+---
+
+## 2026-08-27 — Sidebar Çıkış Yap Butonu Seperatörü
+
+**Durum:** Değiştirme
+
+**Özet:** Sidebar'daki açılır menüde Ayarlar/Destek seçenekleriyle Çıkış Yap butonu ayrı olmadan gösteriliyordu. Çıkış Yap'ın yıkıcı doğası (logout) gereğince, bu seçeneği görsel olarak ayırmak için üstüne `border-t border-slate-200` eklendi — proje genelinde kullanılan standart separator rengiyle tutarlı.
+
+**Yapılan dosyalar:**
+- `frontend/src/layouts/Sidebar.tsx` — Değiştirme: Çıkış Yap `<button>` elemanına `border-t border-slate-200` className'i eklendi (Ayarlar/Destek bölümünden visual ayrım sağlar).
+
+**Doğrulama:** `npx tsc --noEmit` hatasız geçti. Görsel testi yapılmadı.

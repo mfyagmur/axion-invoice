@@ -195,7 +195,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
+                  className="border-t border-slate-200 flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
                 >
                   <LogOut size={16} />
                   {t('nav.logout')}
