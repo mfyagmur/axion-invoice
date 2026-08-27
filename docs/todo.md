@@ -1,5 +1,11 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-08-27 — Vade Tarihi Bazlı Fatura Hatırlatması (Due-Reminder) sonrası
+
+- [ ] 2026-08-27: `check_invoice_due_reminders` ve `send_invoice_due_reminder_email_task` task'ları Docker üzerinden çalıştırılıp gerçek mail kuyruklanması doğrulanmadı — `docker compose exec backend celery -A app.tasks.celery_app worker` ve `celery beat` ayağa kaldırıp, test faturasında (vade tarihi, kesim tarihi vb. kuralları test ederek) mail tetiklenmesi ve idempotency kontrol edilmeli.
+- [ ] 2026-08-27: `PreferencesTab.tsx`'deki checkbox işaretliyken e-posta notunun göründüğü tarayıcıda görsel olarak kontrol edilmedi — Chrome dev tools responsive mode'da tr/en dillerinde görünüm teyit edilmeli.
+- [ ] 2026-08-27: Vade tarihi **değiştiğinde** (örn. müşteri erteleme talebi) hatırlatmaların davranışı — bir gün için zaten gönderilmiş hatırlatma, yeni vade tarihine göre hâlâ bekleniyor ise tekrar gönderilmiyor, bu durum kullanıcıya kafa karıştırıcı olabilir. İleride bir "yeniden hesapla" mekanizması veya "geçmiş hatırlatmaları sıfırla" seçeneği eklenebilir.
+
 ## 2026-08-27 — Ödeme Hatırlatıcısı (Payment Reminder) sonrası
 
 - [x] ~~Docker Compose ile (`docker compose up --build`) `celery-worker` ve yeni `celery-beat` servislerini yerelde ayağa kaldırıp uçtan uca doğrulama yapılmadı~~ — 2026-08-27: `alembic upgrade head` container içinde çalıştırılıp `invoice_payment_reminders` tablosu oluşturuldu (bkz. `docs/PROJECT_DESING.md` — "Fatura Listesi 500 Hatası Düzeltmesi"). Kalan kısım: test faturasında `payment_reminder_active` aktif edilip `created_at` 7+ gün geriye çekilerek gerçek mail gönderiminin ve `sent_at` yazıldığının doğrulanması hâlâ yapılmadı.

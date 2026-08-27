@@ -4,6 +4,32 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-08-27 — Vade Tarihi Bazlı Fatura Hatırlatması (Kullanıcıya Mail)
+
+**Durum:** Ekleme
+
+**Özet:** `dashboard/settings?tab=preferences` sayfasındaki "Bildirim Tercihleri" kartında bulunan `User.notify_invoice_reminders` checkbox'ı daha önce gerçek, backend'e persist edilen bir alan idi ama hiçbir arka plan görevine entegre edilmemişti. Bu değişiklikle, checkbox açıldığında kullanıcının (hesap sahibinin) ödenmemiş TÜM faturaları için **vade tarihine** (`Invoice.due_at`) bağlı kurallı hatırlatma maili **kullanıcının kendi e-posta adresine** gönderilmeye başlandı — müşteriye değil. Kurallar: (1) Vade tarihi yoksa → kesim tarihinin ertesi gününden itibaren her gün; (2) Vade tarihi varsa → son 3 gün + vadesi geçmiş her gün; (3) Vade tarihi geçmişse ve ödenmemişse → her gün (gecikme uyarısı); (4) Checkbox kapalıysa gönderim yapılmaz. Bu sistem, mevcut müşteri-yönlü "Ödeme Hatırlatıcısı" (`PaymentChaserPanel`, fatura bazlı `payment_reminder_active`, 7/10/13 gün) özelliğinden tamamen bağımsız çalışır.
+
+**Yapılan dosyalar:**
+- `backend/alembic/versions/5649ad6ab27c_create_invoice_due_reminders_table.py` — Ekleme: yeni migration, `f3g4h5i6j7k8`'dan zincirlenen. Tablo oluşturulması ve `f3g4h5i6j7k8 → 5649ad6ab27c` chain doğrulanarak `alembic upgrade head` çalıştırılıp tablo prodüksiyona eklendi.
+- `backend/app/models/invoice.py` — Ekleme: `InvoiceDueReminder` modeli (invoice_id FK, reminder_date Date, sent_at DateTime, sent_to String) ve `UniqueConstraint('invoice_id', 'reminder_date')` — her (fatura, tarih) çiftinde en fazla bir kez gönderim garanti eder. `Invoice.due_reminders` ilişkisi eklendi.
+- `backend/app/tasks/celery_app.py` — Değiştirme: `beat_schedule`'a `check_invoice_due_reminders` (saatlik, `crontab(minute=0)`) eklendi — `check_payment_reminders` ile paralel çalışır.
+- `backend/app/tasks/email_tasks.py` — Ekleme: `check_invoice_due_reminders` (beat tetikler, `notify_invoice_reminders=True` olan kullanıcıların ödenmemiş faturalarını tarar, kuralları kontrol edip süresi gelen faturalar için `send_invoice_due_reminder_email_task` kuyruklar) ve `send_invoice_due_reminder_email_task` (alıcı **kullanıcı**, müşteri değil; mail gönderip `InvoiceDueReminder` kaydını oluşturur, unique constraint çakışması iki kez tetiklenmeye karşı korumalı). Hem `date`/`timedelta`/`from app.models.user import User` eklendi.
+- `backend/app/services/email_service.py` — Ekleme: `DUE_REMINDER_LABELS` (tr/en, dört `kind` için ayrı mesaj: `no_due_date`, `approaching`, `due_today`, `overdue`) ve `send_invoice_due_reminder_email` fonksiyonu (CTA butonu müşteri değil, kullanıcıyı fatura detayına yönlendir: `{frontend_url}/dashboard/invoices/{invoice.id}`).
+- `backend/app/templates_html/email_invoice_due_reminder.html` — Ekleme: mevcut `email_payment_reminder.html` ile aynı görsel yapı (koyu header, detay kutusu, footer) ama mesaj `kind`'e göre değişken ve CTA butonu "Faturayı Görüntüle" (detay sayfası linki).
+- `frontend/src/pages/dashboard/settings/PreferencesTab.tsx` — Değiştirme: checkbox işaretliyken (`formData.notify_invoice_reminders === true`), altında `user.email` gösteren not eklendi (mailin nereye gideceğini netleştirmek için).
+- `frontend/src/i18n/locales/en.json`, `tr.json` — Ekleme: `settings.preferences.invoiceRemindersEmailNote` anahtarı (interpolasyonlu, örn. `"Reminders will be sent to: {{email}}"` / `"Bildirimler şu adrese gönderilecek: {{email}}"`).
+
+**Neden günlük tablo (adım tablosu değil):** Mevcut `InvoicePaymentReminder` sabit 3-adım (7/10/13 gün) mantığı kullanıyor. Due-reminder ise **günlük tekrarlı** — her takvim günü yeni bir hatırlatma potansiyeli var. Idempotency anahtarı `(invoice_id, reminder_date)` olmalı (step_index değil).
+
+**Neden yeni bir task (mevcut `check_payment_reminders`'ı genişletmeyi değil):** İki sistem kuralı tamamen ayrı (oluşturma tarihi vs vade tarihi, müşteri vs kullanıcı, 3-adım vs günlük), codebase karışmaması ve testliliği için ayrı task'lar tercih edildi.
+
+**Doğrulama:** `alembic heads` gerçek ucu bulup `5649ad6ab27c` doğru bağlandı; `alembic upgrade head` hatasız çalıştırıldı (tablo oluşturuldu); `npx tsc -b --noEmit` frontend hatasız (pre-existing TypeScript hataları mevcut ama bu feature'la ilgisi yok); migration dosyası otomatik-generate edildi ve hazırdır. Backend task'ları elle gözden geçirildi (Docker ortamında çalışan Python olmadığı için import test yapılamadı). HTML template Jinja2 sözdizimi doğru.
+
+**Doğrulanması gereken (manuel):** Docker üzerinden Celery beat çalışır ve saatlik `check_invoice_due_reminders` tetiklenirse, o an ödenmemiş olan ve `notify_invoice_reminders=True` olan bir test faturasında, vade tarihleri kurallarına uygun olarak mail kuyruklanması gerekir. SMTP yoksa loglarda gönderilecek metin görünecek, tablo'da `InvoiceDueReminder` satırı oluşacak. Aynı gün tekrar tetiklenirse (IdempotencyError olmayıp sessizce geçerek) ikinci mail gönderilmemelidir.
+
+---
+
 ## 2026-08-27 — Ödeme Hatırlatıcısı (Payment Reminder) Otomatik Mail Gönderimi
 
 **Durum:** Ekleme

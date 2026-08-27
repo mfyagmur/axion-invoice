@@ -52,6 +52,11 @@ export function PreferencesTab() {
               />
               <span className="text-sm text-slate-700">{t('settings.preferences.invoiceReminders')}</span>
             </label>
+            {formData.notify_invoice_reminders && user?.email && (
+              <p className="text-xs text-slate-500">
+                {t('settings.preferences.invoiceRemindersEmailNote', { email: user.email })}
+              </p>
+            )}
           </div>
         </Card>
 

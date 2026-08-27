@@ -17,4 +17,8 @@ celery_app.conf.beat_schedule = {
         "task": "check_payment_reminders",
         "schedule": crontab(minute=0),
     },
+    "check-invoice-due-reminders": {
+        "task": "check_invoice_due_reminders",
+        "schedule": crontab(minute=0),
+    },
 }

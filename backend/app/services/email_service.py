@@ -98,6 +98,38 @@ REMINDER_LABELS = {
 }
 
 
+DUE_REMINDER_LABELS = {
+    "tr": {
+        "lang": "tr",
+        "subject": "{invoice_number} numaralı fatura için ödeme hatırlatması",
+        "no_due_date_message": "{invoice_number} numaralı faturanız ödenmemiş durumda. Faturanızı view edip ödemeyi tamamlayabilirsiniz.",
+        "approaching_message": "{invoice_number} numaralı faturanız {due_date} tarihinde vadesi dolacak. Lütfen süratle işlem yapınız.",
+        "due_today_message": "{invoice_number} numaralı faturanız ödeme vadesi bugün. Lütfen en kısa zamanda ödemeyi tamamlayınız.",
+        "overdue_message": "{invoice_number} numaralı faturanız vade tarihini aşmış ve ödenmemiş durumda. Lütfen derhal ödeme yapınız.",
+        "amount_label": "Tutar",
+        "due_date_label": "Vade Tarihi",
+        "issued_date_label": "Düzenlenme Tarihi",
+        "view_button": "Faturayı Görüntüle",
+        "footer": "Tüm hakları saklıdır.",
+        "text_regards": "Saygılarımızla,",
+    },
+    "en": {
+        "lang": "en",
+        "subject": "Payment reminder for invoice {invoice_number}",
+        "no_due_date_message": "Invoice {invoice_number} is currently outstanding. You can view and complete the payment.",
+        "approaching_message": "Invoice {invoice_number} is due on {due_date}. Please pay promptly.",
+        "due_today_message": "Invoice {invoice_number} is due today. Please complete the payment as soon as possible.",
+        "overdue_message": "Invoice {invoice_number} has passed its due date and is outstanding. Please pay immediately.",
+        "amount_label": "Amount",
+        "due_date_label": "Due Date",
+        "issued_date_label": "Issued on",
+        "view_button": "View Invoice",
+        "footer": "All rights reserved.",
+        "text_regards": "Sincerely,",
+    },
+}
+
+
 def _labels_for(invoice: Invoice, labels_dict: dict[str, dict[str, str]] = LABELS) -> dict[str, str]:
     locale = getattr(invoice.user, "locale", None)
     return labels_dict.get(locale, labels_dict["tr"])
@@ -250,3 +282,58 @@ def send_payment_reminder_email(to_email: str, invoice: Invoice, step_index: int
     return _dispatch_email(
         to_email, subject, text_body, html_body, log_context=f"{invoice.invoice_number} reminder#{step_index}"
     )
+
+
+def send_invoice_due_reminder_email(to_email: str, invoice: Invoice, kind: str) -> bool:
+    """Sends a due-date-based invoice reminder to the user (account owner) via SMTP.
+
+    Args:
+        to_email: User's email address (not customer's).
+        invoice: Invoice to remind about.
+        kind: One of "no_due_date", "approaching", "due_today", "overdue".
+    """
+    labels = _labels_for(invoice, DUE_REMINDER_LABELS)
+    sender_name = invoice.user.company_name or invoice.user.full_name
+    issued_date_str = invoice.issued_at.strftime("%d.%m.%Y") if invoice.issued_at else invoice.created_at.strftime("%d.%m.%Y")
+    due_date_str = invoice.due_at.strftime("%d.%m.%Y") if invoice.due_at else "—"
+    view_url = f"{settings.frontend_url}/dashboard/invoices/{invoice.id}"
+
+    # Choose message based on kind
+    if kind == "no_due_date":
+        message = labels["no_due_date_message"].format(invoice_number=invoice.invoice_number)
+    elif kind == "approaching":
+        message = labels["approaching_message"].format(invoice_number=invoice.invoice_number, due_date=due_date_str)
+    elif kind == "due_today":
+        message = labels["due_today_message"].format(invoice_number=invoice.invoice_number)
+    else:  # overdue
+        message = labels["overdue_message"].format(invoice_number=invoice.invoice_number)
+
+    subject = labels["subject"].format(invoice_number=invoice.invoice_number)
+
+    text_body = f"""{labels['text_regards']}
+
+{message}
+
+{labels['amount_label']}: {invoice.grand_total} {invoice.currency}
+{labels['issued_date_label']}: {issued_date_str}
+{labels['due_date_label']}: {due_date_str}
+
+{labels['view_button']}: {view_url}
+
+{labels['text_regards']}
+{sender_name}
+"""
+
+    html_body = _env.get_template("email_invoice_due_reminder.html").render(
+        labels=labels,
+        message=message,
+        invoice_number=invoice.invoice_number,
+        grand_total=invoice.grand_total,
+        currency=invoice.currency,
+        issued_date=issued_date_str,
+        due_date=due_date_str,
+        view_url=view_url,
+        current_year=date.today().year,
+    )
+
+    return _dispatch_email(to_email, subject, text_body, html_body, log_context=f"{invoice.invoice_number} due-reminder/{kind}")

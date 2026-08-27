@@ -146,6 +146,7 @@ class Invoice(Base):
         back_populates="invoice", cascade="all, delete-orphan"
     )
     reminder_steps: Mapped[list["InvoicePaymentReminder"]] = relationship(cascade="all, delete-orphan")
+    due_reminders: Mapped[list["InvoiceDueReminder"]] = relationship(cascade="all, delete-orphan")
 
 
 class InvoiceLineItem(Base):
@@ -183,4 +184,20 @@ class InvoicePaymentReminder(Base):
     offset_days: Mapped[int] = mapped_column(Integer, nullable=False)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     sent_to: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class InvoiceDueReminder(Base):
+    """Vade tarihi bazlı günlük hatırlatma kaydı - her (fatura, tarih) çiftinde en fazla bir kez gönderilir."""
+
+    __tablename__ = "invoice_due_reminders"
+    __table_args__ = (UniqueConstraint("invoice_id", "reminder_date", name="uq_invoice_due_reminder_date"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    invoice_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    reminder_date: Mapped[date] = mapped_column(nullable=False)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sent_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

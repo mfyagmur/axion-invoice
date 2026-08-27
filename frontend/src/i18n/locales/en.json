@@ -688,6 +688,7 @@
     "preferences": {
       "notifications": "Notification Preferences",
       "invoiceReminders": "Invoice reminder notifications",
+      "invoiceRemindersEmailNote": "Reminders will be sent to: {{email}}",
       "durations": "Durations",
       "sessionTimeout": "Session Timeout",
       "sessionTimeoutHint": "You'll be automatically logged out after this many minutes of inactivity.",

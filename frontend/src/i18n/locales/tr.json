@@ -688,6 +688,7 @@
     "preferences": {
       "notifications": "Bildirim Tercihleri",
       "invoiceReminders": "Fatura hatırlatıcı bildirimleri",
+      "invoiceRemindersEmailNote": "Bildirimler şu adrese gönderilecek: {{email}}",
       "durations": "Süreler",
       "sessionTimeout": "Oturum Açık Kalma Süresi",
       "sessionTimeoutHint": "Bu süre boyunca işlem yapılmazsa otomatik olarak çıkış yapılır.",
