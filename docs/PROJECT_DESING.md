@@ -4,6 +4,202 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-08-27 — Yeni Şablonlarda Banka Tablosu Kesilmesi ve Alt Bant Düzeni Düzeltmesi
+
+**Durum:** Değiştirme (bug fix)
+
+**Özet:** Kullanıcı gerçek 3 banka hesabıyla Classic/Sharp/Clean/Compact şablonlarını test edince
+"banka bilgileri satırı eksik, 2 banka görünüyor (3. yok), alan kesilmesi var" bildirdi. Gerçek
+kök neden, `template_designer_base.html`'de `bank-account` tipi elemanların genel `.el` CSS
+kuralını (`overflow: hidden`, sabit `height`) kullanması, ama `table` tipi elemanların sahip
+olduğu `overflow: visible; height: auto` istisnasına **sahip olmamasıydı**. Backend'deki
+`_reflow_elements_below_table` (`pdf_service.py`) banka tablosunun gerçek içerik yüksekliğini
+doğru hesaplayıp elemanın `height_mm`'ini büyütüyordu, ama tahmin (`_natural_row_height_mm`, tek
+satırlık font-metriği) gerçek render'dan bir miktar düşük kaldığında, CSS'teki sabit
+`overflow:hidden` son satırın bir kısmını (özellikle IBAN/şube gibi uzun hücreleri) kesiyordu —
+3 banka olduğunda en altta kalan satır görünmüyordu. Ayrıca Classic/Sharp şablonlarında imza+QR
+elemanları banka tablosunun **üstünde**, aynı x-aralığında (dolayısıyla aynı yatay bölgede)
+konumlandırılmıştı — banka tablosu tam genişliğe (178mm) çıkarılınca bu üstteki imza/QR kutuları
+banka tablosunun üst kısmıyla dikey olarak çakışıyordu ("Yetkili İmza" yazısı tablo başlığının
+üzerine biniyordu).
+
+**Yapılan dosyalar:**
+- `backend/app/templates_html/template_designer_base.html` — Değiştirme: `.el-table` CSS
+  kuralına `.el-bank` de eklendi (`height: auto !important; overflow: visible !important`), ve
+  eleman `class` seçiminde `element.type == 'bank-account'` için `el-bank` sınıfı atanır oldu.
+  Bu, **tüm** v2 şablonlarda (mevcut + gelecekteki) banka tablosunun gerçek içerik kadar
+  büyüyebilmesini garanti eder — artık font-metriği tahminine güvenmek zorunda değil, tahmin
+  sadece "altındaki elemanları ne kadar aşağı itmeli" hesabı için kullanılıyor, kesilme riski
+  ortadan kalktı.
+- `backend/alembic/versions/b3f9e7a2c114_seed_v2_system_templates.py` — Değiştirme: 4 şablonun da
+  alt bandı yeniden düzenlendi: (1) fatura kalemleri tablosunun tasarım yüksekliği Classic/Sharp/
+  Clean'de küçültüldü (~124→100mm) — bu, alt bandı sayfanın biraz daha yukarısına taşıyarak banka
+  tablosuna (artık 178mm tam genişlikte) büyüme payı bırakıyor ("banka bilgileri biraz daha
+  yukarı" isteğiyle uyumlu); (2) Classic/Sharp'ta imza+QR, banka tablosunun **üstünden altına**
+  taşındı (tabloyla aynı "yakın" reflow grubunda, tablo büyürse onlarla birlikte aşağı kayacak
+  şekilde) — böylece tam genişlikteki banka tablosuyla asla çakışmıyorlar; (3) Compact'ta banka
+  elemanı genişliği 110mm→150mm'ye çıkarıldı (QR yanına sığacak şekilde, IBAN sütununun
+  sarmasını/kesilmesini önlemek için).
+- Mevcut 4 satır (gerçek test faturaları `INV202600030/031/032` bunlara referans verdiği için
+  `downgrade()`/`upgrade()` ile silinip yeniden eklenemedi — `invoices.template_id` FK'si
+  `ON DELETE RESTRICT`) — bunun yerine düzeltilmiş `TEMPLATE_DEFS`'ten üretilen `layout_json`,
+  bire bir aynı 4 UUID'ye doğrudan `UPDATE` ile senkronize edildi (yeni migration eklenmedi,
+  çünkü bu satırlar bu oturumda eklenmiş, henüz başka bir ortama yayılmamış seed veri).
+
+**Doğrulama:** Gerçek KuveytTurk Katılım hesabına ek olarak bellekte (DB'ye yazılmadan) 2 sahte
+banka hesabı (Denizbank, Garanti BBVA — biri TRY biri EUR) ve `issued_at`/`due_at` eklenmiş bir
+test faturasıyla 4 şablon da yeniden render edilip Playwright screenshot ile incelendi: her 4
+şablonda 3 banka satırı da tam ve kesilmeden görünüyor, Tarih/Vade değerleri doğru gösteriliyor,
+Classic/Sharp'ta imza/QR artık banka tablosuyla çakışmıyor. Ardından normal 1-2 banka / 1 kalem
+senaryosu ve 25 kalemli çok-sayfalı senaryo (`test_multi.py` deseni) tekrar çalıştırılıp
+regresyon olmadığı (sayfalama hâlâ Classic/Sharp/Clean'de 2, Compact'ta 1 sayfa) doğrulandı.
+
+**Neden CSS düzeltmesi + koordinat düzeltmesi birlikte:** Sadece koordinatları büyütmek (bank
+elemanına daha cömert `height_mm` vermek) riskli kalırdı — tahmin fonksiyonu her zaman gerçek
+render'ı birebir yakalayamayabilir (font/tarayıcı farkları). CSS'teki `overflow:hidden`'ı
+kaldırmak, KAÇ banka olursa olsun (2, 3, hatta gelecekte 3'ten fazla alan eklenirse) kesilmeyi
+kökten imkânsız hale getiriyor — bu, tek bir şablona özel yama değil, render motorunun kendisindeki
+eksik bir istisnanın (yalnızca `table` tipi için vardı, `bank-account` için unutulmuştu)
+tamamlanmasıdır.
+
+---
+
+## 2026-08-27 — Fatura Formu: 3 Bug Düzeltmesi (Alıcı Kişi StrictMode Bugu, Fatura Tarihi Boş)
+
+**Durum:** Değiştirme (bug fix), 1 madde bulgu/açıklama olarak kapatıldı (kod değişikliği yok)
+
+**Özet:** Yeni 4 şablon test edilirken bildirilen 3 sorun incelendi:
+
+1. **"Tekrar Oluştur" (duplicate) sonrası Alıcı Kişi alanı dolu görünüyor ama Kaydet/Devam Et'te
+   "zorunludur" hatası veriyor, aynı kişiyi tekrar seçince düzeliyor.** Kök neden bulundu:
+   `InvoiceForm.tsx`'teki `recipient_contact_ids` sıfırlama efekti (`customer_id` değiştiğinde
+   alıcıları temizler), "ilk render'ı atla" mantığını bir `useRef` bayrağıyla uyguluyordu
+   (`isFirstCustomerRender`). React 18 `StrictMode` (bkz. `main.tsx`), geliştirme modunda mount
+   sonrası effect'leri **bilerek iki kez** çalıştırır (cleanup yokmuş gibi ard arda) — bayrak
+   YALNIZCA ilk çağrıyı atlıyordu, hemen ardından gelen ikinci StrictMode çağrısında bayrak zaten
+   `false` olduğundan `setValue('recipient_contact_ids', [])` çalışıp duplicate akışından gelen
+   alıcıyı sessizce siliyordu (görsel olarak "dolu" kalan Select ise stale re-render'dı). Bu, yalnızca
+   `customerId`'nin mount anında zaten dolu geldiği senaryoda (yani tam olarak "Tekrar Oluştur")
+   tetikleniyor — sıfırdan yeni fatura formunda zaten `customer_id=''` olduğundan fark edilmiyordu.
+   **Düzeltme:** `frontend/src/features/invoices/components/InvoiceForm.tsx` — bayrak yerine
+   "önceki customerId" karşılaştırması kullanıldı (`previousCustomerIdRef`), StrictMode'un aynı
+   render'ı tekrar çağırmasına karşı doğal olarak idempotent.
+2. **3 banka seçilmesine rağmen yeni şablonlarda 1 banka görünüyor:** Kod incelemesi + gerçek
+   test faturaları (`INV202600030/031/032`) DB'den sorgulanarak doğrulandı — bu bir şablon/render
+   hatası değil. `bank-account` elemanı (slot=1) zaten `payment.bank_account_1/2/3`'ün HEPSİNİ tek
+   tabloda listeliyor (`template_designer_base.html` `{% for ba in bank_accounts %}`), render
+   scripti ile doğrulandı (2 sıra render edildi). Sorun: test kullanıcısının tanımlı sadece **2**
+   banka hesabı var (`KuveytTürk`, `KuveytTurk Katılım`) ve incelenen 3 faturada `bank_account_id`
+   ile `bank_account_id_2` **aynı** hesaba işaret ediyor (`bank_account_id_3` boş) — yani aslında
+   2 slot dolu ve ikisi de aynı bankayı gösteriyor, bu da "tek banka" görünümüne yol açıyor. Kod
+   tarafında slot'ları otomatik kopyalayan bir mekanizma bulunamadı; kullanıcı 1. ve 2. slotta
+   yanlışlıkla aynı hesabı seçmiş görünüyor. **Kod değişikliği yapılmadı** — kullanıcıya bildirildi,
+   gerçek 3 farklı banka ile yeniden test önerildi.
+3. **Bazı şablonlarda "Tarih" (invoice.date / issued_at) boş:** `InvoiceForm.tsx`'te `issued_at`
+   alanı için **hiçbir UI girişi yoktu** (tip/defaultValues'ta var ama register/Controller yok) —
+   yeni oluşturulan HER fatura `issued_at=''→undefined→NULL` ile kaydediliyordu (yalnızca
+   `buildDuplicateInitialValues.ts`'nin "Tekrar Oluştur" akışında bugünün tarihini elle basması
+   sayesinde bazı faturalarda dolu görünüyordu — bu da "bazı şablonlarda dolu, bazılarında boş"
+   tutarsızlığının asıl kaynağıydı, şablonla ilgisi yoktu). **Düzeltme:** `InvoiceForm.tsx`'in
+   `useForm` `defaultValues`'ında `issued_at: ''` → `issued_at: new Date().toISOString().slice(0,10)`
+   yapıldı — artık yeni faturalar da duplicate akışıyla tutarlı şekilde bugünün tarihiyle açılıyor.
+   `due_at` (Vade Tarihi) için manuel giriş hâlâ yok, sadece ödeme vadesi (payment term) seçilince
+   otomatik hesaplanıyor — bu, `docs/PROJECT_DESING.md`'deki due-reminder kuralıyla (vade tarihi
+   yoksa kesim tarihinin ertesi gününden itibaren hatırlatma) tutarlı, kasıtlı bir durum olarak
+   değerlendirildi ve değiştirilmedi.
+
+**Yapılan dosyalar:**
+- `frontend/src/features/invoices/components/InvoiceForm.tsx` — Değiştirme: `recipient_contact_ids`
+  sıfırlama efekti `previousCustomerIdRef` ile yeniden yazıldı (StrictMode-güvenli); `issued_at`
+  defaultValue'su bugünün tarihine çevrildi.
+
+**Doğrulama:** `npx tsc -b --noEmit` — değişiklik öncesiyle aynı (ilgisiz, önceden var olan) 5 hata
+dışında yeni hata yok. Gerçek faturalar (`INV202600030/031/032`) backend'den doğrudan sorgulanarak
+banka/tarih verisi teyit edildi. Frontend değişikliği tarayıcıda manuel olarak test edilmedi (Vite
+dev server bu oturumda ayrı çalışıyor, HMR ile otomatik yansıması beklenir) — bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-27 — 4 Yeni Fatura Şablonu: Classic, Sharp, Clean, Compact
+
+**Durum:** Ekleme
+
+**Özet:** Kullanıcı isteğiyle sisteme 4 yeni **v2 sistem şablonu** eklendi: **Classic** (minimalist/
+kurumsal, lacivert+gri, ücretsiz — `min_plan_key=None`) ve **Sharp/Clean/Compact** (modern/premium,
+Business plana özel — `min_plan_key="business"`). Keşif sonucu netleşen mimari gerçek: bu projede
+şablonlar statik dosya değil, `InvoiceTemplate` DB satırlarıdır — bir "tasarım" `layout_json` JSONB
+alanında saklanan mutlak konumlu (mm birimli) `Element` listesidir
+(`backend/app/schemas/template.py`), tüm v2 şablonlar aynı Jinja2 render dosyasını
+(`backend/app/templates_html/template_designer_base.html`) paylaşır. Bu yüzden 4 yeni tasarım, tek
+bir Alembic seed migration'ında elle yazılmış `layout_json` element dizileri olarak eklendi — mevcut
+3 legacy sistem şablonuyla (Basit/Kurumsal/Minimal, `layout_version=1`) aynı desende ama güncel
+`layout_version=2` formatında.
+
+**Yapılan dosyalar:**
+- `backend/alembic/versions/b3f9e7a2c114_seed_v2_system_templates.py` — Ekleme: `5649ad6ab27c`'den
+  zincirlenen yeni migration. 4 sabit UUID'li `InvoiceTemplate` satırı (`layout_version=2`,
+  `engine=VISUAL`, `orientation=portrait`, `page_size=A4`, `is_system_template=True`) + her şablonun
+  kullandığı `dynamic-field` element'lerine karşılık gelen `invoice_template_fields` satırları
+  (field_key başına tekilleştirilmiş, TR etiketli). Dosya içinde küçük bir element-builder DSL'i
+  (`text/field/line/rect/logo/qrcode/signature/bank/table/col` fonksiyonları) tanımlanıp 4 tasarımın
+  ~26-36 elemanlık `layout_json` dizisi bu fonksiyonlarla inşa edildi (ham dict literal yerine —
+  4 tasarım×~30 eleman elle yazılırken hata riskini azaltmak için).
+  - **Classic:** lacivert `#1e3a5f`/gri `#64748b` paleti, ince kenarlıklı müşteri kutusu, klasik
+    tablo, toplamlar + banka/imza/QR alt bandı.
+  - **Sharp:** üstte tam genişlik koyu `#111827` bant + amber `#f59e0b` vurgu çizgileri (hafif
+    `rotation` ile "eğik" geometrik his), köşeleri keskin (0 radius) paneller, koyu dolgulu toplam
+    kartı.
+  - **Clean:** zümrüt `#059669` vurgu, yuvarlatılmış (`border_radius`) açık-tonlu kartlar, geniş
+    satır aralığı, ferah/boşluklu düzen.
+  - **Compact:** indigo `#4338ca` ince üst bant, en küçük font/satır yüksekliği (5mm), zebra açık,
+    en geniş tablo alanı (y=30-210mm) — çok kalemli faturalarda daha fazla satırın tek sayfada
+    kalmasını hedefler.
+  - Font stratejisi: yalnızca websafe yığınlar (`Arial, Helvetica, sans-serif` / `Georgia, 'Times
+    New Roman', serif`) — Playwright/Chromium Docker imajında özel Google Fonts kurulu olmadığından
+    "premium" his renk/kontrast/boşlukla yaratıldı, Dockerfile'a dokunulmadı.
+- `docs/PROJECT_DESING.md`, `docs/todo.md` — bu girişler.
+
+**Neden migration (visual editor + promote değil):** Version-controlled, tekrarlanabilir, PR'da
+review edilebilir — kullanıcıyla netleşen tercih. `719b9957c4bc_seed_system_templates.py`'daki
+desenin (sabit UUID, idempotent `upgrade()`, temiz `downgrade()`) v2 şemaya taşınmış hali.
+
+**Önemli mimari bulgu (kod değişikliği yapılmadı, sadece belgeleniyor):** `min_plan_key`, şu anki
+kodda **sadece** `POST /templates/{id}/duplicate` (bir sistem şablonunu kopyalayıp kendi düzenlenebilir
+kopyanı oluşturma) akışında kontrol ediliyor (`app/api/v1/templates.py:145`,
+`subscription_service.check_min_plan`) — **fatura oluşturma/önizleme sırasında bir şablonu doğrudan
+seçmeyi kısıtlamıyor** (`invoice_service._get_visible_template` hiç `check_min_plan` çağırmıyor).
+Bunu doğrulayan kanıt: mevcut 3 legacy sistem şablonu da (`g1h2i3j4k5l6_add_xslt_template_columns.py`
+migration'ıyla) `min_plan_key="pro"` taşıyor, ama Free plan kullanıcılar bunları faturada kullanmaya
+devam edebiliyor — bu, `docs/CLAUDE.md`'deki "Free: 0 özel şablon, sadece 3 sistem şablonu
+kullanılabilir" kararıyla ve mevcut `test_create_invoice_success` testiyle birebir tutarlı.
+Kullanıcıyla netleştirildi: **mevcut davranış korunacak** — yani Free kullanıcılar Sharp/Clean/
+Compact'ı **faturada seçip kullanabilir**, ama kendi kopyalarını oluşturup düzenleyemezler (402).
+Faturada kullanmayı da kısıtlamak istenirse, ayrıca legacy 3 şablonun `min_plan_key`'ini `NULL`'a
+çeken düzeltici bir migration gerekir (aksi halde Free kullanıcılar hiçbir fatura oluşturamaz hale
+gelir) — bkz. `docs/todo.md`.
+
+**Doğrulama:** `docker compose exec backend alembic upgrade head` → 4 satır + karşılık gelen
+`invoice_template_fields` satırları oluştuğu Postgres'ten sorgulanarak teyit edildi;
+`alembic downgrade -1` → temiz silindi, tekrar `upgrade head` sorunsuz. Gerçek bir faturayı
+(`INV202600029`) her 4 yeni şablonla `render_invoice_html` + Playwright screenshot ile render edip
+görsel olarak incelendi (header/şirket/müşteri/tablo/toplamlar/banka/QR doğru, renk/hizalama
+tasarıma uygun). Aynı fatura 25 satıra çoğaltılarak (yalnızca bellekte, DB'ye yazılmadan) çok
+sayfalı senaryo test edildi: Classic/Sharp/Clean 2 sayfaya bölündü (header/müşteri her sayfada
+tekrarlıyor, toplam/banka/QR sadece son sayfada — `_classify_elements`/`_reflow_elements_below_table`
+mantığıyla uyumlu), Compact tasarım amacına uygun şekilde 25 satırı tek sayfada tuttu. `pytest -q
+tests/test_templates.py tests/test_invoices.py tests/test_subscriptions.py` çalıştırıldı — migration
+sonrası hepsi geçti (bir test, `test_download_pdf_not_ready_returns_404`, bu oturumdaki canlı
+celery-worker/beat'in gerçek zamanlı PDF üretmesiyle ilgili önceden var olan/ilgisiz bir flake —
+git diff'te template migration dışında hiçbir tracked dosya değişmediği doğrulanarak teyit edildi).
+`GET /templates` canlı backend'de 200 döndü (tarayıcıda aktif kullanıcı trafiği vardı).
+
+**Doğrulanmayan (manuel, tarayıcı gerekiyor):** `dashboard/invoices/new` formundaki şablon
+dropdown'ında 4 yeni ismin görsel olarak seçilip taslak önizlemenin (`InvoiceDraftPreviewModal`)
+tarayıcıda da aynı şekilde göründüğü teyit edilmedi — script ile render edilen HTML/screenshot
+doğrulaması yapıldı ama gerçek tarayıcı/React akışı üzerinden değil.
+
+---
+
 ## 2026-08-27 — Vade Tarihi Bazlı Fatura Hatırlatması (Kullanıcıya Mail)
 
 **Durum:** Ekleme

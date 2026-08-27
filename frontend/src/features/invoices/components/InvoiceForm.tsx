@@ -106,7 +106,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
       field_values: {},
       line_items: [emptyLineItem()],
       notes: '',
-      issued_at: '',
+      issued_at: new Date().toISOString().slice(0, 10),
       due_at: '',
     },
   })
@@ -219,12 +219,17 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
 
   const isPreviewReady = isFormValid
 
-  const isFirstCustomerRender = useRef(true)
+  // Tracks the customer this effect last reacted to (not just "have we run once"): a ref-based
+  // "first render" flag breaks under React 18 StrictMode, which intentionally double-invokes
+  // effects once right after mount in dev — the guard would skip the first invocation but not
+  // the second, wiping out a duplicated invoice's pre-filled recipient on load. Comparing against
+  // the previous customerId is idempotent across repeated invocations of the same render.
+  const previousCustomerIdRef = useRef(customerId)
   useEffect(() => {
-    if (isFirstCustomerRender.current) {
-      isFirstCustomerRender.current = false
+    if (previousCustomerIdRef.current === customerId) {
       return
     }
+    previousCustomerIdRef.current = customerId
     setValue('recipient_contact_ids', [])
   }, [customerId, setValue])
 

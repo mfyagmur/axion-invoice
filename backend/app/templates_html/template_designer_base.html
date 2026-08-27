@@ -13,7 +13,7 @@
     color: #1a1a1a;
   }
   .el { position: absolute; box-sizing: border-box; overflow: hidden; }
-  .el-table { height: auto !important; overflow: visible !important; }
+  .el-table, .el-bank { height: auto !important; overflow: visible !important; }
   .page.page-break { page-break-after: always; break-after: page; }
   @media screen {
     .page.page-break { margin-bottom: 6mm; box-shadow: 0 0 4mm rgba(0, 0, 0, 0.15); }
@@ -46,7 +46,7 @@
 
     {% for element in page.elements %}
     {% if not element.hidden %}
-    <div class="el {% if element.type == 'table' %}el-table{% elif element.type == 'signature' %}el-signature{% endif %}" style="
+    <div class="el {% if element.type == 'table' %}el-table{% elif element.type == 'signature' %}el-signature{% elif element.type == 'bank-account' %}el-bank{% endif %}" style="
         left:{{ element.x_mm }}mm; top:{{ element.y_mm }}mm;
         width:{{ element.width_mm }}mm; height:{{ element.height_mm }}mm;
         z-index:{{ element.z_index }};

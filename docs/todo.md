@@ -1,5 +1,60 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-08-27 — Banka Tablosu Kesilmesi Düzeltmesi sonrası
+
+- [ ] 2026-08-27: Gerçek tarayıcıda, gerçek 3 farklı banka hesabı tanımlanıp (`Tanımlamalar >
+  Banka Hesapları`) bir faturaya 3'ü de seçilerek Classic/Sharp/Clean/Compact şablonlarının
+  PDF'i indirilip 3 bankanın da tam göründüğü, Vade tarihinin doğru göründüğü teyit edilmeli —
+  bu oturumda yalnızca script ile (Playwright screenshot) doğrulandı, gerçek uçtan uca (form →
+  Celery PDF üretimi → indirilen dosya) akış tarayıcıda denenmedi.
+- [x] ~~Banka hesabı "3 seçildi ama 1 görünüyor"~~ — 2026-08-27: kök neden bulundu ve düzeltildi
+  (bkz. `docs/PROJECT_DESING.md` — `.el-bank` CSS eksikliği + Classic/Sharp'ta imza/QR'ın banka
+  tablosuyla çakışması). Yukarıdaki tarayıcı doğrulaması hâlâ yapılmalı.
+
+## 2026-08-27 — Fatura Formu Bug Düzeltmeleri sonrası
+
+- [ ] 2026-08-27: `InvoiceForm.tsx`'teki `previousCustomerIdRef` düzeltmesi ve `issued_at` varsayılan
+  değeri tarayıcıda test edilmedi — "Tekrar Oluştur" ile bir fatura kopyalanıp Alıcı Kişi alanı
+  yeniden seçilmeden doğrudan "Kaydet"/"Devam Et" ile kaydedilebildiği, ve yeni (sıfırdan) bir
+  faturada "Tarih" alanının artık bugünün tarihiyle otomatik dolu geldiği tarayıcıda teyit edilmeli.
+- [x] ~~Banka hesabı "3 seçildi ama 1 görünüyor" bildirimi~~ — 2026-08-27: ilk incelemede kod
+  hatası bulunamamıştı (test kullanıcısının yalnızca 2 tanımlı banka hesabı vardı), ama kullanıcı
+  gerçek 3 farklı bankayla tekrar test edince asıl kök neden ortaya çıktı ve düzeltildi — bkz.
+  yukarıdaki "Banka Tablosu Kesilmesi Düzeltmesi" bölümü ve `docs/PROJECT_DESING.md`.
+- [ ] `due_at` (Vade Tarihi) için `InvoiceForm.tsx`'te hâlâ manuel bir tarih girişi yok — sadece
+  ödeme vadesi (payment term) seçilince otomatik hesaplanıyor. Şu an kasıtlı/kabul edilebilir
+  bulundu (due-reminder kuralları vade tarihi olmayan durumu zaten kapsıyor) ama kullanıcı
+  isterse manuel bir tarih seçici eklenebilir.
+
+## 2026-08-27 — 4 Yeni Fatura Şablonu (Classic/Sharp/Clean/Compact) sonrası
+
+- [ ] 2026-08-27: Şablon dropdown'ında (`dashboard/invoices/new`) 4 yeni ismin göründüğü ve
+  "Önizle" (`InvoiceDraftPreviewModal`) akışının tarayıcıda gerçek React/axios akışı üzerinden
+  (script ile render değil) doğru çalıştığı tarayıcıda teyit edilmedi. Free ve Business hesapla
+  (`mfyagmur@gmail.com` Business, bkz. proje hafızası) Sharp/Clean/Compact seçiminin fatura
+  formunda görünürlüğü/davranışı da tarayıcıda kontrol edilmeli.
+- [ ] 2026-08-27: `min_plan_key` şu an sadece `/templates/{id}/duplicate` akışını kısıtlıyor,
+  fatura oluşturma/önizlemede bir şablonu doğrudan seçmeyi kısıtlamıyor (bkz.
+  `docs/PROJECT_DESING.md` — "Önemli mimari bulgu"). Kullanıcıyla bu oturumda netleştirildi:
+  şimdilik mevcut davranış (yalnızca kopyalama kısıtlı) korunacak — Free kullanıcılar Sharp/Clean/
+  Compact'ı faturada seçip kullanabilir. İleride "Business şablonları faturada da tamamen
+  kısıtlansın" istenirse: (1) `invoice_service._get_visible_template`'e `check_min_plan` eklenmeli,
+  (2) legacy 3 sistem şablonunun (`Basit`/`Kurumsal`/`Minimal`) `min_plan_key='pro'` değerini
+  `NULL`'a çeken düzeltici bir migration da eklenmeli (aksi halde Free kullanıcılar hiç fatura
+  oluşturamaz hale gelir — `g1h2i3j4k5l6_add_xslt_template_columns.py`'nin ayarladığı değer).
+- [ ] Çok sayfalı bir faturanın **ilk (son olmayan) sayfasında**, tablo tasarım yüksekliğini aşıp
+  sayfanın tamamına yayıldığında, otomatik "Sayfa X/Y" damgası (`pdf_service._page_number_element`,
+  sabit `y=page_height-10`) son satırla görsel olarak çakışabiliyor (25 satırlık test faturasında
+  Classic/Sharp/Clean'de gözlemlendi). Bu, yalnızca yeni şablonlara özgü değil — `_paginate_table_rows`
+  non-last sayfalarda tam sayfa yüksekliğini kullanıyor, sayfa numarası için yer ayırmıyor; herhangi
+  bir v2 şablonu (mevcut veya yeni) aynı şekilde etkiler. Kapsam dışı bırakıldı (paylaşılan render
+  motoruna dokunmak bu işin kapsamı değildi) — ileride `_paginate_table_rows`'un non-last sayfa
+  kapasitesini de sayfa-numarası bandı için birkaç mm azaltması değerlendirilebilir.
+- [ ] `TemplatesPage.tsx` şablon listesinde küçük resim/önizleme yok (sadece isim + rozet) —
+  `TemplateSummary`'de `thumbnail` alanı hiç yok. Kapsam dışı bırakıldı; ileride istenirse ayrı bir
+  iş olarak ele alınabilir (örn. sunucu tarafında her şablon için küçük bir PNG önizleme üretilip
+  saklanması).
+
 ## 2026-08-27 — Vade Tarihi Bazlı Fatura Hatırlatması (Due-Reminder) sonrası
 
 - [ ] 2026-08-27: `check_invoice_due_reminders` ve `send_invoice_due_reminder_email_task` task'ları Docker üzerinden çalıştırılıp gerçek mail kuyruklanması doğrulanmadı — `docker compose exec backend celery -A app.tasks.celery_app worker` ve `celery beat` ayağa kaldırıp, test faturasında (vade tarihi, kesim tarihi vb. kuralları test ederek) mail tetiklenmesi ve idempotency kontrol edilmeli.
