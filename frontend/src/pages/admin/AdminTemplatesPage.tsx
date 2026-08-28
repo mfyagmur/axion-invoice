@@ -77,19 +77,19 @@ export function AdminTemplatesPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold text-slate-900">Admin — XSLT Şablonları</h1>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Admin — XSLT Şablonları</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md border border-slate-200 p-4">
-        <h2 className="text-sm font-semibold text-slate-700">Yeni Sistem Şablonu</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md border border-slate-200 p-4 dark:border-slate-700">
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Yeni Sistem Şablonu</h2>
 
         <Input label="Şablon Adı" value={name} onChange={(e) => setName(e.target.value)} required />
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Hedef Format</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Hedef Format</label>
           <select
             value={targetFormat}
             onChange={(e) => setTargetFormat(e.target.value as TemplateFormat)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
           >
             {TARGET_FORMATS.map((format) => (
               <option key={format} value={format}>
@@ -100,11 +100,11 @@ export function AdminTemplatesPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Minimum Plan</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Minimum Plan</label>
           <select
             value={minPlanKey}
             onChange={(e) => setMinPlanKey(e.target.value as (typeof MIN_PLAN_OPTIONS)[number])}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
           >
             {MIN_PLAN_OPTIONS.map((plan) => (
               <option key={plan} value={plan}>
@@ -115,13 +115,13 @@ export function AdminTemplatesPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">XSLT İçeriği</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">XSLT İçeriği</label>
           <textarea
             value={xsltContent}
             onChange={(e) => setXsltContent(e.target.value)}
             required
             rows={12}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             placeholder="<?xml version='1.0'?><xsl:stylesheet ...>"
           />
         </div>
@@ -132,9 +132,9 @@ export function AdminTemplatesPage() {
       </form>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-slate-700">Mevcut Sistem Şablonları</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mevcut Sistem Şablonları</h2>
 
-        {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+        {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
         {isError && <ErrorState onRetry={() => refetch()} />}
 
         {!isLoading && !isError && (
@@ -142,20 +142,20 @@ export function AdminTemplatesPage() {
             {(templates ?? []).map((template) => (
               <div
                 key={template.id}
-                className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3"
+                className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3 dark:border-slate-700"
               >
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-slate-900">{template.name}</span>
-                  <span className="rounded bg-slate-100 px-2 py-0.5 text-xs uppercase text-slate-600">
+                  <span className="font-medium text-slate-900 dark:text-slate-100">{template.name}</span>
+                  <span className="rounded bg-slate-100 px-2 py-0.5 text-xs uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                     {template.engine}
                   </span>
                   {template.target_format !== 'generic' && (
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                       {FORMAT_LABELS[template.target_format]}
                     </span>
                   )}
                   {template.min_plan_key && (
-                    <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+                    <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                       min: {template.min_plan_key}
                     </span>
                   )}

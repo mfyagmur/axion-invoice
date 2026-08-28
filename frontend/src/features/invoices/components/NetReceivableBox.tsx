@@ -19,17 +19,17 @@ export function NetReceivableBox({ row }: NetReceivableBoxProps) {
   }, [row.exchangeRate, row.currency, row.paymentCurrency])
 
   return (
-    <Card className="border-blue-100 bg-blue-50">
+    <Card className="border-blue-100 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40">
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-blue-800">{t('invoices.detail.netReceivableLabel')}</span>
-        <span className="text-lg font-semibold text-blue-900">{headline}</span>
+        <span className="text-xs font-medium text-blue-800 dark:text-blue-300">{t('invoices.detail.netReceivableLabel')}</span>
+        <span className="text-lg font-semibold text-blue-900 dark:text-blue-200">{headline}</span>
         {inverseExchangeRate !== null && row.paymentCurrency && row.currency !== row.paymentCurrency ? (
-          <p className="mt-2 text-xs text-blue-700">
+          <p className="mt-2 text-xs text-blue-700 dark:text-blue-400">
             {`*1 ${row.currency} = ${inverseExchangeRate.toFixed(4)} ${row.paymentCurrency}. `}
             {t('invoices.form.exchangeRateVariesNote')}
           </p>
         ) : (
-          <p className="mt-2 text-xs text-blue-700">{t('invoices.detail.exchangeRateNote')}</p>
+          <p className="mt-2 text-xs text-blue-700 dark:text-blue-400">{t('invoices.detail.exchangeRateNote')}</p>
         )}
         {/* TODO: komisyon hesaplaması eklenince buraya gelecek */}
       </div>

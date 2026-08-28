@@ -12,7 +12,7 @@ const MONTH_KEYS = [
 ]
 
 const selectClassName =
-  'rounded-md border border-slate-300 px-3 py-2 text-sm w-full max-w-xs focus:border-slate-500 focus:outline-none'
+  'rounded-md border border-slate-300 px-3 py-2 text-sm w-full max-w-xs focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'
 
 export type ScalarSettingKey = 'currency' | 'dateFormat' | 'taxYearStart' | 'invoiceNumber'
 
@@ -32,7 +32,7 @@ export function CompanyScalarSettingForm({ settingKey }: CompanyScalarSettingFor
   if (settingKey === 'currency') {
     return (
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-slate-700">{t('settings.definitions.currency')}</label>
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('settings.definitions.currency')}</label>
         <select
           className={selectClassName}
           value={user.default_currency}
@@ -52,7 +52,7 @@ export function CompanyScalarSettingForm({ settingKey }: CompanyScalarSettingFor
   if (settingKey === 'dateFormat') {
     return (
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-slate-700">{t('settings.definitions.dateFormat')}</label>
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('settings.definitions.dateFormat')}</label>
         <select
           className={selectClassName}
           value={user.date_format}
@@ -72,7 +72,7 @@ export function CompanyScalarSettingForm({ settingKey }: CompanyScalarSettingFor
   if (settingKey === 'taxYearStart') {
     return (
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-slate-700">{t('settings.definitions.taxYearStart')}</label>
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('settings.definitions.taxYearStart')}</label>
         <select
           className={selectClassName}
           value={user.tax_year_start_month}
@@ -107,7 +107,7 @@ export function CompanyScalarSettingForm({ settingKey }: CompanyScalarSettingFor
         maxLength={20}
       />
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-slate-700">{t('settings.definitions.invoicePadding')}</label>
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('settings.definitions.invoicePadding')}</label>
         <select
           className={selectClassName}
           value={user.invoice_number_padding}
@@ -121,8 +121,8 @@ export function CompanyScalarSettingForm({ settingKey }: CompanyScalarSettingFor
           ))}
         </select>
       </div>
-      <p className="text-xs text-slate-500">
-        {t('settings.definitions.invoicePreview')}: <span className="font-mono font-medium text-slate-700">{preview}</span>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        {t('settings.definitions.invoicePreview')}: <span className="font-mono font-medium text-slate-700 dark:text-slate-300">{preview}</span>
       </p>
     </div>
   )

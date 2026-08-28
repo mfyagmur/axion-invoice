@@ -94,7 +94,7 @@ export function SecurityTab() {
       >
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
-            <p className="text-sm text-slate-600">{t('settings.security.twoFactor.description')}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{t('settings.security.twoFactor.description')}</p>
             <Switch checked={is2faEnabled} onChange={setIs2faEnabled} label={t('settings.security.twoFactor.title')} />
           </div>
           <Button type="button" variant="secondary" disabled className="w-fit">
@@ -158,7 +158,7 @@ export function SecurityTab() {
               type="button"
               onClick={() => revokeOthers.mutate()}
               disabled={revokeOthers.isPending}
-              className="border border-red-500 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+              className="border border-red-500 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-500 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40"
             >
               {t('settings.security.revokeAllDevices')}
             </Button>
@@ -166,7 +166,7 @@ export function SecurityTab() {
         }
       >
         {isSessionsLoading ? (
-          <p className="text-sm text-slate-500">{t('common.loading')}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>
         ) : sessions && sessions.length > 0 ? (
           <div className="flex flex-col gap-2">
             {sessions.map((session) => {
@@ -175,17 +175,17 @@ export function SecurityTab() {
               return (
                 <div
                   key={session.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 p-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 p-3 dark:border-slate-700"
                 >
                   <div className="flex items-start gap-3">
-                    <DeviceIcon size={18} className="mt-0.5 shrink-0 text-slate-500" />
+                    <DeviceIcon size={18} className="mt-0.5 shrink-0 text-slate-500 dark:text-slate-400" />
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-900">{device.label}</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{device.label}</span>
                         {session.is_current && <Badge color="green">{t('settings.security.thisBrowser')}</Badge>}
                       </div>
-                      <p className="text-xs text-slate-500">{session.ip_address || 'IP unknown'}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{session.ip_address || 'IP unknown'}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {session.is_current
                           ? t('settings.security.thisBrowser')
                           : `${t('settings.security.lastUsed')}: ${formatDateVerbal(session.last_used_at, { month: 'long', includeTime: true })}`}
@@ -208,7 +208,7 @@ export function SecurityTab() {
             })}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">{t('settings.security.noSessions')}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.security.noSessions')}</p>
         )}
       </Card>
     </div>

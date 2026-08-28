@@ -21,10 +21,10 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 shrink-0 text-blue-600">{icon}</div>
+      <div className="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400">{icon}</div>
       <div className="min-w-0">
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="wrap-break-word text-base font-medium text-gray-900">{value}</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">{label}</p>
+        <p className="wrap-break-word text-base font-medium text-gray-900 dark:text-slate-100">{value}</p>
       </div>
     </div>
   )
@@ -87,8 +87,8 @@ export function AccountTab() {
       <Card className="rounded-xl shadow-sm transition-shadow hover:shadow-md">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{t('settings.account.companyProfile.title')}</h2>
-            <p className="text-sm text-slate-500">{t('settings.account.companyProfile.subtitle')}</p>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('settings.account.companyProfile.title')}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.account.companyProfile.subtitle')}</p>
           </div>
           {!isEditing && (
             <Button
@@ -104,22 +104,22 @@ export function AccountTab() {
 
         {!isEditing ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-700">{t('settings.account.companyProfile.sectionBasic')}</h3>
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('settings.account.companyProfile.sectionBasic')}</h3>
               <InfoRow icon={<Building2 size={18} />} label={t('settings.account.companyProfile.companyTitle')} value={user.company_name || notSpecified} />
               <InfoRow icon={<Briefcase size={18} />} label={t('settings.account.companyProfile.sector')} value={user.sector || notSpecified} />
               <InfoRow icon={<Calendar size={18} />} label={t('settings.account.companyProfile.registrationDate')} value={registrationDate} />
             </div>
 
-            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-700">{t('settings.account.companyProfile.sectionTax')}</h3>
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('settings.account.companyProfile.sectionTax')}</h3>
               <InfoRow icon={<Landmark size={18} />} label={t('settings.account.companyProfile.taxOffice')} value={user.tax_office || notSpecified} />
               <InfoRow icon={<Hash size={18} />} label={t('settings.account.companyProfile.taxNumber')} value={user.tax_number || notSpecified} />
               <InfoRow icon={<BadgeCheck size={18} />} label={t('settings.account.companyProfile.tradeRegistryNo')} value={user.trade_registry_no || notSpecified} />
             </div>
 
-            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4 md:col-span-2">
-              <h3 className="text-sm font-semibold text-slate-700">{t('settings.account.companyProfile.sectionContact')}</h3>
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4 md:col-span-2 dark:border-slate-700 dark:bg-slate-800">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('settings.account.companyProfile.sectionContact')}</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <InfoRow icon={<MapPin size={18} />} label={t('settings.account.companyProfile.address')} value={user.address || notSpecified} />
                 <InfoRow icon={<MapPin size={18} />} label={t('settings.account.companyProfile.city')} value={user.city || notSpecified} />
@@ -223,18 +223,18 @@ export function AccountTab() {
 
       <Card className="rounded-xl shadow-sm transition-shadow hover:shadow-md">
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-slate-900">{t('settings.account.logo.title')}</h2>
-          <p className="text-sm text-slate-500">{t('settings.account.logo.subtitle')}</p>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('settings.account.logo.title')}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.account.logo.subtitle')}</p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-slate-700">
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('settings.account.logo.uploadSectionTitle')}
             </h3>
             <LogoUpload />
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-slate-700">
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('settings.account.logo.previewSectionTitle')}
             </h3>
             <InvoiceLogoPreviewExample />

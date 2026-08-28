@@ -110,9 +110,9 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 p-4">
+    <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-slate-900">{title}</h3>
+        <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">{title}</h3>
         {!isFormOpen && (
           <Button onClick={() => setIsFormOpen(true)} disabled={isLoading} className="px-3 py-1 text-xs">
             Add
@@ -121,7 +121,7 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
       </div>
 
       {isFormOpen && (
-        <div className="mb-4 flex gap-2 p-3 rounded-md bg-slate-50 border border-slate-200">
+        <div className="mb-4 flex gap-2 p-3 rounded-md bg-slate-50 border border-slate-200 dark:border-slate-700 dark:bg-slate-800">
           <div className="flex flex-1 gap-2">{renderFields(formValues, setValue)}</div>
           <div className="flex gap-1 items-end">
             <Button
@@ -139,16 +139,16 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
       )}
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading...</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
       ) : items.length > 0 ? (
         <div className="flex flex-col gap-2">
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-md border border-slate-200 p-2 text-sm"
+              className="flex items-center justify-between rounded-md border border-slate-200 p-2 text-sm dark:border-slate-700"
             >
               <div className="flex items-center gap-2">
-                <span className="text-slate-700">{formatValue(item)}</span>
+                <span className="text-slate-700 dark:text-slate-300">{formatValue(item)}</span>
                 {!item.is_active && <Badge color="slate">Inactive</Badge>}
               </div>
               <div className="flex gap-1 items-center">
@@ -184,7 +184,7 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
                   variant="secondary"
                   onClick={() => onDelete(item.id)}
                   disabled={isDeleting}
-                  className="px-3 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="px-3 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/40"
                 >
                   Delete
                 </Button>
@@ -193,7 +193,7 @@ export function DefinitionListSection<T extends Definition = Definition, P exten
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500">No items yet</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No items yet</p>
       )}
     </div>
   )

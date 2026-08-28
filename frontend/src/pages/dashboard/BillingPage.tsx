@@ -24,24 +24,24 @@ export function BillingPage() {
   const portal = usePortal()
 
   if (isSubscriptionLoading || isPlansLoading || !subscription || !plans) {
-    return <p className="text-sm text-slate-500">{t('common.loading')}</p>
+    return <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>
   }
 
   return (
     <div className="flex flex-col gap-6">
       {checkoutResult === 'success' && (
-        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">
+        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-300">
           {t('billing.checkoutSuccess')}
         </p>
       )}
       {checkoutResult === 'cancel' && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">{t('billing.checkoutCancel')}</p>
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t('billing.checkoutCancel')}</p>
       )}
 
-      <div className="flex flex-col gap-2 rounded-md border border-slate-200 p-4">
-        <h2 className="text-sm font-semibold text-slate-900">{t('billing.currentPlan')}</h2>
-        <p className="text-lg font-medium text-slate-900">{subscription.plan.name}</p>
-        <div className="flex flex-col gap-1 text-sm text-slate-600">
+      <div className="flex flex-col gap-2 rounded-md border border-slate-200 p-4 dark:border-slate-700">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('billing.currentPlan')}</h2>
+        <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{subscription.plan.name}</p>
+        <div className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-300">
           <span>
             {t('billing.usageInvoices')}: {subscription.invoices_used_this_month} /{' '}
             {formatLimit(subscription.plan.max_invoices_per_month, 'billing.unlimited', t)}
@@ -62,14 +62,14 @@ export function BillingPage() {
         <button
           type="button"
           onClick={() => setBillingInterval('monthly')}
-          className={`rounded-md px-3 py-1 ${interval === 'monthly' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}
+          className={`rounded-md px-3 py-1 ${interval === 'monthly' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
         >
           {t('billing.monthly')}
         </button>
         <button
           type="button"
           onClick={() => setBillingInterval('yearly')}
-          className={`rounded-md px-3 py-1 ${interval === 'yearly' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}
+          className={`rounded-md px-3 py-1 ${interval === 'yearly' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
         >
           {t('billing.yearly')}
         </button>
@@ -80,15 +80,15 @@ export function BillingPage() {
           const isCurrent = plan.key === subscription.plan.key
           const price = interval === 'monthly' ? plan.price_monthly : plan.price_yearly
           return (
-            <div key={plan.id} className="flex flex-col gap-3 rounded-lg border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900">{plan.name}</h3>
-              <p className="text-2xl font-bold text-slate-900">
+            <div key={plan.id} className="flex flex-col gap-3 rounded-lg border border-slate-200 p-6 dark:border-slate-700">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">{plan.name}</h3>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {Number(price).toFixed(0)}₺
-                <span className="text-sm font-normal text-slate-500">
+                <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
                   {interval === 'monthly' ? t('billing.perMonth') : t('billing.perYear')}
                 </span>
               </p>
-              <ul className="flex flex-col gap-1 text-sm text-slate-600">
+              <ul className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-300">
                 <li>
                   {t('billing.usageInvoices')}: {formatLimit(plan.max_invoices_per_month, 'billing.unlimited', t)}
                 </li>
@@ -106,7 +106,7 @@ export function BillingPage() {
           )
         })}
       </div>
-      {checkout.isError && <p className="text-sm text-red-600">{t('common.genericError')}</p>}
+      {checkout.isError && <p className="text-sm text-red-600 dark:text-red-400">{t('common.genericError')}</p>}
     </div>
   )
 }

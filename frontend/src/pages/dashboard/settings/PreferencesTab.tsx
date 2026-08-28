@@ -49,12 +49,12 @@ export function PreferencesTab() {
                 type="checkbox"
                 checked={formData.notify_invoice_reminders}
                 onChange={() => handleNotificationChange('notify_invoice_reminders')}
-                className="w-4 h-4 rounded border-slate-300 text-slate-900 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 text-slate-900 cursor-pointer dark:border-slate-600 dark:bg-slate-800"
               />
-              <span className="text-sm text-slate-700">{t('settings.preferences.invoiceReminders')}</span>
+              <span className="text-sm text-slate-700 dark:text-slate-200">{t('settings.preferences.invoiceReminders')}</span>
             </label>
             {formData.notify_invoice_reminders && user?.email && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {t('settings.preferences.invoiceRemindersEmailNote', { email: user.email })}
               </p>
             )}
@@ -74,7 +74,7 @@ export function PreferencesTab() {
                 }))}
                 className="max-w-xs"
               />
-              <p className="mt-2 text-xs text-slate-500">{t('settings.preferences.sessionTimeoutHint')}</p>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t('settings.preferences.sessionTimeoutHint')}</p>
             </div>
 
             <div>
@@ -88,7 +88,7 @@ export function PreferencesTab() {
                 }))}
                 className="max-w-xs"
               />
-              <p className="mt-2 text-xs text-slate-500">{t('settings.preferences.autosaveIntervalHint')}</p>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t('settings.preferences.autosaveIntervalHint')}</p>
             </div>
           </div>
         </Card>

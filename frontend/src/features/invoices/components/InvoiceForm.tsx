@@ -443,11 +443,11 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
             {paymentCurrency !== currency && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1 sm:col-span-2">
-                  <label className="text-sm font-medium text-slate-700" htmlFor="exchange_rate">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="exchange_rate">
                     {t('invoices.form.exchangeRate')}
                   </label>
                   {inverseExchangeRate !== null && (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {i18n.language === 'tr'
                         ? `Güncel ${currency} Kuru (${currency}/${paymentCurrency}): ${inverseExchangeRate.toFixed(4)} ${paymentCurrency}`
                         : `Current ${currency} Rate (${currency}/${paymentCurrency}): ${inverseExchangeRate.toFixed(4)} ${paymentCurrency}`}
@@ -463,26 +463,26 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                         readOnly={!isFixedRate}
                         placeholder={t('invoices.form.exchangeRatePlaceholder')}
                         className={twMerge(
-                          'w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300',
+                          'w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 dark:focus:ring-slate-500',
                           isFixedRate
-                            ? 'border-slate-300 bg-white'
-                            : 'border-transparent bg-slate-100 text-slate-600',
+                            ? 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'
+                            : 'border-transparent bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
                         )}
                         {...register('exchange_rate')}
                       />
                       {!isFixedRate && exchangeRateQuery.isFetching && (
                         <Loader2
                           size={14}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-slate-400 dark:text-slate-500"
                         />
                       )}
                     </div>
-                    <label className="flex shrink-0 items-center gap-2 text-sm text-slate-600">
+                    <label className="flex shrink-0 items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                       <input
                         type="checkbox"
                         checked={isFixedRate}
                         onChange={(e) => setIsFixedRate(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+                        className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-600 dark:bg-slate-800"
                       />
                       {t('invoices.form.fixedRateToggle')}
                       <InfoTooltip
@@ -491,14 +491,14 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                           i18n.language === 'tr' ? (
                             <>
                               Aktif edildiğinde, güncel döviz kuru yerine aşağıda belirtilen{' '}
-                              <strong className="text-slate-900">sabit kur</strong> kullanılır.
+                              <strong className="text-slate-900 dark:text-slate-100">sabit kur</strong> kullanılır.
                               Dövizli tutarların hesaplanmasında bu kur esas alınır.
                             </>
                           ) : (
                             <>
                               When enabled, a fixed rate you specify below is used instead of
                               the current exchange rate. Foreign currency amounts are calculated
-                              based on this <strong className="text-slate-900">rate</strong>.
+                              based on this <strong className="text-slate-900 dark:text-slate-100">rate</strong>.
                             </>
                           )
                         }
@@ -506,13 +506,13 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                     </label>
                   </div>
                   {!isFixedRate && exchangeRateQuery.isError && (
-                    <p className="text-xs text-red-600">{t('invoices.form.exchangeRateFetchError')}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400">{t('invoices.form.exchangeRateFetchError')}</p>
                   )}
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-3 dark:border-slate-700">
               <Controller
                 name="invoice_type"
                 control={control}
@@ -542,9 +542,9 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
               />
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-700">{t('invoices.form.dueTerm')}</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('invoices.form.dueTerm')}</label>
                   {selectedPaymentTermId && dueAtValue && (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {i18n.language === 'tr'
                         ? `Vade Tarihi: ${formatDate(dueAtValue)}`
                         : `Due Date: ${formatDate(dueAtValue)}`}
@@ -592,7 +592,7 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
             <button
               type="button"
               onClick={handleAppend}
-              className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-slate-900 hover:text-slate-900 hover:bg-slate-50 active:text-black transition-colors"
+              className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-slate-900 hover:text-slate-900 hover:bg-slate-50 active:text-black transition-colors dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 dark:active:text-white"
             >
               <Plus size={16} />
               <span>{t('invoices.form.addLineItem')}</span>
@@ -641,21 +641,21 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
           }
         >
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 rounded-md bg-slate-50 p-4 text-sm">
+            <div className="flex flex-col gap-3 rounded-md bg-slate-50 p-4 text-sm dark:bg-slate-800">
               <button
                 type="button"
                 onClick={() => setIsSummaryDetailOpen((o) => !o)}
-                className="flex w-full items-center justify-between rounded-md hover:bg-slate-100 px-2 py-1 transition-colors"
+                className="flex w-full items-center justify-between rounded-md hover:bg-slate-100 px-2 py-1 transition-colors dark:hover:bg-slate-700"
               >
                 <div className="flex flex-col gap-1 text-left">
-                  <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToBeCharged')}</span>
-                  <span className="text-lg font-semibold text-slate-900">
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.amountToBeCharged')}</span>
+                  <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     {grandTotal.toFixed(2)} {currency}
                   </span>
                 </div>
                 <ChevronDown
                   size={16}
-                  className={twMerge('text-slate-600 transition-transform shrink-0', isSummaryDetailOpen && 'rotate-180')}
+                  className={twMerge('text-slate-600 transition-transform shrink-0 dark:text-slate-400', isSummaryDetailOpen && 'rotate-180')}
                 />
               </button>
 
@@ -668,28 +668,28 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
                 <div className="overflow-hidden">
                   <div className="flex flex-col gap-3 pt-3 text-sm">
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-600">{t('invoices.form.tax')}</span>
-                      <span className="text-slate-900">{taxTotal.toFixed(2)} {currency}</span>
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.tax')}</span>
+                      <span className="text-slate-900 dark:text-slate-100">{taxTotal.toFixed(2)} {currency}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-600">{t('invoices.form.subtotal')}</span>
-                      <span className="text-slate-900">{subtotal.toFixed(2)} {currency}</span>
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.subtotal')}</span>
+                      <span className="text-slate-900 dark:text-slate-100">{subtotal.toFixed(2)} {currency}</span>
                     </div>
-                    <div className="flex flex-col gap-1 border-t border-slate-200 pt-3">
-                      <span className="text-xs font-semibold text-slate-900">{t('invoices.form.grandTotal')}</span>
-                      <span className="text-sm font-semibold text-slate-900">{grandTotal.toFixed(2)} {currency}</span>
+                    <div className="flex flex-col gap-1 border-t border-slate-200 pt-3 dark:border-slate-700">
+                      <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{t('invoices.form.grandTotal')}</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{grandTotal.toFixed(2)} {currency}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1 border-t border-slate-200 pt-3">
-                <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToReceive')}</span>
-                <span className="text-lg font-semibold text-slate-900">
+              <div className="flex flex-col gap-1 border-t border-slate-200 pt-3 dark:border-slate-700">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.amountToReceive')}</span>
+                <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                   {receivableAmount === null ? '—' : `${receivableAmount.toFixed(2)} ${paymentCurrency}`}
                 </span>
                 {receivableAmount !== null && inverseExchangeRate !== null && paymentCurrency !== currency && (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {`*1 ${currency} = ${inverseExchangeRate.toFixed(4)} ${paymentCurrency}. `}
                     {t('invoices.form.exchangeRateVariesNote')}
                   </span>

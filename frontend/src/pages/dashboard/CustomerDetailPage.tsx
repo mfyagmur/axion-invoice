@@ -137,7 +137,7 @@ export function CustomerDetailPage() {
   }
 
   if (isLoading || !customer) {
-    return <p className="text-sm text-slate-500">{t('common.loading')}</p>
+    return <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>
   }
 
   const baseName = getCustomerBaseName(customer)
@@ -149,12 +149,12 @@ export function CustomerDetailPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
             aria-label={t('customers.detail.back')}
           >
             <ArrowLeft size={18} />
           </button>
-          <h1 className="text-xl font-semibold text-slate-900">{t('customers.detail.title')}</h1>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('customers.detail.title')}</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -177,8 +177,8 @@ export function CustomerDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-900">
+      <div className="rounded-xl border border-slate-200 p-6 shadow-sm dark:border-slate-700">
+        <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-900 dark:text-slate-100">
           {baseName}
           <CustomerTypeBadge customer={customer} />
         </h2>
@@ -215,23 +215,23 @@ export function CustomerDetailPage() {
             {isInvoicesLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
             {!isInvoicesLoading && (invoices?.length ?? 0) === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 py-12">
-                <FileText size={48} className="text-slate-300" />
-                <p className="text-sm text-slate-500">{t('customers.detail.invoicesTab.empty')}</p>
+                <FileText size={48} className="text-slate-300 dark:text-slate-600" />
+                <p className="text-sm text-slate-500 dark:text-slate-400">{t('customers.detail.invoicesTab.empty')}</p>
               </div>
             )}
             {invoices?.map((invoice) => (
               <Link
                 key={invoice.id}
                 to={`/dashboard/invoices/${invoice.id}`}
-                className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3 hover:bg-slate-50"
+                className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
               >
-                <span className="font-medium text-slate-900">{invoice.invoice_number}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{invoice.invoice_number}</span>
                 <div className="flex items-center gap-4 text-sm">
-                  <span className="text-slate-500">{t(STATUS_KEYS[invoice.status])}</span>
-                  <span className="font-medium text-slate-900">
+                  <span className="text-slate-500 dark:text-slate-400">{t(STATUS_KEYS[invoice.status])}</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
                     {Number(invoice.grand_total).toFixed(2)} {invoice.currency}
                   </span>
-                  <span className="text-slate-400">
+                  <span className="text-slate-400 dark:text-slate-500">
                     {invoice.issued_at ? formatDate(invoice.issued_at) : '—'}
                   </span>
                 </div>
@@ -241,22 +241,22 @@ export function CustomerDetailPage() {
         )}
 
         {activeTab === 'contact' && (
-          <div className="rounded-xl border border-slate-200 p-6 text-sm">
+          <div className="rounded-xl border border-slate-200 p-6 text-sm dark:border-slate-700">
             <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-x-8 gap-y-4">
               <div />
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 {t('customers.detail.contact.name')}
               </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 {t('customers.detail.contact.email')}
               </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 {t('customers.form.phone')}
               </span>
               <div />
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                <span className="text-sm font-semibold text-slate-600">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
+                <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
                   {((customer.first_name?.[0] || '') + (customer.last_name?.[0] || '')).toUpperCase()}
                 </span>
               </div>
@@ -278,8 +278,8 @@ export function CustomerDetailPage() {
                 ?.filter((contact) => !(contact.first_name === customer.first_name && contact.last_name === customer.last_name))
                 .map((contact) => (
                 <Fragment key={contact.id}>
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                    <span className="text-sm font-semibold text-slate-600">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
                       {((contact.first_name?.[0] || '') + (contact.last_name?.[0] || '')).toUpperCase()}
                     </span>
                   </div>
@@ -301,7 +301,7 @@ export function CustomerDetailPage() {
                       if (!id) return
                       deleteContact.mutate({ customerId: id, contactId: contact.id })
                     }}
-                    className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                     aria-label="Sil"
                   >
                     <Trash2 size={16} />
@@ -373,8 +373,8 @@ export function CustomerDetailPage() {
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-      <span className="text-slate-900">{value || '—'}</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</span>
+      <span className="text-slate-900 dark:text-slate-100">{value || '—'}</span>
     </div>
   )
 }

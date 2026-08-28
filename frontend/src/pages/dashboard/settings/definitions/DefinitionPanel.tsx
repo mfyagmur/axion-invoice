@@ -108,7 +108,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
       style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
     >
       <div className="overflow-hidden">
-        <div className="mt-6 rounded-xl border border-gray-300 bg-white p-5 shadow-sm">
+        <div className="mt-6 rounded-xl border border-gray-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {activeKey && SCALAR_KEYS.includes(activeKey as ScalarSettingKey) && (
             <CompanyScalarSettingForm settingKey={activeKey as ScalarSettingKey} />
           )}
@@ -366,7 +366,7 @@ export function DefinitionPanel({ activeKey }: DefinitionPanelProps) {
                     value={values.content ?? ''}
                     onChange={(e) => setValue('content', e.target.value)}
                     rows={5}
-                    className="w-full min-w-150 resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full min-w-150 resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                   />
                 </>
               )}

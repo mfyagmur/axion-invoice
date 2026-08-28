@@ -103,16 +103,18 @@ export function LogoUpload() {
           onDragLeave={() => setDragActive(false)}
           onDrop={handleDrop}
           className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-            dragActive ? 'border-slate-400 bg-slate-100' : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+            dragActive
+              ? 'border-slate-400 bg-slate-100 dark:border-slate-500 dark:bg-slate-700'
+              : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-slate-500 dark:hover:bg-slate-700'
           }`}
         >
-          <UploadCloud className="text-slate-400" size={32} />
-          <p className="text-sm font-medium text-slate-700">{t('settings.account.logo.dropzoneText')}</p>
-          <p className="text-xs text-slate-500">{t('settings.account.logo.formatHint')}</p>
+          <UploadCloud className="text-slate-400 dark:text-slate-500" size={32} />
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{t('settings.account.logo.dropzoneText')}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{t('settings.account.logo.formatHint')}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative flex h-24 w-48 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white p-2">
+          <div className="relative flex h-24 w-48 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-800">
             <img
               src={displayUrl}
               alt={t('settings.account.logo.title')}
@@ -120,7 +122,7 @@ export function LogoUpload() {
             />
             {isBusy && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="animate-spin text-slate-500" size={20} />
+                <Loader2 className="animate-spin text-slate-500 dark:text-slate-400" size={20} />
               </div>
             )}
           </div>
@@ -134,7 +136,7 @@ export function LogoUpload() {
               variant="ghost"
               onClick={() => removeLogo.mutate()}
               disabled={isBusy}
-              className="gap-2 text-red-600 hover:bg-red-50"
+              className="gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
             >
               <Trash2 size={16} />
               {t('settings.account.logo.removeButton')}

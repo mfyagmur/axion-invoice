@@ -40,15 +40,15 @@ export function LineItemCard({
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-md border border-slate-300 bg-white p-4 flex flex-col gap-4">
+    <div className="rounded-md border border-slate-300 bg-white p-4 flex flex-col gap-4 dark:border-slate-700 dark:bg-slate-800">
       <div className="flex items-start justify-between gap-3">
-        <div className="text-xs font-medium text-slate-500">{t('invoices.form.rowNumber')} {index + 1}</div>
+        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('invoices.form.rowNumber')} {index + 1}</div>
         <button
           type="button"
           onClick={onRemove}
           disabled={removeDisabled}
           aria-label={t('invoices.form.removeLineItem')}
-          className="flex h-8 w-8 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 transition-colors dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
         >
           <Trash2 size={16} />
         </button>
@@ -64,7 +64,7 @@ export function LineItemCard({
             error={fieldErrors?.item_code ? t('invoices.form.errors.itemCodeRequired') : undefined}
             {...register(`line_items.${index}.item_code` as const, { required: true })}
           />
-          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
             <InfoTooltip
               title={t('invoices.form.itemCode')}
               description={t('invoices.form.itemCodeTooltip')}
@@ -81,7 +81,7 @@ export function LineItemCard({
             error={fieldErrors?.description ? t('invoices.form.errors.descriptionRequired') : undefined}
             {...register(`line_items.${index}.description` as const, { required: true })}
           />
-          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
             <InfoTooltip
               title={t('invoices.form.description')}
               description={t('invoices.form.descriptionTooltip')}
@@ -92,7 +92,7 @@ export function LineItemCard({
 
       <div className="flex flex-col gap-1">
         <div className="flex flex-nowrap items-start gap-3 overflow-x-auto pt-1">
-          <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden relative">
+          <div className="flex items-stretch rounded-md border border-slate-300 bg-white overflow-hidden relative dark:border-slate-600 dark:bg-slate-800">
             <div className="relative">
               <label className="sr-only">{t('invoices.form.quantity')}</label>
               <input
@@ -100,18 +100,18 @@ export function LineItemCard({
                 //step="0.01"
                 min="0"
                 placeholder={t('invoices.form.quantity')}
-                className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400"
+                className="w-20 border-0 px-3 py-2 text-sm focus:outline-none focus:ring-0 placeholder-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
                 aria-label={t('invoices.form.quantity')}
                 {...register(`line_items.${index}.quantity` as const, { required: true, valueAsNumber: true })}
               />
-              <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+              <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
                 <InfoTooltip
                   title={t('invoices.form.quantity')}
                   description={t('invoices.form.quantityTooltip')}
                 />
               </div>
             </div>
-          <div className="w-px bg-slate-300" />
+          <div className="w-px bg-slate-300 dark:bg-slate-600" />
           <Controller
             control={control}
             name={`line_items.${index}.unit` as const}
@@ -136,12 +136,12 @@ export function LineItemCard({
             type="number"
             step="0.01"
             placeholder={t('invoices.form.unitPrice')}
-            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400"
+            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-slate-500"
             aria-label={t('invoices.form.unitPrice')}
             {...register(`line_items.${index}.unit_price` as const, { required: true, valueAsNumber: true })}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
-          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500">{currency}</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
             <InfoTooltip
               title={t('invoices.form.unitPrice')}
               description={t('invoices.form.unitPriceTooltip')}
@@ -161,12 +161,12 @@ export function LineItemCard({
             type="number"
             step="0.01"
             placeholder={t('invoices.form.discountRate')}
-            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400"
+            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-slate-500"
             aria-label={t('invoices.form.discountRate')}
             {...register(`line_items.${index}.discount_rate` as const, { valueAsNumber: true })}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
-          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500">%</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
             <InfoTooltip
               title={t('invoices.form.discountRate')}
               description={t('invoices.form.discountRateTooltip')}
@@ -181,12 +181,12 @@ export function LineItemCard({
             step="0.01"
             min="0"
             placeholder={t('invoices.form.taxRate')}
-            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400"
+            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-slate-500"
             aria-label={t('invoices.form.taxRate')}
             {...register(`line_items.${index}.tax_rate` as const, { valueAsNumber: true })}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
-          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500">%</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
             <InfoTooltip
               title={t('invoices.form.taxRate')}
               description={t('invoices.form.taxRateTooltip')}
@@ -200,12 +200,12 @@ export function LineItemCard({
             type="number"
             step="0.01"
             placeholder={t('invoices.form.otherTaxes')}
-            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400"
+            className="w-full rounded-md border-0 bg-slate-100 px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 placeholder-slate-400 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-slate-500"
             aria-label={t('invoices.form.otherTaxes')}
             {...register(`line_items.${index}.other_tax_amount` as const, { valueAsNumber: true })}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{currency}</span>
-          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500">{currency}</span>
+          <div className="absolute -top-2 -left-2 z-10 bg-white rounded-full dark:bg-slate-800">
             <InfoTooltip
               title={t('invoices.form.otherTaxes')}
               description={t('invoices.form.otherTaxesTooltip')}
@@ -215,23 +215,23 @@ export function LineItemCard({
 
         <div className="relative flex-1 min-w-35">
           <label className="sr-only">{t('invoices.form.discountAmount')}</label>
-          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 h-10 flex items-center">
+          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 h-10 flex items-center dark:bg-slate-700 dark:text-slate-400">
             {computed.discountAmount.toFixed(2)}
           </div>
         </div>
 
         <div className="relative flex-1 min-w-35">
           <label className="sr-only">{t('invoices.form.taxAmount')}</label>
-          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 h-10 flex items-center">
+          <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 h-10 flex items-center dark:bg-slate-700 dark:text-slate-400">
             {computed.taxAmount.toFixed(2)}
           </div>
         </div>
 
         <div className="relative flex-1 min-w-35">
           <label className="sr-only">{t('invoices.form.amount')}</label>
-          <div className="flex flex-col justify-center rounded-md bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 h-10">
+          <div className="flex flex-col justify-center rounded-md bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 h-10 dark:bg-slate-700 dark:text-slate-200">
             <span>{computed.lineTotal.toFixed(2)}</span>
-            <span className="text-xs text-slate-500">{currency}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{currency}</span>
           </div>
         </div>
         </div>
