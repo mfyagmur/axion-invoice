@@ -9,8 +9,8 @@ export function ErrorState({ onRetry }: ErrorStateProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col items-start gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3">
-      <p className="text-sm text-red-700">{t('common.genericError')}</p>
+    <div className="flex flex-col items-start gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/40">
+      <p className="text-sm text-red-700 dark:text-red-300">{t('common.genericError')}</p>
       <Button variant="secondary" onClick={onRetry}>
         {t('common.retry')}
       </Button>

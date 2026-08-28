@@ -45,7 +45,7 @@ export function LayersPanel() {
   }
 
   if (sorted.length === 0) {
-    return <p className="text-sm text-slate-400">{t('editor.layers.empty')}</p>
+    return <p className="text-sm text-slate-400 dark:text-slate-500">{t('editor.layers.empty')}</p>
   }
 
   return (
@@ -59,18 +59,18 @@ export function LayersPanel() {
           onDrop={(e) => handleDrop(e, element.id)}
           onClick={() => selectOnly(element.id)}
           className={twMerge(
-            'flex cursor-pointer items-center gap-2 rounded-md border border-transparent px-2 py-1.5 text-sm hover:bg-slate-50',
-            selectedIds.includes(element.id) && 'border-blue-300 bg-blue-50',
+            'flex cursor-pointer items-center gap-2 rounded-md border border-transparent px-2 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800',
+            selectedIds.includes(element.id) && 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/40',
           )}
         >
-          <GripVertical size={14} className="shrink-0 text-slate-300" />
-          <span className="min-w-0 flex-1 truncate text-slate-700">
+          <GripVertical size={14} className="shrink-0 text-slate-300 dark:text-slate-600" />
+          <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-300">
             {element.type === 'dynamic-field' ? element.label || element.field_key : t(TYPE_LABEL_KEYS[element.type] ?? element.type)}
           </span>
-          <button type="button" onClick={(e) => { e.stopPropagation(); toggleHidden(element.id) }} className="rounded p-1 text-slate-400 hover:bg-slate-200">
+          <button type="button" onClick={(e) => { e.stopPropagation(); toggleHidden(element.id) }} className="rounded p-1 text-slate-400 hover:bg-slate-200 dark:text-slate-500 dark:hover:bg-slate-700">
             {element.hidden ? <EyeOff size={13} /> : <Eye size={13} />}
           </button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); toggleLock(element.id) }} className="rounded p-1 text-slate-400 hover:bg-slate-200">
+          <button type="button" onClick={(e) => { e.stopPropagation(); toggleLock(element.id) }} className="rounded p-1 text-slate-400 hover:bg-slate-200 dark:text-slate-500 dark:hover:bg-slate-700">
             {element.locked ? <Lock size={13} /> : <Unlock size={13} />}
           </button>
         </div>

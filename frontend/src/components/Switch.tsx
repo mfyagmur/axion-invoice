@@ -19,7 +19,7 @@ export function Switch({ checked, onChange, disabled, label, className }: Switch
       onClick={() => onChange(!checked)}
       className={twMerge(
         'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
-        checked ? 'bg-slate-900' : 'bg-slate-200',
+        checked ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-700',
         className,
       )}
     >

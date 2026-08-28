@@ -4,6 +4,47 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-08-28 — Koyu Mod Renk Kontrastı Düzeltmeleri
+
+**Durum:** Değiştirme
+
+**Özet:** Aynı gün eklenen [Kalıcı Karanlık/Aydınlık Tema Modu](#2026-08-28--kalıcı-karanlıkaydınlık-darklight-tema-modu)
+sadece iskelet/layout dosyalarına `dark:` varyantı eklemişti; kullanıcı Şablonlar (Templates)
+ekranında metinlerin arkaplan koyulaştığında renk değiştirmediğini (siyah yazı/koyu arkaplan gibi
+okunmaz kombinasyonlar) bildirdi. Bir Explore taramasıyla `dark:` sınıfı hiç olmayan tüm dosyaların
+envanteri çıkarıldı ve **sadece renk utility'leri** (`text-*`, `bg-*`, `border-*`, `hover:*`,
+`ring-*`, `placeholder-*`) eklendi — hiçbir class kaldırılmadı, hiçbir JSX/layout/davranış
+değiştirilmedi, açık mod görünümü pikselde aynı kaldı.
+
+**Yapılan dosyalar (paylaşılan bileşenler):** `components/Input.tsx`, `Select.tsx`, `Button.tsx`,
+`Modal.tsx`, `Badge.tsx`, `ErrorState.tsx`, `ToastContainer.tsx`, `Tabs.tsx`, `Checkbox.tsx`,
+`Switch.tsx`, `Drawer.tsx`, `ConfirmDialog.tsx`, `Textarea.tsx`, `EditableField.tsx`,
+`CountryAutocomplete.tsx`, `InfoTooltip.tsx`, `PlaceholderPage.tsx` — hepsine eksik `dark:`
+varyantları eklendi. `App.tsx`'e `sonner` `Toaster` için `theme={isDark ? 'dark' : 'light'}` prop'u
+bağlandı; bunun için `store/themeStore.ts`'e `useIsDarkMode()` hook'u eklendi
+(`useSyncExternalStore` ile `<html>` elementinin `dark` class'ını izliyor, `MutationObserver`
+tabanlı — mevcut `mode`/`setMode` API'sine dokunulmadı).
+
+**Yapılan dosyalar (Şablonlar/Templates — kullanıcının bildirdiği asıl sorun):**
+`pages/dashboard/TemplatesPage.tsx`, `TemplateEditorPage.tsx`,
+`features/invoice-editor/components/EditorToolbar.tsx`, `ElementPanel.tsx`, `LayersPanel.tsx`,
+`PropertiesPanel.tsx`, `CustomFieldPopover.tsx`, `TableColumnEditor.tsx`. **Bilinçli istisna:**
+`A4Canvas/A4Page.tsx` ve `A4Canvas/CanvasElement.tsx`'teki fatura önizleme "kağıt" yüzeyi
+(`bg-white`, grid çizgileri, element içerik renkleri) **dokunulmadan bırakıldı** — gerçek bir
+yazdırılabilir sayfa/PDF önizlemesini temsil ediyor ve kullanıcının şablonda seçtiği renkler zaten
+içerik verisi.
+
+**Yapılan dosyalar (Faturalar/Müşteriler):** `pages/dashboard/InvoicesPage.tsx`,
+`CustomersPage.tsx`, `features/invoices/components/InvoiceTable.tsx`, `InvoiceTableRow.tsx`,
+`InvoiceToolbar.tsx`, `InvoiceRowActions.tsx` (aksiyon dropdown menüsü),
+`features/customers/components/CustomerTypeBadge.tsx`.
+
+**Doğrulama:** `npx tsc --noEmit` hatasız geçti. Kağıt önizleme paneli dışındaki tüm kontrol/UI
+yüzeylerinde artık koyu mod renk çifti (arkaplan+metin) tutarlı — ancak bu oturumda gerçek
+tarayıcıda görsel teyit yapılmadı (bkz. `docs/todo.md`).
+
+---
+
 ## 2026-08-28 — Kalıcı Karanlık/Aydınlık (Dark/Light) Tema Modu
 
 **Durum:** Ekleme

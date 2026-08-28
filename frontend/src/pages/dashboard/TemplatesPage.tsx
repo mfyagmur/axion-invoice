@@ -27,11 +27,11 @@ const FORMAT_LABELS: Record<TemplateFormat, string> = {
 function TemplateBadges({ template }: { template: TemplateSummary }) {
   return (
     <div className="flex gap-1">
-      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs uppercase text-slate-600">
+      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">
         {template.engine === 'xslt' ? 'XSLT' : 'Visual'}
       </span>
       {template.target_format !== 'generic' && (
-        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           {FORMAT_LABELS[template.target_format]}
         </span>
       )}
@@ -62,9 +62,9 @@ function TemplateCard({
 
   return (
     <>
-      <div className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3">
+      <div className="flex items-center justify-between rounded-md border border-slate-200 px-4 py-3 dark:border-slate-700">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-slate-900">{template.name}</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">{template.name}</span>
           <TemplateBadges template={template} />
         </div>
         <div className="flex gap-2">
@@ -164,7 +164,7 @@ export function TemplatesPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">{t('nav.templates')}</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('nav.templates')}</h1>
         <div className="flex gap-2">
           <Link to="/dashboard/templates/new">
             <Button>
@@ -175,14 +175,14 @@ export function TemplatesPage() {
         </div>
       </div>
 
-      {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+      {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
 
       {isError && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && (
         <>
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold text-slate-700">{t('templates.list.sectionSystem')}</h2>
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('templates.list.sectionSystem')}</h2>
             <div className="flex flex-col gap-2">
               {systemTemplates.map((template) => (
                 <TemplateCard
@@ -196,9 +196,9 @@ export function TemplatesPage() {
           </section>
 
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold text-slate-700">{t('templates.list.sectionMine')}</h2>
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('templates.list.sectionMine')}</h2>
             {ownTemplates.length === 0 ? (
-              <p className="text-sm text-slate-500">{t('templates.list.empty')}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t('templates.list.empty')}</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {ownTemplates.map((template) => (

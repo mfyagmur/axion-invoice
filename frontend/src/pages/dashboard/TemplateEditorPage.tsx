@@ -310,13 +310,13 @@ export function TemplateEditorPage() {
   }
 
   if (isTemplateLoading) {
-    return <p className="text-sm text-slate-500">{t('common.loading')}</p>
+    return <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>
   }
 
   if (isTemplateError) {
     return (
       <div className="flex flex-col items-start gap-2">
-        <p className="text-sm text-red-600">{t('common.genericError')}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{t('common.genericError')}</p>
         <Link to="/dashboard/templates" className="text-sm underline">
           {t('nav.templates')}
         </Link>
@@ -345,11 +345,11 @@ export function TemplateEditorPage() {
       />
 
       {isFromSystemTemplate && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">{t('editor.systemTemplateBanner')}</p>
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t('editor.systemTemplateBanner')}</p>
       )}
 
       {saveError && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-red-600 dark:text-red-400">
           {t(getTemplateErrorKey(saveError))}{' '}
           <Link to="/dashboard/billing" className="underline">
             {t('nav.billing')}
@@ -367,15 +367,15 @@ export function TemplateEditorPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
           {!isPreview && <ElementPanel />}
 
-          <div className="min-w-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-6">
+          <div className="min-w-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
             <A4Page containerRef={canvasRef} scale={scale} orientation={orientation} guides={guides} readOnly={isPreview} />
           </div>
 
           {!isPreview && (
             <div className="axion-scrollbar flex w-full flex-col gap-4 overflow-y-auto lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:w-72 lg:shrink-0">
               <PropertiesPanel />
-              <div className="rounded-lg border border-slate-200 p-3">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{t('editor.layers.title')}</h3>
+              <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('editor.layers.title')}</h3>
                 <LayersPanel />
               </div>
             </div>
@@ -384,13 +384,13 @@ export function TemplateEditorPage() {
 
         <DragOverlay dropAnimation={null}>
           {activeDrag?.type === 'palette-field' && (
-            <div className="cursor-move rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-700 shadow-lg">{t(activeDrag.catalogEntry.labelKey)}</div>
+            <div className="cursor-move rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-700 shadow-lg dark:border-slate-500 dark:bg-slate-800 dark:text-slate-200">{t(activeDrag.catalogEntry.labelKey)}</div>
           )}
           {activeDrag?.type === 'palette-element' && (
-            <div className="cursor-move rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-700 shadow-lg">{t(`editor.elementType.${activeDrag.elementType}`)}</div>
+            <div className="cursor-move rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-700 shadow-lg dark:border-slate-500 dark:bg-slate-800 dark:text-slate-200">{t(`editor.elementType.${activeDrag.elementType}`)}</div>
           )}
           {activeDrag?.type === 'palette-custom' && (
-            <div className="cursor-move rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-700 shadow-lg">{t('editor.field.custom_blank')}</div>
+            <div className="cursor-move rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-700 shadow-lg dark:border-slate-500 dark:bg-slate-800 dark:text-slate-200">{t('editor.field.custom_blank')}</div>
           )}
         </DragOverlay>
       </DndContext>

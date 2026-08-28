@@ -14,8 +14,8 @@ export function ToastContainer() {
           key={toast.id}
           className={`flex items-center gap-3 rounded-md border px-4 py-3 text-sm shadow-md ${
             toast.variant === 'error'
-              ? 'border-red-200 bg-red-50 text-red-700'
-              : 'border-green-200 bg-green-50 text-green-700'
+              ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300'
+              : 'border-green-200 bg-green-50 text-green-700 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-300'
           }`}
         >
           <span>{toast.message}</span>

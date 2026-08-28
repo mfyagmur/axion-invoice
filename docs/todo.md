@@ -1,21 +1,25 @@
 # Yapılacaklar / Ertelenen İşler
 
-## 2026-08-28 — Kalıcı Tema Modu (Dark/Light) sonrası
+## 2026-08-28 — Koyu Mod Renk Kontrastı Düzeltmeleri sonrası
 
-- [ ] 2026-08-28: Invoices/Customers/Dashboard ana sayfa, TemplateEditorPage, InvoiceForm vb. bu
-  oturumda dokunulmayan tüm diğer sayfalar henüz `dark:` uyarlaması almadı — hâlâ sabit
-  `bg-white`/`slate-*` renkleri kullanıyorlar. Koyu mod açıkken bu sayfalarda beyaz kart/kontrast
-  tutarsızlığı beklenir. Kapsamlı bir "tüm uygulamayı koyu temaya taşıma" geçişi ayrı bir oturumda
-  yapılmalı (muhtemelen `Input`/`Select`/`Button`/`Modal`/`ErrorState` gibi paylaşılan bileşenlerden
-  başlanmalı, çünkü çoğu sayfa bunları kullanıyor).
-- [ ] 2026-08-28: `App.tsx`'teki `sonner` `Toaster` ve `ToastContainer` bileşenleri şu an aktif
-  temaya göre `theme="dark"` ile senkronize edilmiyor — koyu modda toast bildirimleri açık temalı
-  görünebilir. Küçük bir iyileştirme, bu oturumda bilinçli olarak ertelendi.
-- [ ] 2026-08-28: Bu oturumda doğrulama, backend konteynerindeki Playwright ile otomatik
-  (script tabanlı) yapıldı — gerçek kullanıcı tarafından, kendi tarayıcısında (gerçek Chrome/Edge,
-  farklı ekran boyutları, mevcut gerçek hesapla) 3 modun (Açık/Koyu/Sistem) her iki konumda
-  (sidebar profil menüsü + `?tab=preferences` Sistem kartı) da denenip görsel olarak teyit
-  edilmesi gerekiyor.
+- [ ] 2026-08-28: Bu oturumda yapılan renk düzeltmeleri sadece kod/CSS seviyesinde yapıldı —
+  gerçek tarayıcıda görsel teyit edilmedi (tarayıcı aracı yoktu). Şablon listesi, şablon düzenleme
+  ekranı (toolbar/panel/katman/özellik/kağıt önizleme), Faturalar listesi+tablosu+aksiyon menüsü,
+  Müşteriler listesi ve genel Modal/ConfirmDialog/Select/Input formları koyu modda gezilip
+  okunmaz metin veya beyaz-kalan yüzey kalıp kalmadığı teyit edilmeli.
+- [ ] 2026-08-28: Kapsam dışı bırakılan alanlar var — fatura oluşturma formu (`InvoiceForm.tsx`
+  ve alt bileşenleri), fatura detay sayfası, ayarlar sekmelerinin geri kalanı (Preferences dışı),
+  billing/subscription sayfaları, ve invoice-editor dışındaki diğer feature klasörleri henüz
+  taranmadı — bu oturumun kapsamı Şablonlar (asıl bildirilen sorun) + paylaşılan bileşenler +
+  Faturalar/Müşteriler listeleri ile sınırlı tutuldu.
+- [x] ~~Invoices/Customers/Dashboard listeleri ve paylaşılan Input/Select/Button/Modal/ErrorState
+  gibi bileşenler henüz dark: almadı~~ — 2026-08-28: bu oturumda düzeltildi, bkz.
+  `docs/PROJECT_DESING.md` "Koyu Mod Renk Kontrastı Düzeltmeleri".
+- [x] ~~`App.tsx`'teki sonner `Toaster` aktif temaya göre senkronize değildi~~ — 2026-08-28:
+  `useIsDarkMode()` hook'u ile `theme` prop'u bağlandı.
+- [ ] 2026-08-28 (önceki oturumdan taşındı): Kalıcı tema modunun kendisi (3 yönlü Açık/Koyu/Sistem
+  kontrolü, sidebar + Preferences konumları) gerçek kullanıcı tarafından kendi tarayıcısında hâlâ
+  teyit edilmedi.
 
 ## 2026-08-27 — Banka Tablosu Kesilmesi Düzeltmesi sonrası
 

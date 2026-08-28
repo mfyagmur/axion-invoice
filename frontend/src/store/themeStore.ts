@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -41,4 +42,18 @@ if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (useThemeStore.getState().mode === 'system') applyTheme('system')
   })
+}
+
+function subscribeToDarkClass(callback: () => void) {
+  const observer = new MutationObserver(callback)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  return () => observer.disconnect()
+}
+
+export function useIsDarkMode(): boolean {
+  return useSyncExternalStore(
+    subscribeToDarkClass,
+    () => document.documentElement.classList.contains('dark'),
+    () => false,
+  )
 }

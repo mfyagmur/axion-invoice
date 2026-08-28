@@ -94,7 +94,7 @@ export function CountryAutocomplete({
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-1">
-      <label htmlFor="country-input" className="text-sm font-medium text-slate-700">
+      <label htmlFor="country-input" className="text-sm font-medium text-slate-700 dark:text-slate-300">
         {label}
       </label>
       <input
@@ -118,27 +118,27 @@ export function CountryAutocomplete({
           }
         }}
         className={twMerge(
-          'rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none',
-          error && 'border-red-500',
+          'rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400',
+          error && 'border-red-500 dark:border-red-500',
         )}
         placeholder=""
       />
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
 
       {isOpen && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
+        <div className="absolute top-full left-0 right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
           {filtered.map((country, index) => (
             <button
               key={country.code}
               type="button"
               onMouseDown={() => handleSelectCountry(country.name)}
               className={twMerge(
-                'w-full px-3 py-2 text-left text-sm hover:bg-slate-100',
-                index === selectedIndex && 'bg-slate-100',
+                'w-full px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-700',
+                index === selectedIndex && 'bg-slate-100 dark:bg-slate-700',
               )}
             >
               <span className="font-medium">{country.name}</span>
-              <span className="ml-2 text-xs text-slate-500">({country.code})</span>
+              <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">({country.code})</span>
             </button>
           ))}
         </div>

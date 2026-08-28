@@ -76,7 +76,7 @@ export function Select({
 
   return (
     <div ref={containerRef} className={twMerge('relative flex flex-col gap-1', className)}>
-      {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
+      {label && <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>}
 
       <button
         type="button"
@@ -85,20 +85,20 @@ export function Select({
         disabled={disabled}
         className={twMerge(
           'flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-sm',
-          'bg-slate-100 border-transparent transition-all',
-          isOpen && 'border-slate-400 ring-1 ring-slate-300',
-          error && 'border-red-500',
+          'bg-slate-100 border-transparent transition-all dark:bg-slate-800',
+          isOpen && 'border-slate-400 ring-1 ring-slate-300 dark:border-slate-500 dark:ring-slate-600',
+          error && 'border-red-500 dark:border-red-500',
           disabled && 'cursor-not-allowed opacity-60',
-          !disabled && 'hover:bg-slate-150',
+          !disabled && 'hover:bg-slate-150 dark:hover:bg-slate-700',
         )}
       >
-        <span className={selectedOption ? 'text-slate-900' : 'text-slate-400'}>{displayText}</span>
-        {isOpen ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+        <span className={selectedOption ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}>{displayText}</span>
+        {isOpen ? <ChevronUp size={16} className="text-slate-500 dark:text-slate-400" /> : <ChevronDown size={16} className="text-slate-500 dark:text-slate-400" />}
       </button>
 
       {isOpen && (
         <div
-          className="fixed z-50 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+          className="fixed z-50 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
           style={{
             top: `${dropdownPos.top}px`,
             left: `${dropdownPos.left}px`,
@@ -106,7 +106,7 @@ export function Select({
           }}
         >
           {options.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-slate-500">Seçenek yok</div>
+            <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">Seçenek yok</div>
           ) : (
             options.map((option) => (
               <button
@@ -119,8 +119,8 @@ export function Select({
                 className={twMerge(
                   'w-full px-3 py-2 text-left text-sm transition-colors',
                   option.value === value
-                    ? 'bg-slate-50 font-medium text-slate-900'
-                    : 'hover:bg-slate-50 text-slate-700',
+                    ? 'bg-slate-50 font-medium text-slate-900 dark:bg-slate-700 dark:text-slate-100'
+                    : 'hover:bg-slate-50 text-slate-700 dark:text-slate-300 dark:hover:bg-slate-700',
                 )}
               >
                 {option.label}
@@ -129,7 +129,7 @@ export function Select({
           )}
         </div>
       )}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }

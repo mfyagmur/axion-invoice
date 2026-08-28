@@ -28,12 +28,12 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-lg rounded-lg bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 p-6">
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+      <div className="relative w-full max-w-lg rounded-lg bg-white shadow-xl dark:bg-slate-800">
+        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-slate-700">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-slate-400 hover:text-slate-600 transition-colors dark:hover:text-slate-200"
             aria-label="Close modal"
           >
             <X size={20} />

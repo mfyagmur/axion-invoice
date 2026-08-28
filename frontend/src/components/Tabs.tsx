@@ -14,7 +14,7 @@ interface TabsProps {
 
 export function Tabs({ items, activeKey, onChange }: TabsProps) {
   return (
-    <div className="flex gap-6 border-b border-slate-200">
+    <div className="flex gap-6 border-b border-slate-200 dark:border-slate-700">
       {items.map((item) => (
         <button
           key={item.key}
@@ -22,8 +22,8 @@ export function Tabs({ items, activeKey, onChange }: TabsProps) {
           onClick={() => onChange(item.key)}
           className={
             item.key === activeKey
-              ? 'border-b-2 border-slate-900 pb-3 text-sm font-medium text-slate-900'
-              : 'border-b-2 border-transparent pb-3 text-sm font-medium text-slate-500 hover:text-slate-700'
+              ? 'border-b-2 border-slate-900 pb-3 text-sm font-medium text-slate-900 dark:border-slate-100 dark:text-slate-100'
+              : 'border-b-2 border-transparent pb-3 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
           }
         >
           {item.icon ? (

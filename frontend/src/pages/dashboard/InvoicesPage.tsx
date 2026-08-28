@@ -46,7 +46,7 @@ export function InvoicesPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">{t('nav.invoices')}</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('nav.invoices')}</h1>
         <Link to="/dashboard/invoices/new">
           <Button>
             <Plus size={16} className="mr-1" />
@@ -80,7 +80,7 @@ export function InvoicesPage() {
             }}
           />
 
-          {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+          {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
 
           {isError && <ErrorState onRetry={() => refetch()} />}
 
@@ -89,9 +89,9 @@ export function InvoicesPage() {
       )}
 
       {activeTab === 'scheduled' && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white py-16 text-center">
-          <Clock size={24} className="text-slate-400" />
-          <p className="text-sm text-slate-500">{t('invoices.scheduled.empty')}</p>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white py-16 text-center dark:border-slate-600 dark:bg-slate-900">
+          <Clock size={24} className="text-slate-400 dark:text-slate-500" />
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('invoices.scheduled.empty')}</p>
         </div>
       )}
 
@@ -110,7 +110,7 @@ export function InvoicesPage() {
             }}
           />
 
-          {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+          {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
 
           {isError && <ErrorState onRetry={() => refetch()} />}
 

@@ -20,9 +20,9 @@ export function CustomFieldPopover({ position, onConfirm, onCancel }: CustomFiel
   return (
     <div
       style={{ top: position.top, left: position.left }}
-      className="fixed z-20 flex w-64 flex-col gap-3 rounded-md border border-slate-300 bg-white p-4 shadow-lg"
+      className="fixed z-20 flex w-64 flex-col gap-3 rounded-md border border-slate-300 bg-white p-4 shadow-lg dark:border-slate-600 dark:bg-slate-800"
     >
-      <h3 className="text-sm font-semibold text-slate-900">{t('editor.customFieldPopover.title')}</h3>
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('editor.customFieldPopover.title')}</h3>
 
       <Input
         label={t('editor.customFieldPopover.labelField')}
@@ -32,13 +32,13 @@ export function CustomFieldPopover({ position, onConfirm, onCancel }: CustomFiel
       />
 
       <div>
-        <span className="mb-1 block text-sm font-medium text-slate-700">
+        <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
           {t('editor.customFieldPopover.valueType')}
         </span>
         <select
           value={fieldType}
           onChange={(event) => setFieldType(event.target.value as FieldType)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
         >
           {VALUE_TYPES.map((type) => (
             <option key={type} value={type}>

@@ -51,13 +51,13 @@ export function InvoiceToolbar({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative flex-1 min-w-50">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
         <input
           type="text"
           placeholder={t('invoices.toolbar.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 pl-9 text-sm text-slate-900 placeholder-slate-400 transition-all hover:bg-slate-50 focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 pl-9 text-sm text-slate-900 placeholder-slate-400 transition-all hover:bg-slate-50 focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 dark:hover:bg-slate-800 dark:focus:border-slate-400 dark:focus:ring-slate-600"
         />
       </div>
 

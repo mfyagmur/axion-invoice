@@ -20,20 +20,20 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
   return (
     <tr
       onClick={() => navigate(`/dashboard/invoices/${row.id}`)}
-      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer transition-colors"
+      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer transition-colors dark:border-slate-800 dark:hover:bg-slate-800/60"
     >
       <td className="px-4 py-3 align-top">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-blue-500">
+          <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-blue-500 dark:bg-slate-800">
             <FileText size={16} />
             {row.paymentReminderActive && (
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 ring-2 ring-white">
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 ring-2 ring-white dark:ring-slate-900">
                 <ClockPlus size={12} className="text-white" />
               </span>
             )}
           </span>
           <div className="flex flex-col">
-            <div className="flex items-center gap-1 font-medium text-slate-900">
+            <div className="flex items-center gap-1 font-medium text-slate-900 dark:text-slate-100">
               {row.invoiceNumber}
               <button
                 type="button"
@@ -41,7 +41,7 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
                   e.stopPropagation()
                   window.open(`/dashboard/invoices/${row.id}`, '_blank')
                 }}
-                className="text-blue-600 hover:text-blue-700 cursor-pointer"
+                className="text-blue-600 hover:text-blue-700 cursor-pointer dark:text-blue-400 dark:hover:text-blue-300"
                 aria-label="Open invoice in new tab"
               >
                 <ExternalLink size={14} />
@@ -53,31 +53,31 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
                     e.stopPropagation()
                     setIsPaymentChaserOpen(true)
                   }}
-                  className="text-green-500 hover:text-green-600 cursor-pointer"
+                  className="text-green-500 hover:text-green-600 cursor-pointer dark:text-green-400 dark:hover:text-green-300"
                   aria-label="Open payment reminder settings"
                 >
                   <CalendarClock size={14} />
                 </button>
               )}
             </div>
-            <span className="text-xs text-slate-500">{row.customerCompanyName} - {row.customerName}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{row.customerCompanyName} - {row.customerName}</span>
           </div>
         </div>
       </td>
 
       <td className="px-4 py-3 align-top">
         <div className="flex flex-col">
-          <span className="font-medium text-slate-900">
+          <span className="font-medium text-slate-900 dark:text-slate-100">
             {row.amount} {row.currency}
           </span>
-          {row.secondaryAmount && <span className="text-xs text-slate-500">{row.secondaryAmount}</span>}
+          {row.secondaryAmount && <span className="text-xs text-slate-500 dark:text-slate-400">{row.secondaryAmount}</span>}
         </div>
       </td>
 
       <td className="px-4 py-3 align-top">
         <div className="flex flex-col">
-          <span className="text-slate-900">{formattedDate}</span>
-          {row.customerEmail && <span className="text-xs text-slate-500">{row.customerEmail}</span>}
+          <span className="text-slate-900 dark:text-slate-100">{formattedDate}</span>
+          {row.customerEmail && <span className="text-xs text-slate-500 dark:text-slate-400">{row.customerEmail}</span>}
         </div>
       </td>
 

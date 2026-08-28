@@ -53,12 +53,12 @@ export function EditorToolbar({
   }, [lastSavedAt])
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 shadow-sm">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="flex items-center gap-2">
         <Input label={t('editor.actions.templateName')} hideLabel value={name} onChange={(e) => onNameChange(e.target.value)} className="max-w-xs" placeholder={t('editor.actions.templateName')} />
         <span
           className={twMerge(
-            'flex items-center gap-1 text-xs font-medium text-emerald-600 transition-opacity duration-500',
+            'flex items-center gap-1 text-xs font-medium text-emerald-600 transition-opacity duration-500 dark:text-emerald-400',
             showSavedIndicator ? 'opacity-100' : 'opacity-0',
           )}
         >
@@ -68,17 +68,17 @@ export function EditorToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        <button type="button" onClick={onUndo} disabled={!canUndo} className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-30" title="Ctrl+Z">
+        <button type="button" onClick={onUndo} disabled={!canUndo} className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-30 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800" title="Ctrl+Z">
           <Undo2 size={16} />
         </button>
-        <button type="button" onClick={onRedo} disabled={!canRedo} className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-30" title="Ctrl+Y">
+        <button type="button" onClick={onRedo} disabled={!canRedo} className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-30 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800" title="Ctrl+Y">
           <Redo2 size={16} />
         </button>
 
         <select
           value={zoom}
           onChange={(e) => onZoomChange(Number(e.target.value))}
-          className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+          className="rounded-md border border-slate-300 px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
         >
           {ZOOM_LEVELS.map((level) => (
             <option key={level} value={level}>
@@ -90,7 +90,7 @@ export function EditorToolbar({
         <button
           type="button"
           onClick={() => onOrientationChange(orientation === 'portrait' ? 'landscape' : 'portrait')}
-          className="flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+          className="flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
           title={t('editor.actions.orientation')}
         >
           <RotateCcw size={14} />
@@ -100,7 +100,7 @@ export function EditorToolbar({
         <button
           type="button"
           onClick={onTogglePreview}
-          className={twMerge('flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50', isPreview && 'border-slate-900 bg-slate-900 text-white')}
+          className={twMerge('flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800', isPreview && 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900')}
         >
           {isPreview ? <Pencil size={14} /> : <Eye size={14} />}
           {isPreview ? t('editor.actions.editMode') : t('editor.actions.previewMode')}

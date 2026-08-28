@@ -19,9 +19,10 @@ export function Checkbox({ ariaLabel, disabled, checked, onChange, ...props }: C
         aria-label={ariaLabel}
         className="w-5 h-5 appearance-none border-2 border-slate-300 rounded cursor-pointer transition-all
           data-[state=unchecked]:bg-white data-[state=unchecked]:border-slate-300
+          dark:data-[state=unchecked]:bg-slate-800 dark:data-[state=unchecked]:border-slate-600
           data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white
           disabled:opacity-50 disabled:cursor-not-allowed
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
         {...props}
       />
       {checked && (

@@ -25,11 +25,11 @@ export function TableColumnEditor({ element, onChange }: TableColumnEditorProps)
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-slate-700">{t('editor.table.columns')}</span>
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('editor.table.columns')}</span>
       <div className="flex flex-col gap-1.5">
         {element.columns.map((column, index) => (
-          <div key={column.key} className="flex items-center gap-1.5 rounded-md border border-slate-200 p-1.5">
-            <div className="flex flex-col text-slate-300">
+          <div key={column.key} className="flex items-center gap-1.5 rounded-md border border-slate-200 p-1.5 dark:border-slate-700">
+            <div className="flex flex-col text-slate-300 dark:text-slate-600">
               <button type="button" onClick={() => moveColumn(index, -1)} disabled={index === 0} className="disabled:opacity-30">
                 <GripVertical size={12} />
               </button>
@@ -38,7 +38,7 @@ export function TableColumnEditor({ element, onChange }: TableColumnEditorProps)
             <input
               value={column.label}
               onChange={(e) => updateColumn(index, { label: e.target.value })}
-              className="w-24 min-w-0 flex-1 rounded border border-slate-200 px-1.5 py-0.5 text-xs"
+              className="w-24 min-w-0 flex-1 rounded border border-slate-200 px-1.5 py-0.5 text-xs text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             />
             <Input
               hideLabel
@@ -49,7 +49,7 @@ export function TableColumnEditor({ element, onChange }: TableColumnEditorProps)
               onChange={(e) => updateColumn(index, { width_mm: Number(e.target.value) })}
               className="w-14 shrink-0 px-1.5 py-0.5 text-xs"
             />
-            <button type="button" onClick={() => moveColumn(index, 1)} disabled={index === element.columns.length - 1} className="text-slate-300 disabled:opacity-30">
+            <button type="button" onClick={() => moveColumn(index, 1)} disabled={index === element.columns.length - 1} className="text-slate-300 disabled:opacity-30 dark:text-slate-600">
               <GripVertical size={12} />
             </button>
           </div>

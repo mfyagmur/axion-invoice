@@ -82,13 +82,10 @@ export function InfoTooltip({ title, description, className = '' }: InfoTooltipP
         isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
       }`}
     >
-      <div className="mb-2 w-64 rounded-lg bg-white shadow-lg border border-slate-200 p-3">
-        <div className="text-xs font-semibold text-slate-900 mb-1">{title}</div>
-        <div className="text-xs text-slate-600 font-normal leading-relaxed">{description}</div>
-        <div
-          className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white"
-          style={{ borderTopColor: 'white' }}
-        />
+      <div className="mb-2 w-64 rounded-lg bg-white shadow-lg border border-slate-200 p-3 dark:bg-slate-800 dark:border-slate-700">
+        <div className="text-xs font-semibold text-slate-900 mb-1 dark:text-slate-100">{title}</div>
+        <div className="text-xs text-slate-600 font-normal leading-relaxed dark:text-slate-300">{description}</div>
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white dark:border-t-slate-800" />
       </div>
     </div>
   )
@@ -101,7 +98,7 @@ export function InfoTooltip({ title, description, className = '' }: InfoTooltipP
         onClick={() => setIsOpen(!isOpen)}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className={`inline-flex items-center justify-center p-0 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1 rounded ${className}`}
+        className={`inline-flex items-center justify-center p-0 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1 rounded dark:text-slate-500 dark:hover:text-slate-300 dark:focus:ring-slate-600 ${className}`}
         aria-label={title}
       >
         <HelpCircle size={14} />

@@ -23,7 +23,7 @@ export function CustomersPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">{t('nav.customers')}</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('nav.customers')}</h1>
         <div className="flex gap-2">
           <Button
             variant="secondary"
@@ -52,12 +52,12 @@ export function CustomersPage() {
         customer={editingCustomer}
       />
 
-      {isLoading && <p className="text-sm text-slate-500">{t('common.loading')}</p>}
+      {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
 
       {isError && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && (customers?.length ?? 0) === 0 && (
-        <p className="text-sm text-slate-500">{t('customers.list.empty')}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{t('customers.list.empty')}</p>
       )}
 
       {!isLoading && !isError && (customers?.length ?? 0) > 0 && (
@@ -66,25 +66,25 @@ export function CustomersPage() {
             <div
               key={customer.id}
               onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
-              className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
+              className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                  <span className="text-sm font-semibold text-slate-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
                     {((customer.first_name?.[0] || '') + (customer.last_name?.[0] || '')).toUpperCase()}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="flex items-center gap-2 font-medium text-slate-900">
+                  <span className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
                     {getCustomerBaseName(customer)}
                     <CustomerTypeBadge customer={customer} />
                   </span>
-                  {customer.email && <span className="text-sm text-slate-500">{customer.email}</span>}
+                  {customer.email && <span className="text-sm text-slate-500 dark:text-slate-400">{customer.email}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {!customer.is_active && (
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                     {t('customers.list.statusPassive')}
                   </span>
                 )}

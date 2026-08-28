@@ -22,8 +22,8 @@ interface InvoiceRowActionsProps {
   hideViewPreviewDownload?: boolean
 }
 
-const activeItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50'
-const disabledItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed'
+const activeItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700'
+const disabledItemClass = 'w-full px-3 py-2 text-left text-sm text-slate-400 cursor-not-allowed dark:text-slate-600'
 
 export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDownload = false }: InvoiceRowActionsProps) {
   const invoiceId = row.id
@@ -103,7 +103,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
     <Link
       to={`/dashboard/invoices/${invoiceId}`}
       onClick={() => setIsOpen(false)}
-      className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+      className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
     >
       {t('invoices.actions.view')}
     </Link>
@@ -128,7 +128,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
     menuBody = (
       <>
         {viewItem}
-        <div className="border-t border-slate-100" />
+        <div className="border-t border-slate-100 dark:border-slate-700" />
         <button
           type="button"
           onClick={() => {
@@ -146,7 +146,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
     menuBody = (
       <>
         {viewItem}
-        <div className="border-t border-slate-100" />
+        <div className="border-t border-slate-100 dark:border-slate-700" />
         <button
           type="button"
           disabled={!isCancellable}
@@ -257,7 +257,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
     <div
       ref={menuRef}
       style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
-      className="z-20 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+      className="z-20 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
       onClick={(e) => e.stopPropagation()}
     >
       {menuBody}
@@ -270,7 +270,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
         ref={buttonRef}
         type="button"
         onClick={toggleMenu}
-        className="inline-flex items-center justify-center rounded-md border border-transparent p-2 hover:border-slate-900 hover:bg-slate-100 text-slate-500"
+        className="inline-flex items-center justify-center rounded-md border border-transparent p-2 hover:border-slate-900 hover:bg-slate-100 text-slate-500 dark:hover:border-slate-100 dark:hover:bg-slate-800 dark:text-slate-400"
         aria-label="actions"
       >
         <MoreHorizontal size={16} />

@@ -56,7 +56,7 @@ export function Drawer({ isOpen, onClose, children, className }: DrawerProps) {
       <div
         onClick={(e) => e.stopPropagation()}
         className={twMerge(
-          'absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ease-in-out',
+          'absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ease-in-out dark:bg-slate-800',
           isVisible ? 'translate-x-0' : 'translate-x-full',
           className,
         )}

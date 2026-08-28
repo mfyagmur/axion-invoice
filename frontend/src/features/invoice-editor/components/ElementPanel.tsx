@@ -35,11 +35,11 @@ function DraggableItem({ id, label, data, icon: Icon }: { id: string; label: str
       {...listeners}
       {...attributes}
       className={twMerge(
-        'flex cursor-move items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 hover:border-slate-400',
+        'flex cursor-move items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-500',
         isDragging && 'opacity-40',
       )}
     >
-      <Icon size={14} className="shrink-0 text-slate-400" />
+      <Icon size={14} className="shrink-0 text-slate-400 dark:text-slate-500" />
       <span className="truncate">{label}</span>
     </button>
   )
@@ -49,7 +49,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   const [open, setOpen] = useState(true)
   return (
     <div className="flex flex-col gap-2">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {title}
       </button>
       {open && <div className="flex flex-col gap-1.5">{children}</div>}
@@ -62,7 +62,7 @@ export function ElementPanel() {
 
   return (
     <div className="axion-scrollbar flex w-full flex-col gap-4 overflow-y-auto lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
-      <h2 className="text-sm font-semibold text-slate-900">{t('editor.palette.title')}</h2>
+      <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('editor.palette.title')}</h2>
 
       <Section title={t('editor.palette.sectionBasic')}>
         {BASIC_ITEMS.map((item, index) => (
@@ -123,7 +123,7 @@ export function ElementPanel() {
         />
       </Section>
 
-      <span className="mt-1 flex items-center gap-1 text-xs text-slate-400">
+      <span className="mt-1 flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
         <PlusSquare size={14} />
         {t('editor.palette.dragHint')}
       </span>

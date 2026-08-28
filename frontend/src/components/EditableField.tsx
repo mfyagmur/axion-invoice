@@ -27,7 +27,7 @@ export function EditableField({ value, onSave }: EditableFieldProps) {
             setIsEditing(false)
           }
         }}
-        className="w-full rounded border border-slate-300 px-1 py-0.5 text-sm focus:border-slate-500 focus:outline-none"
+        className="w-full rounded border border-slate-300 px-1 py-0.5 text-sm text-slate-900 focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
       />
     )
   }
@@ -39,10 +39,10 @@ export function EditableField({ value, onSave }: EditableFieldProps) {
         setDraft(value)
         setIsEditing(true)
       }}
-      className="group flex items-center gap-1 text-left text-slate-900"
+      className="group flex items-center gap-1 text-left text-slate-900 dark:text-slate-100"
     >
       <span>{value || '—'}</span>
-      <Pencil size={16} className="shrink-0 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />
+      <Pencil size={16} className="shrink-0 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 dark:text-slate-500" />
     </button>
   )
 }

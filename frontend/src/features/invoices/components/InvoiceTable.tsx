@@ -10,10 +10,10 @@ export function InvoiceTable({ rows }: InvoiceTableProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-300 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-lg border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <table className="w-full min-w-180 text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-200 text-xs font-medium text-slate-500">
+          <tr className="border-b border-slate-200 text-xs font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
             <th className="px-4 py-3">{t('invoices.table.invoiceNo')}</th>
             <th className="px-4 py-3">{t('invoices.table.amount')}</th>
             <th className="px-4 py-3">{t('invoices.table.createdAt')}</th>
@@ -24,7 +24,7 @@ export function InvoiceTable({ rows }: InvoiceTableProps) {
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
+              <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 {t('invoices.list.empty')}
               </td>
             </tr>

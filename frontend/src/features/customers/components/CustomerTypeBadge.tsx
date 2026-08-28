@@ -9,7 +9,7 @@ export function CustomerTypeBadge({ customer }: { customer: Pick<Customer, 'cust
   }
 
   return (
-    <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-600">
+    <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
       {t('customers.individualSuffix')}
     </span>
   )
