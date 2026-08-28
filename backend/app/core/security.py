@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
@@ -56,3 +58,13 @@ def decode_token(token: str) -> dict[str, Any] | None:
         return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
     except JWTError:
         return None
+
+
+def hash_reset_token(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode()).hexdigest()
+
+
+def generate_reset_token() -> tuple[str, str]:
+    """Returns (raw_token, token_hash). The raw token goes in the email link; only the hash is stored."""
+    raw = secrets.token_urlsafe(32)
+    return raw, hash_reset_token(raw)

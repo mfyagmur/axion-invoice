@@ -13,3 +13,10 @@ export function getLoginErrorKey(error: unknown): string {
   }
   return 'common.genericError'
 }
+
+export function getResetPasswordErrorKey(error: unknown): string {
+  if (axios.isAxiosError(error) && error.response?.status === 400) {
+    return 'auth.resetPassword.errors.invalidToken'
+  }
+  return 'common.genericError'
+}

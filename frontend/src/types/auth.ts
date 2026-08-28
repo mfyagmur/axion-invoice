@@ -97,3 +97,13 @@ export interface PasswordChangePayload {
   new_password: string
   confirm_password: string
 }
+
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  token: string
+  new_password: string
+  confirm_password: string
+}

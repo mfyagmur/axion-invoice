@@ -70,7 +70,8 @@
       "noAccount": "Don't have an account?",
       "signupLink": "Sign up",
       "googleDivider": "or",
-      "error": "Invalid email or password"
+      "error": "Invalid email or password",
+      "forgotPassword": "Forgot password?"
     },
     "signup": {
       "title": "Create Account",
@@ -93,6 +94,36 @@
         "companyNameRequired": "Company name is required for business accounts",
         "emailInvalid": "Enter a valid email",
         "emailTaken": "This email is already registered"
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email and we'll send you a password reset link",
+      "email": "Email",
+      "submit": "Send Reset Link",
+      "successMessage": "If that email is registered, a password reset link has been sent. Check your inbox.",
+      "backToLogin": "Back to login"
+    },
+    "resetPassword": {
+      "title": "Set New Password",
+      "subtitle": "Create a new password for your account",
+      "password": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "submit": "Reset Password",
+      "errors": {
+        "invalidToken": "This link is invalid or has expired. Please request a new password reset."
+      }
+    },
+    "overlay": {
+      "toSignup": {
+        "title": "Join us",
+        "body": "Create your invoices in minutes and customize them with your own design.",
+        "cta": "Create Account"
+      },
+      "toLogin": {
+        "title": "Already have an account?",
+        "body": "Log in to your account to pick up right where you left off.",
+        "cta": "Log In"
       }
     },
     "google": {

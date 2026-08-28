@@ -20,49 +20,47 @@ export function LoginForm() {
 
   return (
     <form
-      className="flex w-full max-w-sm flex-col gap-4"
+      className="flex w-full max-w-sm flex-col gap-4 p-6 sm:p-8 md:p-10"
       onSubmit={handleSubmit((values) => login.mutate(values))}
     >
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">{t('auth.login.title')}</h1>
-        <p className="text-sm text-slate-600">{t('auth.login.subtitle')}</p>
+        <h1 className="text-2xl font-semibold text-[#111827] dark:text-white">{t('auth.login.title')}</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{t('auth.login.subtitle')}</p>
       </div>
 
       <Input
+        id="login-email"
         label={t('auth.login.email')}
         type="email"
         autoComplete="email"
         error={errors.email && t(errors.email.message ?? '')}
+        className="border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200/60 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-blue-900/40"
         {...register('email')}
       />
       <Input
+        id="login-password"
         label={t('auth.login.password')}
         type="password"
         autoComplete="current-password"
         error={errors.password && t(errors.password.message ?? '')}
+        className="border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200/60 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-blue-900/40"
         {...register('password')}
       />
 
+      <Link
+        to="/forgot-password"
+        className="self-end text-xs font-medium text-slate-500 hover:text-[#111827] dark:text-slate-400 dark:hover:text-white"
+      >
+        {t('auth.login.forgotPassword')}
+      </Link>
+
       {login.isError && <p className="text-sm text-red-600">{t(getLoginErrorKey(login.error))}</p>}
 
-      <Button type="submit" disabled={login.isPending}>
+      <Button type="submit" disabled={login.isPending} className="w-full bg-[#111827] hover:bg-[#1f2937]">
         {t('auth.login.submit')}
       </Button>
 
-      <div className="flex items-center gap-3 text-xs text-slate-400">
-        <div className="h-px flex-1 bg-slate-200" />
-        {t('auth.login.googleDivider')}
-        <div className="h-px flex-1 bg-slate-200" />
-      </div>
-
       <GoogleLoginButton accountType="bireysel" />
-
-      <p className="text-center text-sm text-slate-500">
-        {t('auth.login.noAccount')}{' '}
-        <Link to="/signup" className="font-medium text-slate-600 underline hover:text-slate-800">
-          {t('auth.login.signupLink')}
-        </Link>
-      </p>
     </form>
   )
 }

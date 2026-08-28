@@ -4,6 +4,278 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-08-28 — Faz 2: "Şifremi Unuttum" Şifre Sıfırlama Akışı
+
+**Durum:** Tamamlandı
+
+**Özet:** Faz 1 (Login/Kayıt Ol görsel yeniden tasarımı) kullanıcı tarafından onaylandı, Faz 2
+kapsamı belirlendi: Login formuna "Şifremi unuttum?" linki ve email ile doğrulanan şifre sıfırlama
+akışı eklendi (diğer üç aday alan — telefon, vergi no, KVKK checkbox — bu turda kapsam dışı
+bırakıldı).
+
+**Backend:**
+- Yeni model `PasswordResetToken` (`backend/app/models/password_reset_token.py`) — `user_id`,
+  `token_hash` (sha256, unique+index), `expires_at`, `used_at`. Ham token asla DB'ye yazılmaz.
+- `backend/app/core/security.py`'ye `generate_reset_token()` (raw + hash döner) ve
+  `hash_reset_token()` helper'ları eklendi.
+- Yeni şema'lar `ForgotPasswordRequest`/`ResetPasswordRequest` (`backend/app/schemas/auth.py`).
+- Yeni public endpoint'ler `POST /auth/forgot-password` ve `POST /auth/reset-password`
+  (`backend/app/api/v1/auth.py`):
+  - `forgot-password` her zaman 204 döner (kullanıcı var/yok, Google-only hesap fark etmeden) —
+    email enumeration'ı önlemek için. 30 dakika geçerli token üretip email gönderir.
+  - `reset-password` token hash'ini doğrular, süresi dolmuş/kullanılmış/geçersiz token'da 400
+    döner. Başarılı sıfırlamada şifre hash'lenir, token `used_at` ile işaretlenir (tek kullanımlık),
+    **ve kullanıcının tüm aktif oturumları (`UserSession`) iptal edilir** — güvenlik amaçlı, şifre
+    değişince eski refresh token'lar geçersiz kalsın diye.
+- Yeni email şablonu `backend/app/templates_html/email_password_reset.html` +
+  `RESET_PASSWORD_LABELS` (tr/en) + `send_password_reset_email()` fonksiyonu
+  (`backend/app/services/email_service.py`), mevcut `send_invoice_due_reminder_email` deseniyle
+  birebir aynı yapıda.
+- Migration `dab620bb915b_create_password_reset_tokens_table.py` — autogenerate edildi, container
+  içinde `alembic upgrade head` ile uygulandı.
+
+**Frontend:**
+- `frontend/src/types/auth.ts`'e `ForgotPasswordPayload`/`ResetPasswordPayload`; `authApi.ts`'e
+  `forgotPassword`/`resetPassword` metotları.
+- Yeni hook'lar `useForgotPassword.ts` (mutation, aynı sayfada başarı mesajı gösterir, navigasyon
+  yok — email enumeration'ı önlemek için her zaman aynı mesaj) ve `useResetPassword.ts` (mutation,
+  başarıda `/login`'e yönlendirir).
+- Yeni zod şemaları `forgotPasswordSchema.ts`/`resetPasswordSchema.ts` (mevcut `signupSchema.ts`
+  şifre eşleşme `.refine` deseniyle aynı).
+- Yeni sayfa bileşenleri `ForgotPasswordForm.tsx`/`ResetPasswordForm.tsx` — **bilinçli tasarım
+  kararı:** `AuthShell`'in iki-panelli crossing-slide animasyon mekaniğine üçüncü bir mod olarak
+  eklenmedi (üç panel için matematiği yeniden tasarlamak gereksiz karmaşıklık ve Faz 1'in kırılgan
+  animasyon mantığını bozma riski taşırdı). Bunun yerine `AuthShell`'in mobil tek-panel kart
+  stiliyle aynı sade görünümde, `AuthLayout` altında bağımsız sayfalar olarak eklendi.
+  `ResetPasswordForm`, `useSearchParams`'tan `token` okur; token yoksa/eksikse forma izin vermeden
+  hata gösterir.
+- `LoginForm.tsx`'e şifre alanının altına "Şifremi unuttum?" linki (`/forgot-password`'a).
+- Route'lar (`frontend/src/routes/index.tsx`): `/forgot-password` ve `/reset-password`, mevcut
+  `AuthLayout` + `PublicOnlyRoute` altında (giriş yapmış kullanıcı erişemez).
+- i18n: `auth.login.forgotPassword` + yeni `auth.forgotPassword.*`/`auth.resetPassword.*` blokları
+  (tr.json/en.json).
+- `getResetPasswordErrorKey` (`getAuthErrorKey.ts`) — 400 → `auth.resetPassword.errors.invalidToken`.
+
+**Kök neden ve düzeltme:** Uygulamada şifre sıfırlama akışı hiç yoktu — kullanıcı şifresini
+unutursa hesabına erişimi kalıcı olarak kaybediyordu. Mevcut email altyapısı (`email_service.py`)
+ve auth route/hook/api katmanlarındaki desenler birebir takip edilerek tutarlı bir üçüncü akış
+eklendi.
+
+**Doğrulama:**
+- Backend: `docker exec backend-backend-1 alembic upgrade head` başarılı; `python -m pytest -k auth`
+  → 7/7 geçti (mevcut testler kırılmadı); router import kontrolü 9 route (7 eski + 2 yeni).
+- **Uçtan uca canlı smoke test** (çalışan `backend-backend-1` container'ında, atılabilir bir test
+  kullanıcısıyla — gerçek admin hesabına dokunulmadı, test sonunda kullanıcı silindi, cascade ile
+  ilişkili token/session satırları da temizlendi):
+  1. `POST /auth/forgot-password` → 204, DB'de `PasswordResetToken` satırı doğru `expires_at`
+     (30dk) ile oluştu.
+  2. Gerçek raw token ile `POST /auth/reset-password` → 204.
+  3. Yeni şifreyle `POST /auth/login` → 200; eski şifreyle → 401 (şifre gerçekten değişti).
+  4. Aynı token'ı tekrar kullanma → 400 (tek kullanımlık doğrulandı).
+  5. Geçersiz/uydurma token → 400.
+- Frontend: `npx eslint` (tüm yeni/değişen dosyalar) → 0 hata; `npm run build` → sadece bilinen 5
+  pre-existing hata (bu turun dosyalarında yeni hata yok); `npx vitest run LoginForm.test.tsx` →
+  3/3 geçti (yeni "Şifremi unuttum?" linki mevcut selector'ları bozmadı).
+- Tarayıcıda gerçek görsel/interaktif teyit yapılamadı (bu ortamda tarayıcı otomasyon aracı yok) —
+  bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-28 — Login/Kayıt Ol: Geçiş Animasyonu Gerçek Hareket + Google Ayırıcı Kaldırma + Buton Boyutu
+
+**Durum:** Düzeltme (kullanıcı testinde bildirdi)
+
+**Özet:** Kullanıcı üç sorun daha bildirdi: (1) "------ veya ------" ayırıcı yazısı (Google
+girişinin üstündeki) kaldırılmalı; (2) "Giriş Yap" ve "Hesap Oluştur" submit butonlarının boyutu
+sabit olmalı — şu an metin uzunluğuna göre farklı genişlikte görünüyorlardı; (3) Login↔Signup
+geçiş animasyonu hissedilmiyor, sanki anında açılıyor.
+
+**Kök neden ve düzeltme:**
+1. `LoginForm.tsx`/`SignupForm.tsx`'teki Google giriş butonunun üstündeki `h-px` çizgili
+   ayırıcı + `auth.login.googleDivider` metin bloğu tamamen kaldırıldı, `GoogleLoginButton`
+   submit butonunun hemen altında kaldı.
+2. Her iki formun submit `Button`'ına `w-full` eklendi — form zaten `max-w-sm` ile sabit
+   genişlikte olduğundan buton artık metin uzunluğundan (Giriş Yap vs Hesap Oluştur) bağımsız
+   olarak kart genişliğine sabitlendi.
+3. **Asıl kök neden (animasyon):** `routes/index.tsx`'te `/login` ve `/signup`, ayrı sarmalayıcı
+   sayfa bileşenleri (`LoginPage`/`SignupPage`) üzerinden `AuthShell`'i render ediyordu. React
+   Router, `Outlet`'in eski/yeni render çıktısını karşılaştırırken bileşen **tipi** değiştiği için
+   (`LoginPage` → `SignupPage`) tüm alt ağacı (dolayısıyla `AuthShell`'i de) unmount/mount
+   ediyordu — bu da `transform`/`opacity` geçişinin "başlangıç" durumu olmadan direkt "bitiş"
+   durumunda mount olmasına, yani animasyonun hiç oynamamasına yol açıyordu. Düzeltme: `LoginPage`/
+   `SignupPage` sarmalayıcıları silindi, route'lar artık doğrudan `<AuthShell mode="login" />` /
+   `<AuthShell mode="signup" />` render ediyor — `Outlet` artık aynı bileşen tipini (`AuthShell`)
+   görüp unmount etmeden sadece `mode` prop'unu güncelliyor, `transition-all duration-600
+   ease-in-out` artık gerçek bir geçiş olarak oynuyor.
+
+**Doğrulama:** `npx eslint` (3 dokunulan dosya + `routes/index.tsx`) — 0 hata, sadece bilinen
+`SignupForm.tsx` `watch()` uyarısı. `npm run build` — sadece önceden var olan, dokunulmayan 5
+dosyadaki hatalar (`Checkbox.tsx`, `navigation.ts`, `CustomerFormModal.tsx`,
+`InvoiceSendEmailModal.tsx`, `ProfileTab.tsx`). `npx vitest run LoginForm.test.tsx` — 3/3 geçti.
+Bu ortamda tarayıcı otomasyon aracı yok, gerçek görsel/animasyon teyidi kullanıcının tarayıcısında
+yapılmalı.
+
+---
+
+## 2026-08-28 — Login/Kayıt Ol: Kurumsal Taşma, Alt Bağlantı Tekrarı ve Input Kontrastı Düzeltmesi
+
+**Durum:** Düzeltme (kullanıcı ekran görüntüsüyle bildirdi)
+
+**Özet:** Kullanıcı tarayıcıda test edip üç sorun bildirdi: (1) Kayıt Ol tarafında "Kurumsal"
+sekmesi seçilince (Şirket Adı alanı eklendiğinde) form içeriği kartın sabit yüksekliğini aşıyor,
+kart kesiliyor/responsive'liği bozuluyordu; (2) formun altında yer alan "Zaten hesabınız var mı?
+Giriş yapın" (ve login tarafında "Hesabınız yok mu? Kayıt olun") bağlantısı, overlay panelinde
+zaten aynı mesajı ve CTA'yı veriyor olduğundan gereksiz tekrardı; (3) input alanları, camsı
+(glassmorphism) kartın yarı saydam gri zemini üzerinde beyaz/soluk görünüp yeterince belirgin
+değildi.
+
+**Kök neden ve düzeltme:**
+- `frontend/src/features/auth/components/AuthShell.tsx` — masaüstü panel sarmalayıcısındaki sabit
+  `md:min-h-140` (35rem) kaldırıldı. Bunun yerine `ResizeObserver` ile aktif panelin
+  (`LoginForm`/`SignupForm`) gerçek `scrollHeight`'ı ölçülüp kart yüksekliği buna göre
+  `style.height` ile ayarlanıyor (`transition-[height] duration-300`). Böylece Kurumsal seçilip
+  Şirket Adı alanı eklendiğinde kart kesilmeden yumuşakça büyüyor; login gibi daha kısa formlarda
+  da gereksiz boşluk kalmıyor. Form panelleri artık `inset-y-0` ile tam yüksekliğe zorlanmıyor,
+  sadece `top-0` ile hizalanıp doğal içerik yüksekliğinde kalıyor (overlay paneli hâlâ `inset-y-0`
+  ile bu ölçülen yüksekliğe geriliyor).
+- `frontend/src/features/auth/components/LoginForm.tsx` ve `SignupForm.tsx` — formun altındaki
+  "Zaten hesabınız var mı?/Hesabınız yok mu?" bağlantı paragrafı kaldırıldı (kullanılmayan `Link`
+  import'u da temizlendi); Google girişi divider'ı ve butonu korundu. Her `Input` çağrısına
+  `bg-white`/`dark:bg-slate-800` + belirgin `border-slate-300`/`dark:border-slate-600` class'ı
+  eklendi (global `Input.tsx` değişmedi — sadece bu iki form için çağrı yerinde override,
+  diğer ekranlardaki input'ları etkilemiyor).
+
+**Doğrulama:** `npm run test` (LoginForm testi 3/3 geçti), `npm run build`/`eslint` sadece bu
+oturumdan önce var olan, dokunulmayan dosyalardaki hataları/uyarıları gösterdi (Checkbox.tsx,
+navigation.ts, CustomerFormModal.tsx, InvoiceSendEmailModal.tsx, ProfileTab.tsx — hiçbiri auth
+dosyalarıyla ilgili değil). Bu ortamda tarayıcı otomasyon aracı olmadığından görsel sonuç yine
+kodla doğrulandı, tarayıcıda son kontrol kullanıcıya kalıyor.
+
+---
+
+## 2026-08-28 — Login/Kayıt Ol: Kayan Panel Çakışma Hatası Düzeltmesi
+
+**Durum:** Düzeltme (kullanıcı ekran görüntüsüyle bildirdi)
+
+**Özet:** Bir önceki düzeltmede ("Gerçek Kayan Panel Animasyonu") Signup panelinin "aktif"
+dinlenme konumu yanlışlıkla **sol** yarımdı (`translateX(0%)` mode=signup iken), ama overlay
+paneli de mode=signup'ta sola kayıyordu (`translateX(-100%)`) — ikisi aynı anda sol yarımda
+üst üste biniyordu (ekran görüntüsünde Signup formunun "E-posta" alanı ile overlay'in "Zaten bir
+hesabınız mı var? Giriş Yap" metninin iç içe geçmesi bu çakışmanın sonucuydu). Ayrıca animasyon
+"sola atlama" gibi hissediliyordu çünkü panel pozisyonları arasında gerçek bir ara geçiş yoktu.
+
+**Kök neden ve düzeltme:** `frontend/src/features/auth/components/AuthShell.tsx` — Login ve
+Signup panelleri artık **her zaman aynı transform'u paylaşıyor** (ikisi de `left-0`'dan
+`translateX(100%)`'e geçiyor, aynı 600ms `transition-all`), sadece `opacity`/`z-index` ile
+hangisinin görünür olduğu değişiyor — böylece form paneli hiçbir zaman overlay panelinin durduğu
+yarıyla aynı yarıda olmuyor: mode=login'de form solda + overlay sağda, mode=signup'ta form sağda
++ overlay solda. Geçiş sırasında iki form da aynı konumda birlikte kayıp opacity ile çapraz
+soluklaşıyor (cross-fade), overlay ise ters yönde kayıyor — bu, klasik "sliding sign-in/sign-up"
+deseninin (Codrops/Colorlib) doğru uygulanışı. Overlay paneline ayrıca açık `z-index: 30`
+eklendi (geçiş sırasında formların üzerinde kalması için).
+
+**Doğrulama:** `npm run test` (LoginForm testi 3/3), `npm run build`/`eslint` yeni hata
+çıkarmadı. Bu ortamda tarayıcı otomasyon aracı olmadığından görsel sonuç yine kodla doğrulandı,
+tarayıcıda son kontrol kullanıcıya kalıyor.
+
+---
+
+## 2026-08-28 — Login/Kayıt Ol: Gerçek Kayan Panel Animasyonu + "Ücretsiz Başla" Demo Girişi
+
+**Durum:** Düzeltme (kullanıcı tarayıcı testinden sonra)
+
+**Özet:** Faz 1'in ilk sürümü tarayıcıda test edildikten sonra iki sorun bildirildi: (1) kayan
+panel animasyonu gerçek bir hareket hissi vermiyordu — sadece sağdaki tanıtım paneli kayıyor,
+formun kendisi anlık içerik değişimiyle güncelleniyordu; (2) header'daki "Ücretsiz Başla" butonu
+`/signup`'a yönlendiriyordu ama kullanıcı bunun tek tıkla demo girişi yapmasını istiyor.
+
+**Animasyon düzeltmesi:**
+- `frontend/src/features/auth/components/AuthShell.tsx` — Değiştirme: masaüstü görünümde artık
+  `LoginForm` ve `SignupForm` **her ikisi de aynı anda DOM'da mount edilmiş** durumda, ayrı ayrı
+  `absolute` konumlandırılmış panellerde. Aktif olmayan panel `inert` özelliğiyle klavye/etkileşimden
+  tamamen çıkarılıyor (React 19'un desteklediği native `inert` attribute'u). `mode` değiştiğinde
+  Login paneli `translateX(0%)` ↔ `translateX(100%)`, Signup paneli `translateX(-100%)` ↔
+  `translateX(0%)` arasında `transition-transform duration-600 ease-in-out` ile zıt yönlerde
+  karşılıklı kayarak yer değiştiriyor — overlay paneli de aynı anda ters yönde kayıyor. Artık
+  hem form hem tanıtım paneli fiziksel olarak hareket ediyor.
+- `frontend/src/features/auth/components/LoginForm.tsx`, `SignupForm.tsx` — Değiştirme: her
+  `Input`'a açık `id` prop'u eklendi (ör. `id="login-email"` / `id="signup-email"`) — iki form
+  aynı anda DOM'da olduğu için `Input.tsx`'in varsayılan `id = props.name` davranışı çakışan
+  `id="email"` gibi ikili kimliklere yol açıyordu; `register(...)`'ın `name` değeri (RHF/zod
+  bağlantısı) değişmedi, sadece HTML `id`/`label htmlFor` eşleşmesi ayrıştırıldı.
+
+**"Ücretsiz Başla" düzeltmesi:**
+- `frontend/src/layouts/AuthLayout.tsx` — Değiştirme: buton artık `/signup`'a `Link` yerine
+  `useDemoLogin()` (`frontend/src/features/auth/hooks/useDemoLogin.ts`) mutation'ını tetikliyor —
+  ana sayfadaki `CTASection.tsx`'in "Demoyu Dene" butonuyla aynı mekanizma (`POST /auth/demo`,
+  şifresiz, sabit demo kullanıcısıyla doğrudan `/dashboard`'a giriş). Buton `demoLogin.isPending`
+  iken devre dışı bırakılıyor.
+
+**Neden formu demo bilgileriyle ön-doldurma seçeneği kullanılmadı:** Backend incelemesinde demo
+kullanıcının (`demo@axioninvoice.app`) veritabanında gerçek bir şifresi olmadığı görüldü — `/auth/demo`
+endpoint'i `is_demo=True` kullanıcıyı şifre kontrolü yapmadan buluyor. Normal `/auth/login` formu
+her zaman şifre doğruluyor, bu yüzden formu ön-doldurup göndermek geçerli bir şifre atanmadan
+çalışmazdı — bu da Faz 1'in "backend'e dokunulmaz" sınırını aşardı. Kullanıcıyla netleştirilip
+mevcut şifresiz tek tıkla demo girişi mekanizması kullanılmasına karar verildi.
+
+**Doğrulama:** `npm run test` (LoginForm testi 3/3 hâlâ geçiyor), `npm run build` (dokunulan
+dosyalarda hata yok, projede önceden var olan ilgisiz 5 tip hatası duruyor), `npx eslint` yeni
+hata çıkarmadı. Bu ortamda tarayıcı otomasyon aracı olmadığından animasyonun görsel sonucu
+tarayıcıda teyit edilemedi — bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-28 — Login/Kayıt Ol Ekranları Görsel Yeniden Tasarımı (Faz 1: Sadece UI)
+
+**Durum:** Ekleme + Değiştirme
+
+**Özet:** Login ve Signup ekranları, animasyonlu tek kartlı "kayan panel" (sliding overlay)
+mantığıyla çalışan modern bir SaaS giriş deneyimine dönüştürüldü. Bu tamamen görsel/yapısal bir
+değişiklik — react-hook-form + zod doğrulama, TanStack Query mutation'ları (`useLogin`/`useSignup`),
+Zustand `authStore` ve `authApi` çağrıları hiç dokunulmadan aynen korundu. Yeni alan eklenmesi
+(kullanıcının belirttiği Faz 2) bu oturumun kapsamı dışında bırakıldı, bkz. `docs/todo.md`.
+
+**Yapılan dosyalar:**
+- `frontend/src/layouts/AuthLayout.tsx` — Ekleme: `/login`/`/signup` için bağımsız tam-sayfa
+  layout (kendi header'ı: logo, `LanguageSwitcher`, "Giriş Yap" linki, "Ücretsiz Başla" butonu,
+  koyu-mavi-beyaz gradient arkaplan). Site genelindeki `PublicLayout`'tan ayrı — header tekrarı yok.
+- `frontend/src/features/auth/components/AuthShell.tsx` — Ekleme: `mode: 'login' | 'signup'`
+  prop'u alan, kayan panel mekaniğini süren paylaşılan bileşen. Rounded-3xl/glassmorphism/shadow-2xl
+  "Fusion Kart" içinde sol form yuvası (mode'a göre `LoginForm`/`SignupForm` koşullu render) ve
+  masaüstünde (`md:` ve üstü) sağda 200% genişlikte bir şerit içinde `translateX(0%)`/`translateX(-50%)`
+  ile `transition-transform duration-600 ease-in-out` kayan, iki tanıtım metni+CTA barındıran overlay
+  paneli. Mobilde (`< 768px`) overlay tamamen gizlenip sadece aktif form tam genişlik gösteriliyor.
+- `frontend/src/pages/auth/LoginPage.tsx`, `SignupPage.tsx` — Değiştirme: `AuthShell mode="login"`
+  / `mode="signup"` render eden ince sarmalayıcılara indirgendi.
+- `frontend/src/routes/index.tsx` — Değiştirme: `/login`/`/signup`, `PublicLayout` altından çıkarılıp
+  yeni `AuthLayout` altına taşındı (`PublicOnlyRoute` guard'ı aynen korunarak yeniden konumlandırıldı).
+- `frontend/src/features/auth/components/LoginForm.tsx`, `SignupForm.tsx` — Değiştirme: sadece
+  class/markup restyle (yeni `#111827` marka rengi, mavi focus-glow input'lar, `Button`/`Input`
+  çağrı yerlerinde `className` override'ı — global `Button.tsx`/`Input.tsx` değişmedi). Tüm
+  `register(...)`/`handleSubmit`/`watch`/`errors`/mutation/`GoogleLoginButton` bağlantıları aynı.
+- `frontend/src/i18n/locales/tr.json`, `en.json` — Ekleme: `auth.overlay.toSignup`/`toLogin`
+  (`title`/`body`/`cta`) — overlay panelindeki tanıtım metinleri için yeni anahtarlar. Form
+  alanları/başlıklar için yeni anahtar gerekmedi, mevcut `auth.login.*`/`auth.signup.*`/
+  `landing.nav.*` kullanıldı.
+
+**Neden bu yapı:** `/login` ve `/signup` ayrı route olarak kaldı (kullanıcıyla netleşen karar —
+doğrudan link/yer imi uyumluluğu için); `AuthShell` her iki route'ta da aynı React ağacı konumunda
+aynı bileşen tipini render ettiğinden (`<AuthShell mode="login|signup" />`), React Router gezinme
+sırasında bileşeni unmount etmiyor — sadece `mode` prop'u değişiyor, bu da CSS `transition`'ın
+remount'a gerek kalmadan düzgün oynamasını sağlıyor.
+
+**Doğrulama:** `npm run test` — `LoginForm.test.tsx` değişmeden geçti (3/3); testte önceden var
+olan 2 ilgisiz başarısızlık (`InvoicesPage.test.tsx`, `InvoiceForm.test.tsx`) bu değişiklikten önce
+de mevcuttu, `git stash` ile doğrulandı. `npm run build` (tsc) — değiştirilen dosyalarda hata yok
+(projede önceden var olan, bu değişiklikle ilgisiz 5 tip hatası hâlâ duruyor, dokunulmadı).
+`npx eslint` — yeni hata yok. `npm run dev` ile sunucu ayağa kaldırılıp `/login`/`/signup` `curl`
+ile 200 döndüğü doğrulandı; bu ortamda tarayıcı otomasyon aracı (`chromium-cli`, Playwright)
+mevcut olmadığından **gerçek görsel/etkileşim teyidi yapılamadı** — bkz. `docs/todo.md`.
+
+**Not:** `feature/auth-redesign` git branch'i üzerinde çalışıldı (main dokunulmadı, güvenlik ağı).
+
+---
+
 ## 2026-08-28 — Koyu Mod Renk Kontrastı Düzeltmeleri
 
 **Durum:** Değiştirme

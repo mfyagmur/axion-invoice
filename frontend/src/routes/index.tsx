@@ -1,11 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { AdminTemplatesPage } from '@/pages/admin/AdminTemplatesPage'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { SignupPage } from '@/pages/auth/SignupPage'
+import { AuthShell } from '@/features/auth/components/AuthShell'
+import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordForm'
+import { ResetPasswordForm } from '@/features/auth/components/ResetPasswordForm'
 import { CustomerDetailPage } from '@/pages/dashboard/CustomerDetailPage'
 import { CustomersPage } from '@/pages/dashboard/CustomersPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
@@ -27,11 +29,18 @@ export const router = createBrowserRouter([
       { path: '/', element: <LandingPage /> },
       { path: '/odeme', element: <PaymentPlaceholderPage /> },
       { path: '/iletisim', element: <ContactPlaceholderPage /> },
+    ],
+  },
+  {
+    element: <AuthLayout />,
+    children: [
       {
         element: <PublicOnlyRoute />,
         children: [
-          { path: '/login', element: <LoginPage /> },
-          { path: '/signup', element: <SignupPage /> },
+          { path: '/login', element: <AuthShell mode="login" /> },
+          { path: '/signup', element: <AuthShell mode="signup" /> },
+          { path: '/forgot-password', element: <ForgotPasswordForm /> },
+          { path: '/reset-password', element: <ResetPasswordForm /> },
         ],
       },
     ],

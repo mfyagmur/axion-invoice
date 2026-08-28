@@ -101,6 +101,23 @@ class CompanySettingsUpdatePayload(BaseModel):
     invoice_number_padding: int | None = Field(default=None, ge=3, le=6)
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)
+
+    @field_validator("confirm_password")
+    @classmethod
+    def password_match(cls, v, info):
+        if "new_password" in info.data and v != info.data["new_password"]:
+            raise ValueError("Passwords do not match")
+        return v
+
+
 class PasswordChangePayload(BaseModel):
     current_password: str | None = Field(default=None, min_length=1)
     new_password: str = Field(min_length=8)

@@ -1,7 +1,9 @@
 import { apiClient } from '@/lib/apiClient'
 import type {
+  ForgotPasswordPayload,
   GoogleLoginPayload,
   LoginPayload,
+  ResetPasswordPayload,
   SignupPayload,
   TokenResponse,
   User,
@@ -24,4 +26,10 @@ export const authApi = {
     apiClient.post<TokenResponse>('/auth/google', payload).then((res) => res.data),
 
   me: () => apiClient.get<User>('/auth/me').then((res) => res.data),
+
+  forgotPassword: (payload: ForgotPasswordPayload) =>
+    apiClient.post<void>('/auth/forgot-password', payload).then((res) => res.data),
+
+  resetPassword: (payload: ResetPasswordPayload) =>
+    apiClient.post<void>('/auth/reset-password', payload).then((res) => res.data),
 }

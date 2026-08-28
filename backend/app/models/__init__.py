@@ -8,6 +8,7 @@ from app.models.definitions import (
     DefinitionUnit,
 )
 from app.models.invoice import Invoice, InvoiceCustomer, InvoiceLineItem, InvoiceStatus
+from app.models.password_reset_token import PasswordResetToken
 from app.models.plan import Plan
 from app.models.session import UserSession
 from app.models.subscription import BillingInterval, Subscription, SubscriptionStatus
@@ -17,6 +18,7 @@ from app.models.user import User
 __all__ = [
     "User",
     "UserSession",
+    "PasswordResetToken",
     "CustomerContact",
     "InvoiceTemplate",
     "InvoiceTemplateField",

@@ -70,7 +70,8 @@
       "noAccount": "Hesabınız yok mu?",
       "signupLink": "Kayıt olun",
       "googleDivider": "veya",
-      "error": "E-posta veya şifre hatalı"
+      "error": "E-posta veya şifre hatalı",
+      "forgotPassword": "Şifremi unuttum?"
     },
     "signup": {
       "title": "Hesap Oluştur",
@@ -93,6 +94,36 @@
         "companyNameRequired": "Kurumsal hesap için şirket adı gerekli",
         "emailInvalid": "Geçerli bir e-posta girin",
         "emailTaken": "Bu e-posta zaten kayıtlı"
+      }
+    },
+    "forgotPassword": {
+      "title": "Şifremi Unuttum",
+      "subtitle": "E-posta adresinizi girin, şifre sıfırlama bağlantısı gönderelim",
+      "email": "E-posta",
+      "submit": "Sıfırlama Bağlantısı Gönder",
+      "successMessage": "E-posta adresiniz kayıtlıysa, şifre sıfırlama bağlantısı gönderildi. Gelen kutunuzu kontrol edin.",
+      "backToLogin": "Girişe geri dön"
+    },
+    "resetPassword": {
+      "title": "Yeni Şifre Belirle",
+      "subtitle": "Hesabınız için yeni bir şifre oluşturun",
+      "password": "Yeni Şifre",
+      "confirmPassword": "Yeni Şifre (Tekrar)",
+      "submit": "Şifreyi Sıfırla",
+      "errors": {
+        "invalidToken": "Bu bağlantı geçersiz veya süresi dolmuş. Lütfen tekrar şifre sıfırlama talebinde bulunun."
+      }
+    },
+    "overlay": {
+      "toSignup": {
+        "title": "Aramıza katılın",
+        "body": "Faturalarınızı dakikalar içinde oluşturun, kendi tasarımınızla özelleştirin.",
+        "cta": "Hesap Oluştur"
+      },
+      "toLogin": {
+        "title": "Zaten bir hesabınız mı var?",
+        "body": "Kaldığınız yerden devam etmek için hesabınıza giriş yapın.",
+        "cta": "Giriş Yap"
       }
     },
     "google": {

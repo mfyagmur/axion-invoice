@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
@@ -12,24 +13,32 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    generate_reset_token,
     hash_password,
+    hash_reset_token,
     verify_password,
 )
 from app.models.invoice import Invoice
+from app.models.password_reset_token import PasswordResetToken
 from app.models.session import UserSession
 from app.models.user import User
 from app.schemas.auth import (
+    ForgotPasswordRequest,
     GoogleAuthRequest,
     LoginRequest,
+    ResetPasswordRequest,
     SignupRequest,
     TokenResponse,
     UserResponse,
 )
+from app.services.email_service import send_password_reset_email
 from app.services.google_oauth import GoogleTokenError, verify_google_id_token
 from app.services.subscription_service import ensure_default_subscription
 from app.tasks.pdf_tasks import generate_invoice_pdf_task
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+RESET_TOKEN_EXPIRE_MINUTES = 30
 
 
 def _set_refresh_cookie(response: Response, user_id: str, request: Request, db: Session) -> None:
@@ -218,3 +227,41 @@ def demo_login(request: Request, response: Response, db: Annotated[Session, Depe
 @router.get("/me", response_model=UserResponse)
 def me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     return current_user
+
+
+@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+def forgot_password(payload: ForgotPasswordRequest, db: Annotated[Session, Depends(get_db)]) -> None:
+    user = db.query(User).filter(User.email == payload.email).first()
+    # Kullanıcı yoksa veya sadece Google ile giriş yapıyorsa da 204 döner —
+    # email enumeration'ı önlemek için (var/yok fark etmez, sessiz).
+    if user is not None and user.password_hash is not None:
+        raw_token, token_hash = generate_reset_token()
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES),
+            )
+        )
+        db.commit()
+        send_password_reset_email(user.email, user, raw_token)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(payload: ResetPasswordRequest, db: Annotated[Session, Depends(get_db)]) -> None:
+    token_hash = hash_reset_token(payload.token)
+    record = db.query(PasswordResetToken).filter(PasswordResetToken.token_hash == token_hash).first()
+    if (
+        record is None
+        or record.used_at is not None
+        or record.expires_at < datetime.now(timezone.utc)
+    ):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bağlantı geçersiz veya süresi dolmuş")
+
+    user = db.get(User, record.user_id)
+    user.password_hash = hash_password(payload.new_password)
+    record.used_at = func.now()
+    db.query(UserSession).filter(UserSession.user_id == user.id, UserSession.revoked_at.is_(None)).update(
+        {"revoked_at": func.now()}
+    )
+    db.commit()

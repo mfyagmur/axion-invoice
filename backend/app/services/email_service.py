@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.config import settings
 from app.models.invoice import Invoice
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,30 @@ DUE_REMINDER_LABELS = {
         "due_date_label": "Due Date",
         "issued_date_label": "Issued on",
         "view_button": "View Invoice",
+        "footer": "All rights reserved.",
+        "text_regards": "Sincerely,",
+    },
+}
+
+
+RESET_PASSWORD_LABELS = {
+    "tr": {
+        "lang": "tr",
+        "subject": "Axion Invoice — Şifre Sıfırlama Talebi",
+        "greeting": "Merhaba {full_name},",
+        "body": "Hesabınız için bir şifre sıfırlama talebi aldık. Aşağıdaki butona tıklayarak yeni bir şifre belirleyebilirsiniz.",
+        "button": "Şifremi Sıfırla",
+        "expiry_note": "Bu bağlantı 30 dakika içinde geçerliliğini yitirecektir. Bu talebi siz oluşturmadıysanız bu e-postayı görmezden gelebilirsiniz.",
+        "footer": "Tüm hakları saklıdır.",
+        "text_regards": "Saygılarımızla,",
+    },
+    "en": {
+        "lang": "en",
+        "subject": "Axion Invoice — Password Reset Request",
+        "greeting": "Hi {full_name},",
+        "body": "We received a request to reset your account password. Click the button below to set a new password.",
+        "button": "Reset Password",
+        "expiry_note": "This link will expire in 30 minutes. If you didn't request this, you can safely ignore this email.",
         "footer": "All rights reserved.",
         "text_regards": "Sincerely,",
     },
@@ -337,3 +362,30 @@ def send_invoice_due_reminder_email(to_email: str, invoice: Invoice, kind: str) 
     )
 
     return _dispatch_email(to_email, subject, text_body, html_body, log_context=f"{invoice.invoice_number} due-reminder/{kind}")
+
+
+def send_password_reset_email(to_email: str, user: User, raw_token: str) -> bool:
+    """Sends a password reset link to `to_email` via SMTP."""
+    labels = RESET_PASSWORD_LABELS.get(user.locale, RESET_PASSWORD_LABELS["tr"])
+    reset_url = f"{settings.frontend_url}/reset-password?token={raw_token}"
+
+    text_body = f"""{labels['greeting'].format(full_name=user.full_name)}
+
+{labels['body']}
+
+{labels['button']}: {reset_url}
+
+{labels['expiry_note']}
+
+{labels['text_regards']}
+Axion Invoice Sistemi
+"""
+
+    html_body = _env.get_template("email_password_reset.html").render(
+        labels=labels,
+        full_name=user.full_name,
+        reset_url=reset_url,
+        current_year=date.today().year,
+    )
+
+    return _dispatch_email(to_email, labels["subject"], text_body, html_body, log_context="password-reset")

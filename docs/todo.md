@@ -1,5 +1,51 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-08-28 — Faz 2: "Şifremi Unuttum" Akışı sonrası
+
+- [ ] 2026-08-28: "Şifremi unuttum" akışı (forgot/reset-password endpoint'leri + yeni frontend
+  sayfaları) backend tarafında uçtan uca canlı smoke test ile doğrulandı (token üretimi, email
+  gönderimi tetikleme, yeni şifreyle giriş, eski şifrenin reddi, tek kullanımlık token, geçersiz
+  token 400) — ancak gerçek tarayıcıda henüz teyit edilmedi (ortamda tarayıcı otomasyon aracı yok).
+  Kullanıcının kendi tarayıcısında kontrol etmesi gerekenler: `/login`'de "Şifremi unuttum?"
+  linkine tıklayınca `/forgot-password`'a gitmesi, email gönderildikten sonra başarı mesajının
+  göründüğü, gelen email'deki linkten `/reset-password?token=...`'a gidip yeni şifre belirlenince
+  `/login`'e yönlendirilmesi, süresi dolmuş/geçersiz token ile hata mesajı gösterilmesi — bkz.
+  `docs/PROJECT_DESING.md` "Faz 2: 'Şifremi Unuttum' Şifre Sıfırlama Akışı".
+- [ ] 2026-08-28: Faz 2'nin kalan üç aday alanı (kullanıcıya soruldu, sadece "Şifremi unuttum"
+  seçildi) henüz eklenmedi — ileride ayrı bir turda ele alınabilir: telefon numarası (Signup),
+  Vergi No/TC Kimlik No (Kurumsal hesap türü), KVKK/Şartlar onay checkbox'ı.
+
+## 2026-08-28 — Login/Kayıt Ol: Kurumsal Taşma/Alt Bağlantı/Input Kontrastı Düzeltmesi sonrası
+
+- [ ] 2026-08-28: `AuthShell.tsx`'teki dinamik yükseklik ölçümü (`ResizeObserver` + panel
+  `scrollHeight`), formun altındaki tekrar eden "Zaten hesabınız var mı" bağlantısının
+  kaldırılması ve input kontrast düzeltmesi bu oturumda gerçek tarayıcıda teyit edilmedi —
+  ortamda tarayıcı otomasyon aracı yoktu. Kullanıcının kendi tarayıcısında `/signup`'ta
+  Kurumsal seçilip Şirket Adı alanı eklenince kartın kesilmeden yumuşakça büyüdüğünü, formların
+  altında artık gereksiz bağlantı olmadığını, input alanlarının kart zemininde yeterince belirgin
+  (beyaz zemin + gri kenarlık) göründüğünü kontrol etmesi gerekiyor — bkz.
+  `docs/PROJECT_DESING.md` "Login/Kayıt Ol: Kurumsal Taşma, Alt Bağlantı Tekrarı ve Input
+  Kontrastı Düzeltmesi".
+
+## 2026-08-28 — Login/Kayıt Ol: Gerçek Kayan Panel + "Ücretsiz Başla" Demo Girişi sonrası
+
+- [ ] 2026-08-28: Yeni karşılıklı kayan panel animasyonu (`AuthShell.tsx` — Login/Signup panelleri
+  zıt yönlerde `translateX` ile yer değiştiriyor) ve "Ücretsiz Başla" butonunun artık `useDemoLogin`
+  ile doğrudan `/dashboard`'a demo girişi yapması bu oturumda gerçek tarayıcıda teyit edilmedi —
+  ortamda tarayıcı otomasyon aracı yoktu. Kullanıcının kendi tarayıcısında `/login`↔`/signup`
+  arasında geçiş yaparken iki panelin de görünür şekilde karşılıklı kaydığını, klavyeyle Tab
+  yapıldığında ekran dışındaki (inert) panele odağın gitmediğini, ve header'daki "Ücretsiz Başla"
+  butonunun tek tıkla `/dashboard`'a giriş yaptığını kontrol etmesi gerekiyor — bkz.
+  `docs/PROJECT_DESING.md` "Login/Kayıt Ol: Gerçek Kayan Panel Animasyonu + Ücretsiz Başla Demo
+  Girişi".
+- [ ] 2026-08-28: Dark/light tema geçişi, TR/EN dil değişimi, mobil genişlikte (`< 768px`) tek form
+  fallback'i de aynı şekilde henüz gerçek tarayıcıda teyit edilmedi (Faz 1'in ilk sürümünden kalan,
+  hâlâ açık).
+- [x] 2026-08-28: Faz 2 — kullanıcı, UI onaylandıktan sonra Login/Signup formlarına yeni alanlar
+  eklenmesini istedi; hangi alanlar sorulup "Şifremi unuttum" akışı seçildi ve uygulandı (bkz.
+  yukarıdaki "Faz 2: 'Şifremi Unuttum' Akışı sonrası" bölümü). Kalan üç aday alan orada açık madde
+  olarak listelendi.
+
 ## 2026-08-28 — Koyu Mod Renk Kontrastı Düzeltmeleri sonrası
 
 - [ ] 2026-08-28: Bu oturumda yapılan renk düzeltmeleri sadece kod/CSS seviyesinde yapıldı —
