@@ -4,6 +4,76 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-08-28 — Kalıcı Karanlık/Aydınlık (Dark/Light) Tema Modu
+
+**Durum:** Ekleme
+
+**Özet:** Projede daha önce hiçbir tema altyapısı yoktu (grep ile `dark`/`theme`/
+`prefers-color-scheme`/`localStorage` için tüm `frontend/src` tarandı, sıfır sonuç). Kullanıcı
+kalıcı bir Açık/Koyu tema modu istedi; OS/tarayıcı tercihini (`prefers-color-scheme`) okuyan,
+kullanıcı override ederse `localStorage`'a kalıcı yazan, 3 yönlü (Açık/Koyu/Sistem) bir kontrol
+kuruldu. Proje Tailwind CSS v4 kullanıyor (klasik `tailwind.config.js` yok, CSS-first
+konfigürasyon), bu yüzden `darkMode: 'class'` yerine v4'ün kendi `@custom-variant dark` mekanizması
+kullanıldı. Tüm değişiklikler **sadece ek** `dark:` sınıfları — mevcut açık mod görünümü hiçbir
+yerde değiştirilmedi (piksel bazında aynı).
+
+**Yapılan dosyalar:**
+- `frontend/src/index.css` — Değiştirme: `@custom-variant dark (&:where(.dark, .dark *));`
+  eklendi (Tailwind v4'te class-tabanlı dark mode'u etkinleştirir). `body`'e
+  `bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100` eklendi — bu, sayfa kökünün
+  koyu modda beyaz kalmasını (sidebar/dropdown etrafında beyaz flash) önlüyor, çünkü hiçbir
+  layout bileşeni kendi arkaplanını set etmiyordu. `.axion-scrollbar` için `.dark` scrollbar renk
+  eşdeğerleri eklendi.
+- `frontend/src/store/themeStore.ts` — Ekleme: `useThemeStore` (zustand `persist`), mevcut
+  `localeStore.ts` deseni takip edildi. `ThemeMode = 'light' | 'dark' | 'system'`,
+  `document.documentElement.classList.toggle('dark', ...)` ile uygulanıyor, `system` modunda
+  `matchMedia('(prefers-color-scheme: dark)')` canlı değişiklik dinleyicisiyle anında güncelleniyor.
+  Depolama key'i: `axion-theme-storage`.
+- `frontend/index.html` — Değiştirme: `<head>` içine, React mount olmadan ÖNCE çalışan senkron bir
+  inline `<script>` eklendi — `axion-theme-storage`'ı okuyup `<html>`'e `dark` sınıfını hemen
+  uyguluyor (zustand `persist` rehydration React mount'tan SONRA çalıştığı için, bu script
+  olmadan sayfa açık temayla "flaşlayıp" sonra koyuya geçerdi).
+- `frontend/src/components/ThemeSwitcher.tsx` — Ekleme: `LanguageSwitcher.tsx` ile birebir aynı
+  desen (segmented buton, `compact` prop, `twMerge`), `lucide-react`'ten `Sun`/`Moon`/`Monitor`
+  ikonları. Hem sidebar hem Ayarlar sayfasında aynı bileşen kullanılıyor.
+- `frontend/src/components/Card.tsx` — Değiştirme: paylaşılan `Card` bileşenine `dark:` varyantları
+  eklendi (`dark:bg-slate-900`, `dark:border-slate-700`, başlık/ikon metinleri). Bu, planın
+  kapsamındaki layout dosyalarının dışında ama zorunluydu — aksi halde tam da yeni butonun
+  eklendiği Ayarlar &gt; Tercihler "Sistem" kartı koyu modda beyaz/bozuk görünecekti.
+- `frontend/src/layouts/Sidebar.tsx` — Değiştirme: tüm ilgili sınıflara `dark:` eklendi (nav kökü,
+  collapse butonu, app adı, nav linkleri + aktif durum, profil butonu, avatar, dropdown paneli,
+  dropdown satırları, logout hover). Dil satırının hemen altına yeni bir "Tema" satırı eklendi
+  (`<ThemeSwitcher compact />`).
+- `frontend/src/pages/dashboard/settings/PreferencesTab.tsx` — Değiştirme: "Sistem" kartı içine,
+  mevcut açıklama metninin üstüne `{t('settings.preferences.themeLabel')}` + `<ThemeSwitcher />`
+  (tam boy) satırı eklendi, kart içindeki metinlere `dark:` eklendi.
+- `frontend/src/layouts/DashboardLayout.tsx` — Değiştirme: mobil header border'ı ve demo banner'ına
+  `dark:` eklendi.
+- `frontend/src/layouts/PublicLayout.tsx` — Değiştirme: header/footer border, app adı, login linki
+  ve footer metnine `dark:` eklendi.
+- `frontend/src/i18n/locales/tr.json`, `en.json` — Değiştirme: `common` bloğuna
+  `theme`/`themeLight`/`themeDark`/`themeSystem`, `settings.preferences` bloğuna `themeLabel`
+  eklendi.
+
+**Doğrulama:** Backend konteynerindeki (`backend-backend-1`) Playwright kurulumu kullanılarak
+(host'ta çalışan Vite dev sunucusuna `--host-resolver-rules` ile `localhost` üzerinden erişilerek,
+CORS/Vite host-check sorunları böylece aşıldı) uçtan uca gerçek tarayıcı testi yapıldı: yeni bir
+kullanıcı signup ile oluşturuldu, dashboard'a girildi, sidebar profil menüsünden "Koyu" seçildi —
+`<html>` `dark` sınıfını aldı, sidebar/dropdown/nav renkleri doğru şekilde koyu temaya döndü.
+`?tab=preferences` sayfasındaki "Sistem" kartındaki kontrolün de aynı store'u paylaştığı (senkron,
+"Koyu" olarak işaretli) doğrulandı. Sayfa `dark` mod aktifken yeniden yüklendiğinde, React mount
+olmadan hemen önce (`wait_until="commit"`) `<html>` sınıfının zaten `dark` olduğu doğrulandı —
+anti-flash script'i çalışıyor. "Açık"a geri dönüldüğünde tüm sınıflar temiz şekilde kaldırıldı,
+kalıntı koyu stil kalmadı. Landing/login sayfası (açık modda) değişiklik öncesiyle karşılaştırılıp
+piksel bazında aynı olduğu teyit edildi. `npx tsc --noEmit` hatasız geçti.
+
+**Bilinen sınırlama:** Invoices/Customers/Dashboard ana sayfa gibi bu oturumda dokunulmayan diğer
+sayfalar henüz `dark:` uyarlaması almadı (bkz. `docs/todo.md`) — koyu modda gezinirken beyaz
+kartlar/kontrast sorunları görülebilir, bu regresyon değil, kapsam dışı bırakılmış bilinen bir
+durum.
+
+---
+
 ## 2026-08-27 — Yeni Şablonlarda Banka Tablosu Kesilmesi ve Alt Bant Düzeni Düzeltmesi
 
 **Durum:** Değiştirme (bug fix)

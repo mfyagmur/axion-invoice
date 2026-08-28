@@ -8,13 +8,13 @@ export function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-        <Link to="/" className="text-lg font-semibold text-slate-900">
+      <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+        <Link to="/" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           {t('common.appName')}
         </Link>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
-          <Link to="/login" className="text-sm font-medium text-slate-700 hover:text-slate-900">
+          <Link to="/login" className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100">
             {t('landing.nav.login')}
           </Link>
           <Link to="/signup">
@@ -27,7 +27,7 @@ export function PublicLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400 dark:border-slate-700 dark:text-slate-500">
         © {new Date().getFullYear()} {t('common.appName')} — {t('landing.footer.rights')}
       </footer>
     </div>

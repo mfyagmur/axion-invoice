@@ -1,5 +1,22 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-08-28 — Kalıcı Tema Modu (Dark/Light) sonrası
+
+- [ ] 2026-08-28: Invoices/Customers/Dashboard ana sayfa, TemplateEditorPage, InvoiceForm vb. bu
+  oturumda dokunulmayan tüm diğer sayfalar henüz `dark:` uyarlaması almadı — hâlâ sabit
+  `bg-white`/`slate-*` renkleri kullanıyorlar. Koyu mod açıkken bu sayfalarda beyaz kart/kontrast
+  tutarsızlığı beklenir. Kapsamlı bir "tüm uygulamayı koyu temaya taşıma" geçişi ayrı bir oturumda
+  yapılmalı (muhtemelen `Input`/`Select`/`Button`/`Modal`/`ErrorState` gibi paylaşılan bileşenlerden
+  başlanmalı, çünkü çoğu sayfa bunları kullanıyor).
+- [ ] 2026-08-28: `App.tsx`'teki `sonner` `Toaster` ve `ToastContainer` bileşenleri şu an aktif
+  temaya göre `theme="dark"` ile senkronize edilmiyor — koyu modda toast bildirimleri açık temalı
+  görünebilir. Küçük bir iyileştirme, bu oturumda bilinçli olarak ertelendi.
+- [ ] 2026-08-28: Bu oturumda doğrulama, backend konteynerindeki Playwright ile otomatik
+  (script tabanlı) yapıldı — gerçek kullanıcı tarafından, kendi tarayıcısında (gerçek Chrome/Edge,
+  farklı ekran boyutları, mevcut gerçek hesapla) 3 modun (Açık/Koyu/Sistem) her iki konumda
+  (sidebar profil menüsü + `?tab=preferences` Sistem kartı) da denenip görsel olarak teyit
+  edilmesi gerekiyor.
+
 ## 2026-08-27 — Banka Tablosu Kesilmesi Düzeltmesi sonrası
 
 - [ ] 2026-08-27: Gerçek tarayıcıda, gerçek 3 farklı banka hesabı tanımlanıp (`Tanımlamalar >

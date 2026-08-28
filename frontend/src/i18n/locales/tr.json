@@ -10,6 +10,10 @@
     "genericError": "Bir hata oluştu, lütfen tekrar deneyin.",
     "retry": "Tekrar Dene",
     "language": "Dil",
+    "theme": "Tema",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "themeSystem": "Sistem",
     "optional": "Opsiyonel",
     "back": "Geri",
     "edit": "Düzenle",
@@ -697,6 +701,7 @@
       "autosaveIntervalHint": "Şablon tasarımcısında değişiklikler bu süre aralığında otomatik olarak kaydedilir.",
       "autosaveIntervalOption": "{{count}} dakika",
       "system": "Sistem",
+      "themeLabel": "Görünüm Modu",
       "systemDescription": "Sistem genelinde tercihler ve ayarlar.",
       "systemInfo": "Sistem ayarları yapılandırması ve tercihler burada görüntülenecektir."
     },

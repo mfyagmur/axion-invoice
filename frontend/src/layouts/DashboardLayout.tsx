@@ -53,7 +53,7 @@ export function DashboardLayout() {
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex items-center border-b border-slate-200 px-6 py-3 lg:hidden">
+        <header className="flex items-center border-b border-slate-200 px-6 py-3 lg:hidden dark:border-slate-700">
           <button
             type="button"
             onClick={() => setMobileNavOpen((open) => !open)}
@@ -64,7 +64,7 @@ export function DashboardLayout() {
         </header>
 
         {user?.is_demo && (
-          <div className="bg-amber-50 px-6 py-2 text-sm text-amber-800">{t('demo.banner')}</div>
+          <div className="bg-amber-50 px-6 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t('demo.banner')}</div>
         )}
 
         <main ref={mainRef} className="relative flex-1 overflow-y-auto p-6">

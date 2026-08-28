@@ -10,6 +10,10 @@
     "genericError": "Something went wrong, please try again.",
     "retry": "Retry",
     "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
     "optional": "Optional",
     "back": "Back",
     "edit": "Edit",
@@ -697,6 +701,7 @@
       "autosaveIntervalHint": "Changes in the template designer are automatically saved at this interval.",
       "autosaveIntervalOption": "{{count}} minutes",
       "system": "System",
+      "themeLabel": "Appearance Mode",
       "systemDescription": "System-wide preferences and settings.",
       "systemInfo": "System settings configuration and preferences will appear here."
     },

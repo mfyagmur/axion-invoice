@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 import { twMerge } from 'tailwind-merge'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { dashboardNavItems } from '@/config/navigation'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { useAuthStore } from '@/store/authStore'
@@ -52,7 +53,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   return (
     <nav
       className={twMerge(
-        'relative flex h-full flex-col border-r border-slate-200 bg-white p-4 transition-[width] duration-300 ease-in-out',
+        'relative flex h-full flex-col border-r border-slate-200 bg-white p-4 transition-[width] duration-300 ease-in-out dark:border-slate-700 dark:bg-slate-900',
         collapsed ? 'w-16' : 'w-60',
       )}
     >
@@ -61,7 +62,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           type="button"
           onClick={toggleCollapsed}
           aria-label="toggle-sidebar"
-          className="absolute right-0 top-8 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-100"
+          className="absolute right-0 top-8 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
           {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
         </button>
@@ -69,7 +70,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
       <div className="mb-4 flex items-center">
         {!collapsed && (
-          <span className="px-2 text-lg font-semibold text-slate-900">{t('common.appName')}</span>
+          <span className="px-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{t('common.appName')}</span>
         )}
       </div>
 
@@ -83,9 +84,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             title={collapsed ? t(labelKey) : undefined}
             className={({ isActive }) =>
               twMerge(
-                'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100',
+                'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
                 collapsed && 'justify-center px-0',
-                isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+                isActive && 'bg-slate-900 text-white hover:bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-100',
               )
             }
           >
@@ -131,63 +132,68 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       </div>
 
       {user && (
-        <div className="relative mt-4 border-t border-slate-200 pt-4" ref={menuRef}>
+        <div className="relative mt-4 border-t border-slate-200 pt-4 dark:border-slate-700" ref={menuRef}>
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             title={collapsed ? user.full_name : undefined}
             className={twMerge(
-              'flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-slate-100',
+              'flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800',
               collapsed && 'justify-center px-0',
             )}
           >
             <div className={twMerge('flex items-center gap-2', collapsed && 'gap-0')}>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold dark:bg-slate-100 dark:text-slate-900">
                 {user.full_name.charAt(0).toUpperCase()}
               </div>
               {!collapsed && (
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium text-slate-900">{user.full_name}</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{user.full_name}</span>
                 </div>
               )}
             </div>
             {!collapsed &&
               (isMenuOpen ? (
-                <ChevronUp size={16} className="text-slate-600" />
+                <ChevronUp size={16} className="text-slate-600 dark:text-slate-300" />
               ) : (
-                <ChevronDown size={16} className="text-slate-600" />
+                <ChevronDown size={16} className="text-slate-600 dark:text-slate-300" />
               ))}
           </button>
 
           {isMenuOpen && (
             <div
               className={twMerge(
-                'absolute bottom-full left-0 right-0 mb-2 w-60 rounded-md border border-slate-200 bg-white shadow-lg',
+                'absolute bottom-full left-0 right-0 mb-2 w-60 rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900',
                 collapsed && 'left-0 right-auto',
               )}
             >
-              <div className="border-b border-slate-200 px-3 py-2">
-                <p className="mb-1 text-sm font-medium text-slate-900">{user.full_name}</p>
-                <p className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">{user.email}</p>
+              <div className="border-b border-slate-200 px-3 py-2 dark:border-slate-700">
+                <p className="mb-1 text-sm font-medium text-slate-900 dark:text-slate-100">{user.full_name}</p>
+                <p className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">{user.email}</p>
               </div>
 
-              <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-                <span className="text-sm text-slate-600">{t('common.language')}</span>
+              <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 dark:border-slate-700">
+                <span className="text-sm text-slate-600 dark:text-slate-300">{t('common.language')}</span>
                 <LanguageSwitcher compact />
               </div>
 
-              <div className="border-t border-slate-200">
+              <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 dark:border-slate-700">
+                <span className="text-sm text-slate-600 dark:text-slate-300">{t('common.theme')}</span>
+                <ThemeSwitcher compact />
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-700">
                 <NavLink
                   to="/dashboard/settings"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   <Settings size={16} />
                   {t('nav.settings')}
                 </NavLink>
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   <HelpCircle size={16} />
                   {t('nav.support') || 'Support'}
@@ -195,7 +201,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="border-t border-slate-200 flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
+                  className="border-t border-slate-200 flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                 >
                   <LogOut size={16} />
                   {t('nav.logout')}
