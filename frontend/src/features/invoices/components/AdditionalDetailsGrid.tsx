@@ -63,9 +63,9 @@ export function AdditionalDetailsGrid({ invoiceId, status, notes }: AdditionalDe
             rows={4}
           />
         ) : notes ? (
-          <p className="whitespace-pre-wrap text-sm text-slate-600">{notes}</p>
+          <p className="whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">{notes}</p>
         ) : (
-          <p className="text-sm text-slate-400">{t('invoices.detail.notesEmpty')}</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">{t('invoices.detail.notesEmpty')}</p>
         )}
       </div>
     </Card>

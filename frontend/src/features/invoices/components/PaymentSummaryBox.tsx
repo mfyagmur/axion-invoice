@@ -22,17 +22,17 @@ export function PaymentSummaryBox({ grandTotal, subtotal, taxTotal, currency }: 
         <button
           type="button"
           onClick={() => setIsOpen((open) => !open)}
-          className="flex w-full items-center justify-between rounded-md px-1 py-1 text-left transition-colors hover:bg-slate-50"
+          className="flex w-full items-center justify-between rounded-md px-1 py-1 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
         >
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-slate-600">{t('invoices.form.amountToBeCharged')}</span>
-            <span className="text-lg font-semibold text-slate-900">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.amountToBeCharged')}</span>
+            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {formatCurrency(grandTotal)} {currency}
             </span>
           </div>
           <ChevronDown
             size={16}
-            className={twMerge('shrink-0 text-slate-600 transition-transform', isOpen && 'rotate-180')}
+            className={twMerge('shrink-0 text-slate-600 transition-transform dark:text-slate-400', isOpen && 'rotate-180')}
           />
         </button>
 
@@ -43,22 +43,22 @@ export function PaymentSummaryBox({ grandTotal, subtotal, taxTotal, currency }: 
           )}
         >
           <div className="overflow-hidden">
-            <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 text-sm">
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 text-sm dark:border-slate-700">
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-slate-600">{t('invoices.form.subtotal')}</span>
-                <span className="text-slate-900">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.subtotal')}</span>
+                <span className="text-slate-900 dark:text-slate-100">
                   {formatCurrency(subtotal)} {currency}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-slate-600">{t('invoices.form.tax')}</span>
-                <span className="text-slate-900">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{t('invoices.form.tax')}</span>
+                <span className="text-slate-900 dark:text-slate-100">
                   {formatCurrency(taxTotal)} {currency}
                 </span>
               </div>
-              <div className="flex flex-col gap-1 border-t border-slate-200 pt-3">
-                <span className="text-xs font-semibold text-slate-900">{t('invoices.form.grandTotal')}</span>
-                <span className="text-sm font-semibold text-slate-900">
+              <div className="flex flex-col gap-1 border-t border-slate-200 pt-3 dark:border-slate-700">
+                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{t('invoices.form.grandTotal')}</span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {formatCurrency(grandTotal)} {currency}
                 </span>
               </div>

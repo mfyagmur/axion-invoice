@@ -131,7 +131,7 @@ export function LineItemsTable({
       <div className="overflow-x-auto">
         <table className="w-full min-w-175 text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
+            <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400 dark:border-slate-700 dark:text-slate-500">
               <th className="py-2 pr-3">{t('invoices.form.itemCode')}</th>
               <th className="py-2 pr-3">{t('invoices.form.description')}</th>
               <th className="py-2 pr-3 text-right">{t('invoices.form.quantity')}</th>
@@ -145,19 +145,19 @@ export function LineItemsTable({
           <tbody>
             {isEditing
               ? rows.map((row) => (
-                  <tr key={row.key} className="border-b border-slate-100 text-slate-700">
+                  <tr key={row.key} className="border-b border-slate-100 text-slate-700 dark:border-slate-700 dark:text-slate-300">
                     <td className="py-2 pr-3">
                       <input
                         value={row.item_code}
                         onChange={(e) => updateRow(row.key, 'item_code', e.target.value)}
-                        className="w-24 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-slate-500 focus:outline-none"
+                        className="w-24 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400"
                       />
                     </td>
                     <td className="py-2 pr-3">
                       <input
                         value={row.description}
                         onChange={(e) => updateRow(row.key, 'description', e.target.value)}
-                        className="w-full min-w-37.5 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-slate-500 focus:outline-none"
+                        className="w-full min-w-37.5 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400"
                       />
                     </td>
                     <td className="py-2 pr-3 text-right">
@@ -167,7 +167,7 @@ export function LineItemsTable({
                         min="0"
                         value={row.quantity}
                         onChange={(e) => updateRow(row.key, 'quantity', e.target.value)}
-                        className="w-20 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none"
+                        className="w-20 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400"
                       />
                     </td>
                     <td className="py-2 pr-3 text-right">
@@ -177,7 +177,7 @@ export function LineItemsTable({
                         min="0"
                         value={row.unit_price}
                         onChange={(e) => updateRow(row.key, 'unit_price', e.target.value)}
-                        className="w-24 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none"
+                        className="w-24 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400"
                       />
                     </td>
                     <td className="py-2 pr-3 text-right">
@@ -187,7 +187,7 @@ export function LineItemsTable({
                         min="0"
                         value={row.tax_rate}
                         onChange={(e) => updateRow(row.key, 'tax_rate', e.target.value)}
-                        className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none"
+                        className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400"
                       />
                     </td>
                     <td className="py-2 pr-3 text-right">
@@ -197,17 +197,17 @@ export function LineItemsTable({
                         min="0"
                         value={row.discount_rate}
                         onChange={(e) => updateRow(row.key, 'discount_rate', e.target.value)}
-                        className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none"
+                        className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400"
                       />
                     </td>
-                    <td className="py-2 text-right text-slate-400">—</td>
+                    <td className="py-2 text-right text-slate-400 dark:text-slate-500">—</td>
                     <td className="py-2 pl-3 text-right">
                       <button
                         type="button"
                         onClick={() => removeRow(row.key)}
                         disabled={rows.length <= 1}
                         aria-label={t('invoices.detail.removeLineItem')}
-                        className="flex h-8 w-8 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex h-8 w-8 items-center justify-center rounded text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -215,7 +215,7 @@ export function LineItemsTable({
                   </tr>
                 ))
               : lineItems.map((item) => (
-                  <tr key={item.id} className="border-b border-slate-100 text-slate-700">
+                  <tr key={item.id} className="border-b border-slate-100 text-slate-700 dark:border-slate-700 dark:text-slate-300">
                     <td className="py-3 pr-3">{item.item_code || '—'}</td>
                     <td className="py-3 pr-3">{item.description}</td>
                     <td className="py-3 pr-3 text-right">{Number(item.quantity)}</td>
@@ -224,7 +224,7 @@ export function LineItemsTable({
                     </td>
                     <td className="py-3 pr-3 text-right">%{Number(item.tax_rate)}</td>
                     <td className="py-3 pr-3 text-right">%{Number(item.discount_rate)}</td>
-                    <td className="py-3 text-right font-semibold text-slate-900">
+                    <td className="py-3 text-right font-semibold text-slate-900 dark:text-slate-100">
                       {formatCurrency(item.line_total)} {currency}
                     </td>
                   </tr>
@@ -237,29 +237,29 @@ export function LineItemsTable({
         <button
           type="button"
           onClick={addRow}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-700"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-700 dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-300"
         >
           <Plus size={14} />
           {t('invoices.detail.addLineItem')}
         </button>
       )}
 
-      <div className="mt-3 flex flex-col items-end gap-1 border-t border-slate-200 pt-3 text-sm">
+      <div className="mt-3 flex flex-col items-end gap-1 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
         <div className="flex w-48 justify-between">
-          <span className="text-slate-500">{t('invoices.form.subtotal')}</span>
-          <span className="text-slate-900">
+          <span className="text-slate-500 dark:text-slate-400">{t('invoices.form.subtotal')}</span>
+          <span className="text-slate-900 dark:text-slate-100">
             {formatCurrency(subtotal)} {currency}
           </span>
         </div>
         <div className="flex w-48 justify-between">
-          <span className="text-slate-500">{t('invoices.form.tax')}</span>
-          <span className="text-slate-900">
+          <span className="text-slate-500 dark:text-slate-400">{t('invoices.form.tax')}</span>
+          <span className="text-slate-900 dark:text-slate-100">
             {formatCurrency(taxTotal)} {currency}
           </span>
         </div>
-        <div className="flex w-48 justify-between border-t border-slate-200 pt-1 font-semibold">
-          <span className="text-slate-900">{t('invoices.form.grandTotal')}</span>
-          <span className="text-slate-900">
+        <div className="flex w-48 justify-between border-t border-slate-200 pt-1 font-semibold dark:border-slate-700">
+          <span className="text-slate-900 dark:text-slate-100">{t('invoices.form.grandTotal')}</span>
+          <span className="text-slate-900 dark:text-slate-100">
             {formatCurrency(grandTotal)} {currency}
           </span>
         </div>

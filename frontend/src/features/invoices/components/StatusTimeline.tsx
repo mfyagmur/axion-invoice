@@ -79,48 +79,48 @@ export function StatusTimeline({ status, createdAt, emailSentAt, emailSentTo }: 
                 <span
                   className={twMerge(
                     'relative inline-flex h-3 w-3 rounded-full border-2',
-                    step.done ? 'border-sky-500 bg-sky-500' : 'border-slate-300 bg-white',
+                    step.done ? 'border-sky-500 bg-sky-500' : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800',
                   )}
                 />
               </span>
               {index < steps.length - 1 && (
-                <span className={twMerge('w-px flex-1', step.done ? 'bg-slate-900' : 'bg-slate-200')} />
+                <span className={twMerge('w-px flex-1', step.done ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-700')} />
               )}
             </div>
             <div className={twMerge('flex flex-col pb-6', index === steps.length - 1 && 'pb-0')}>
-              <span className={twMerge('text-sm font-medium', step.done ? 'text-slate-900' : 'text-slate-400')}>
+              <span className={twMerge('text-sm font-medium', step.done ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500')}>
                 {step.label}
               </span>
-              {step.date && <span className="text-xs text-slate-500">{step.date}</span>}
-              {step.detail && <span className="text-xs text-slate-500">{step.detail}</span>}
+              {step.date && <span className="text-xs text-slate-500 dark:text-slate-400">{step.date}</span>}
+              {step.detail && <span className="text-xs text-slate-500 dark:text-slate-400">{step.detail}</span>}
             </div>
           </div>
         ))}
       </div>
       {statusMessage && (
-        <div className="border-t border-slate-200 pt-4 mt-4">
+        <div className="border-t border-slate-200 pt-4 mt-4 dark:border-slate-700">
           {statusMessage === 'created-only' && (
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Fatura {formatDate(createdAt)} tarihinde oluşturuldu. Henüz e-posta gönderilmedi.
             </p>
           )}
           {statusMessage === 'sent' && (
             <>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Fatura <strong>{emailSentToLabel}</strong> adresine gönderilmiştir.
               </p>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Alıcının ödemeyi yapması bekleniyor.
               </p>
             </>
           )}
           {statusMessage === 'payment-received' && (
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Ödeme sistem tarafından doğrulaması bekleniyor.
             </p>
           )}
           {statusMessage === 'paid' && (
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Alıcı tarafından ödeme gerçekleştirmiştir.
             </p>
           )}

@@ -45,13 +45,13 @@ export function SignupForm() {
       <div className="flex gap-2">
         <label className="flex-1">
           <input type="radio" value="bireysel" className="peer sr-only" {...register('account_type')} />
-          <span className="block cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-center text-sm peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white">
+          <span className="block cursor-pointer rounded-md border-2 border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-600 transition-colors hover:border-slate-400 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-slate-400 peer-focus-visible:ring-offset-2">
             {t('auth.signup.accountTypeBireysel')}
           </span>
         </label>
         <label className="flex-1">
           <input type="radio" value="kurumsal" className="peer sr-only" {...register('account_type')} />
-          <span className="block cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-center text-sm peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white">
+          <span className="block cursor-pointer rounded-md border-2 border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-600 transition-colors hover:border-slate-400 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-slate-400 peer-focus-visible:ring-offset-2">
             {t('auth.signup.accountTypeKurumsal')}
           </span>
         </label>
@@ -110,9 +110,9 @@ export function SignupForm() {
 
       <GoogleLoginButton accountType={accountType} />
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-slate-500">
         {t('auth.signup.hasAccount')}{' '}
-        <Link to="/login" className="font-medium text-slate-900 underline">
+        <Link to="/login" className="font-medium text-slate-600 underline hover:text-slate-800">
           {t('auth.signup.loginLink')}
         </Link>
       </p>

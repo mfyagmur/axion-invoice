@@ -41,20 +41,20 @@ export function InvoiceActionHeader({
         <button
           type="button"
           onClick={onBack}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
           aria-label={t('common.back')}
         >
           <ArrowLeft size={18} />
         </button>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-slate-900">{invoice.invoice_number}</h1>
+            <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{invoice.invoice_number}</h1>
             <InvoiceStatusBadge status={invoice.status} />
           </div>
-          <div className="flex flex-col gap-1 text-sm text-slate-500">
+          <div className="flex flex-col gap-1 text-sm text-slate-500 dark:text-slate-400">
             <span>{formatDate(invoice.created_at)}</span>
             {invoice.due_at && (
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-slate-700 dark:text-slate-300">
                 {t('invoices.detail.dueDate')}: {formatDate(invoice.due_at)}
               </span>
             )}

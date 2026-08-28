@@ -86,7 +86,7 @@ export function BankAccountSection({ invoiceId, status, bankAccounts }: BankAcco
                 onClick={() => setSelectedIds((prev) => prev.map((id, i) => (i === index ? '' : id)))}
                 disabled={!selectedIds[index]}
                 aria-label={`Remove bank account ${index + 1}`}
-                className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
               >
                 <X size={18} />
               </button>
@@ -95,22 +95,22 @@ export function BankAccountSection({ invoiceId, status, bankAccounts }: BankAcco
         ) : hasAnyBankAccount ? (
           <div className={`grid gap-4 grid-cols-1 ${colsClass}`}>
             {filled.map((bankAccount) => (
-              <div key={bankAccount.id} className="min-w-0 rounded-xl border border-slate-200 p-4">
-                <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+              <div key={bankAccount.id} className="min-w-0 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+                <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                   {bankAccount.currency}
                 </div>
-                <p className="truncate text-sm font-bold text-slate-900">{bankAccount.bank_name}</p>
-                <p className="truncate text-xs text-slate-500">{bankAccount.branch_name}</p> {/* (Şube Kodu: {bankAccount.branch_code}) */}
+                <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{bankAccount.bank_name}</p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">{bankAccount.branch_name}</p> {/* (Şube Kodu: {bankAccount.branch_code}) */}
                 <div className="mt-3 flex items-start justify-between gap-2">
-                  <p className="break-all font-mono text-sm text-slate-700">{bankAccount.iban}</p>
+                  <p className="break-all font-mono text-sm text-slate-700 dark:text-slate-300">{bankAccount.iban}</p>
                   <CopyIconButton value={bankAccount.iban} label="Copy IBAN" />
                 </div>
-                <p className="text-xs text-slate-500">Hesap No: {bankAccount.account_number}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Hesap No: {bankAccount.account_number}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-400">{t('invoices.detail.noBankAccount')}</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">{t('invoices.detail.noBankAccount')}</p>
         )}
       </div>
     </Card>

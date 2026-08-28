@@ -57,9 +57,9 @@ export function LoginForm() {
 
       <GoogleLoginButton accountType="bireysel" />
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-slate-500">
         {t('auth.login.noAccount')}{' '}
-        <Link to="/signup" className="font-medium text-slate-900 underline">
+        <Link to="/signup" className="font-medium text-slate-600 underline hover:text-slate-800">
           {t('auth.login.signupLink')}
         </Link>
       </p>
