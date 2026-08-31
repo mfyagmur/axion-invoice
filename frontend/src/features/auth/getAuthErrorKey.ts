@@ -20,3 +20,7 @@ export function getResetPasswordErrorKey(error: unknown): string {
   }
   return 'common.genericError'
 }
+
+export function getForgotPasswordErrorKey(): string {
+  return 'common.genericError'
+}

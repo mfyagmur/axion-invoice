@@ -101,6 +101,7 @@
       "subtitle": "E-posta adresinizi girin, şifre sıfırlama bağlantısı gönderelim",
       "email": "E-posta",
       "submit": "Sıfırlama Bağlantısı Gönder",
+      "successTitle": "Bağlantı gönderildi",
       "successMessage": "E-posta adresiniz kayıtlıysa, şifre sıfırlama bağlantısı gönderildi. Gelen kutunuzu kontrol edin.",
       "backToLogin": "Girişe geri dön"
     },
