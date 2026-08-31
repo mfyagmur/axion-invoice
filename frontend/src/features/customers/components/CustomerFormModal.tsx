@@ -1,11 +1,27 @@
 import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Building,
+  Building2,
+  CreditCard,
+  FileText,
+  Globe,
+  Hash,
+  Landmark,
+  Mail,
+  MapPin,
+  Phone,
+  Printer,
+  User,
+} from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/Button'
 import { CountryAutocomplete } from '@/components/CountryAutocomplete'
-import { Input } from '@/components/Input'
+import { FormCard } from '@/components/FormCard'
 import { Modal } from '@/components/Modal'
+import { SegmentedControl } from '@/components/SegmentedControl'
+import { UnderlinedInput } from '@/components/UnderlinedInput'
 import { useCreateCustomer } from '@/features/customers/hooks/useCreateCustomer'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useCategories } from '@/features/definitions/hooks/useCategories'
@@ -58,7 +74,6 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
   })
 
   const customerType = watch('customer_type')
-  const categoryId = watch('category_id')
 
   useEffect(() => {
     if (isOpen) {
@@ -124,163 +139,165 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
       isOpen={isOpen}
       onClose={onClose}
       title={customer ? t('customers.form.editTitle') : t('customers.form.newTitle')}
+      size="xl"
+      footer={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            {t('customers.form.cancel')}
+          </Button>
+          <Button type="submit" form="customer-form" disabled={isSaving} className="bg-[#111827] hover:bg-[#1f2937]">
+            {customer ? t('customers.form.update') : t('customers.form.submit')}
+          </Button>
+        </>
+      }
     >
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        {/* Ad Soyad */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label={t('customers.form.firstName')}
-            error={errors.first_name && t(errors.first_name.message ?? '')}
-            {...register('first_name')}
-          />
-          <Input
-            label={t('customers.form.lastName')}
-            error={errors.last_name && t(errors.last_name.message ?? '')}
-            {...register('last_name')}
-          />
-        </div>
-
-        {/* Bireysel / Kurumsal */}
-        <div className="flex gap-2">
-          <label className="flex-1">
-            <input type="radio" value="bireysel" className="peer sr-only" {...register('customer_type')} />
-            <span className="block cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-center text-sm peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white">
-              {t('customers.form.customerTypeBireysel')}
-            </span>
-          </label>
-          <label className="flex-1">
-            <input type="radio" value="kurumsal" className="peer sr-only" {...register('customer_type')} />
-            <span className="block cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-center text-sm peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white">
-              {t('customers.form.customerTypeKurumsal')}
-            </span>
-          </label>
-        </div>
-
-        {/* Şirket Adı */}
-        {customerType === 'kurumsal' && (
-          <Input
-            label={t('customers.form.companyName')}
-            error={errors.company_name && t(errors.company_name.message ?? '')}
-            {...register('company_name')}
-          />
-        )}
-
-        {/* E-posta ve Telefon */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label={t('customers.form.email')}
-            type="email"
-            error={errors.email && t(errors.email.message ?? '')}
-            {...register('email')}
-          />
-          <Input
-            label={t('customers.form.phone')}
-            error={errors.phone && t(errors.phone.message ?? '')}
-            {...register('phone')}
-          />
-        </div>
-
-        {/* Adres (Uzun) */}
-        <Input
-          label={t('customers.form.address')}
-          error={errors.address && t(errors.address.message ?? '')}
-          {...register('address')}
-        />
-
-        {/* Şehir ve Posta Kodu */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label={t('customers.form.city')}
-            {...register('city')}
-          />
-          <Input
-            label={t('customers.form.postalCode')}
-            {...register('postal_code')}
-          />
-        </div>
-
-        {/* Ülke ve Web Adresi */}
-        <div className="grid grid-cols-2 gap-3">
-          <Controller
-            control={control}
-            name="country"
-            render={({ field }) => (
-              <CountryAutocomplete
-                label={t('customers.form.country')}
-                value={field.value ?? ''}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="website"
-            render={({ field }) => (
-              <Input
-                label={t('customers.form.website')}
-                type="url"
-                prefix="https://"
-                error={errors.website && t(errors.website.message ?? '')}
-                placeholder='www.example.com'
-                value={field.value}
-                onChange={(e) => {
-                  let val = e.target.value
-                  if (val && !val.startsWith('https://') && !val.startsWith('http://')) {
-                    val = 'https://' + val
-                  }
-                  field.onChange(val)
-                }}
-                onBlur={field.onBlur}
-              />
-            )}
-          />
-        </div>
-
-        {/* Vergi Dairesi ve Vergi Numarası / T.C. Kimlik No */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label={t('customers.form.taxOffice')}
-            error={errors.tax_office && t(errors.tax_office.message ?? '')}
-            {...register('tax_office')}
-          />
-          <Input
-            label={customerType === 'bireysel' ? t('customers.form.nationalId') : t('customers.form.taxNumber')}
-            error={errors.tax_number && t(errors.tax_number.message ?? '')}
-            maxLength={customerType === 'bireysel' ? 11 : undefined}
-            {...register('tax_number')}
-          />
-        </div>
-
-        {/* Faks ve MERSIS No */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input label={t('customers.form.fax')} {...register('fax')} />
-          <Input label={t('customers.form.mersisNo')} {...register('mersis_no')} />
-        </div>
-
-        {/* Kategori */}
+      <form id="customer-form" onSubmit={onSubmit} className="flex flex-col gap-5">
         <Controller
           control={control}
-          name="category_id"
+          name="customer_type"
           render={({ field }) => (
-            <Select
-              label={t('customers.form.category')}
-              value={field.value ?? ''}
+            <SegmentedControl
+              value={field.value}
               onChange={field.onChange}
-              options={categories?.filter(c => c.is_active).map(c => ({ value: c.id, label: c.name })) || []}
-              placeholder={t('customers.form.categoryPlaceholder')}
+              options={[
+                { value: 'bireysel', label: t('customers.form.customerTypeBireysel'), icon: User },
+                { value: 'kurumsal', label: t('customers.form.customerTypeKurumsal'), icon: Building2 },
+              ]}
+              className="max-w-md"
             />
           )}
         />
 
-        {/* Butonlar */}
-        <div className="flex gap-2 pt-4">
-          <Button type="submit" disabled={isSaving}>
-            {customer ? t('customers.form.update') : t('customers.form.submit')}
-          </Button>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t('customers.form.cancel')}
-          </Button>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Kişisel & Kategori Bilgileri */}
+          <FormCard icon={User} title={t('customers.form.sectionPersonal')}>
+            <div className="grid grid-cols-2 gap-3">
+              <UnderlinedInput
+                label={t('customers.form.firstName')}
+                icon={User}
+                error={errors.first_name && t(errors.first_name.message ?? '')}
+                {...register('first_name')}
+              />
+              <UnderlinedInput
+                label={t('customers.form.lastName')}
+                icon={User}
+                error={errors.last_name && t(errors.last_name.message ?? '')}
+                {...register('last_name')}
+              />
+            </div>
+            <Controller
+              control={control}
+              name="category_id"
+              render={({ field }) => (
+                <Select
+                  label={t('customers.form.category')}
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  options={categories?.filter((c) => c.is_active).map((c) => ({ value: c.id, label: c.name })) || []}
+                  placeholder={t('customers.form.categoryPlaceholder')}
+                />
+              )}
+            />
+          </FormCard>
+
+          {/* Kurumsal & Finansal Bilgiler */}
+          <FormCard icon={Building2} title={t('customers.form.sectionCorporate')}>
+            <div className={customerType === 'kurumsal' ? undefined : 'invisible'}>
+              <UnderlinedInput
+                label={t('customers.form.companyName')}
+                icon={Building2}
+                error={errors.company_name && t(errors.company_name.message ?? '')}
+                tabIndex={customerType === 'kurumsal' ? undefined : -1}
+                aria-hidden={customerType !== 'kurumsal'}
+                {...register('company_name')}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <UnderlinedInput
+                label={t('customers.form.taxOffice')}
+                icon={Landmark}
+                error={errors.tax_office && t(errors.tax_office.message ?? '')}
+                {...register('tax_office')}
+              />
+              <UnderlinedInput
+                label={customerType === 'bireysel' ? t('customers.form.nationalId') : t('customers.form.taxNumber')}
+                icon={CreditCard}
+                error={errors.tax_number && t(errors.tax_number.message ?? '')}
+                maxLength={customerType === 'bireysel' ? 11 : undefined}
+                {...register('tax_number')}
+              />
+            </div>
+            <UnderlinedInput label={t('customers.form.mersisNo')} icon={FileText} {...register('mersis_no')} />
+          </FormCard>
+
+          {/* İletişim Bilgileri */}
+          <FormCard icon={Phone} title={t('customers.form.sectionContact')}>
+            <UnderlinedInput
+              label={t('customers.form.email')}
+              icon={Mail}
+              type="email"
+              error={errors.email && t(errors.email.message ?? '')}
+              {...register('email')}
+            />
+            <Controller
+              control={control}
+              name="website"
+              render={({ field }) => (
+                <UnderlinedInput
+                  label={t('customers.form.website')}
+                  icon={Globe}
+                  type="url"
+                  prefix="https://"
+                  error={errors.website && t(errors.website.message ?? '')}
+                  placeholder="www.example.com"
+                  value={field.value}
+                  onChange={(e) => {
+                    let val = e.target.value
+                    if (val && !val.startsWith('https://') && !val.startsWith('http://')) {
+                      val = 'https://' + val
+                    }
+                    field.onChange(val)
+                  }}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <UnderlinedInput
+                label={t('customers.form.phone')}
+                icon={Phone}
+                error={errors.phone && t(errors.phone.message ?? '')}
+                {...register('phone')}
+              />
+              <UnderlinedInput label={t('customers.form.fax')} icon={Printer} {...register('fax')} />
+            </div>
+          </FormCard>
+
+          {/* Adres Detayları */}
+          <FormCard icon={MapPin} title={t('customers.form.sectionAddress')}>
+            <UnderlinedInput
+              label={t('customers.form.address')}
+              icon={MapPin}
+              error={errors.address && t(errors.address.message ?? '')}
+              {...register('address')}
+            />
+            <div className="grid grid-cols-3 gap-3">
+              <UnderlinedInput label={t('customers.form.city')} icon={Building} {...register('city')} />
+              <UnderlinedInput label={t('customers.form.postalCode')} icon={Hash} {...register('postal_code')} />
+              <Controller
+                control={control}
+                name="country"
+                render={({ field }) => (
+                  <CountryAutocomplete
+                    label={t('customers.form.country')}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
+            </div>
+          </FormCard>
         </div>
       </form>
     </Modal>

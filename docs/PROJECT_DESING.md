@@ -4,6 +4,188 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-08-31 — Yeni Müşteri Modalı Kaydırmayı Tamamen Kaldırma
+
+**Durum:** Tamamlandı (kod tarafı) — tarayıcı doğrulaması bekliyor.
+
+**Özet:** Önceki düzeltmede scrollbar görsel olarak gizlenmişti ama fare tekerleğiyle içerik
+hâlâ kayabiliyordu (görünmez scrollbar ile). Kullanıcı bunun yerine içeriğin modal içine tam
+sığmasını, ne scrollbar'ın ne de mouse ile kaydırmanın var olmasını istemedi.
+
+**Frontend:**
+- Değiştirme: `frontend/src/components/Modal.tsx` — `size="xl"` içerik alanındaki
+  `overflow-y-auto` (ve scrollbar-gizleme class'ları) kaldırılıp `overflow-hidden` yapıldı;
+  artık kaydırma mekanizması tamamen devre dışı. Dış modal kutusunun `max-h-[85vh]` sınırı
+  `max-h-[95vh]`'e çıkarıldı, içeriğin (4 kart, 2 sütunlu grid) modal içine daha rahat sığması
+  için ekstra dikey alan bırakıldı.
+
+**Kök neden ve düzeltme:** `overflow-y-auto` ile scrollbar sadece görsel olarak gizlenmişti,
+underlying scroll container hâlâ fare tekerleği event'lerini yakalayıp içeriği kaydırıyordu.
+Kullanıcı gerçek isteğin "scroll'un hiç olmaması" olduğunu belirtti; `overflow-hidden` scroll
+mekanizmasını tamamen kaldırır, `max-h` artışı da normal form içeriğinin (4 kart) kırpılma
+riskini azaltır.
+
+**Doğrulama:**
+- `npx tsc --noEmit -p tsconfig.app.json`: aynı 4 pre-existing, ilgisiz hata — yeni hata yok.
+- `npx eslint src/components/Modal.tsx`: 0 hata.
+- Tarayıcı doğrulaması bu ortamda yapılamadı (otomasyon aracı yok) — bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-31 — Yeni Müşteri Modalı Dikey Scrollbar Gizleme
+
+**Durum:** Tamamlandı (kod tarafı) — tarayıcı doğrulaması bekliyor.
+
+**Özet:** Kullanıcı, modal içeriği taştığında görünen dikey kaydırma çubuğunun (scrollbar)
+görsel olarak tamamen gizlenmesini istedi (kaydırma işlevi korunarak).
+
+**Frontend:**
+- Değiştirme: `frontend/src/components/Modal.tsx` — `size="xl"` içerik alanındaki
+  `scrollbar-gutter-stable` class'ı kaldırıldı, yerine `[scrollbar-width:none]
+  [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden` eklendi. Scrollbar artık hiç
+  render edilmiyor (Firefox/IE için `scrollbar-width`/`-ms-overflow-style`, Chrome/Safari/Edge
+  için `::-webkit-scrollbar` pseudo-element'i `display:none`), `overflow-y-auto` sayesinde
+  fare tekerleği/touch ile kaydırma işlevi aynen çalışmaya devam ediyor. `scrollbar-gutter-stable`
+  artık gereksiz — scrollbar hiç görünmediği için genişlik sıçraması riski de ortadan kalktı.
+
+**Kök neden ve düzeltme:** Önceki düzeltme scrollbar'ın neden olduğu genişlik sıçramasını
+`scrollbar-gutter-stable` ile engellemişti, ama scrollbar kendisi hâlâ görünür kalıyordu.
+Kullanıcı bu sefer scrollbar'ın hiç görünmemesini istedi; tarayıcıya özel scrollbar-gizleme
+CSS'i ile çözüldü.
+
+**Doğrulama:**
+- `npx tsc --noEmit -p tsconfig.app.json`: aynı 4 pre-existing, ilgisiz hata — yeni hata yok.
+- `npx eslint src/components/Modal.tsx`: 0 hata.
+- Tarayıcı doğrulaması bu ortamda yapılamadı (otomasyon aracı yok) — bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-31 — Yeni Müşteri Modalı Layout Sıçraması Düzeltmesi
+
+**Durum:** Tamamlandı (kod tarafı) — tarayıcı doğrulaması bekliyor.
+
+**Özet:** Kurumsal/Bireysel seçimi değiştiğinde "Şirket Adı" alanının mount/unmount olması,
+Kurumsal & Finansal kartının yüksekliğini değiştirip aynı grid satırındaki diğer kartı da
+etkiliyor, ayrıca içerik alanında dikey scrollbar'ın anlık çıkıp kaybolması yatay bir "sıçrama"
+(width jump) yaratıyordu. İkisi de giderildi.
+
+**Frontend:**
+- Değiştirme: `frontend/src/components/Modal.tsx` — `size="xl"` içerik alanına
+  `scrollbar-gutter-stable` eklendi; scrollbar görünüp kaybolduğunda içerik genişliği artık
+  sabit kalıyor (`size="md"` etkilenmedi).
+- Değiştirme: `frontend/src/features/customers/components/CustomerFormModal.tsx` — "Şirket Adı"
+  alanı artık `customerType === 'kurumsal'` koşuluyla mount/unmount edilmiyor; her zaman DOM'da
+  render ediliyor, Bireysel seçiliyken sarmalayıcı `div`'e `invisible` class'ı (+ `tabIndex={-1}`,
+  `aria-hidden`) uygulanıyor. Böylece alan görsel olarak kayboluyor ama kapladığı alan (yükseklik)
+  sabit kalıyor, kart ve grid satırı boyu değişmiyor. `register('company_name')` ve validasyon
+  mantığı aynen korundu (RHF `shouldUnregister` varsayılanı zaten değeri saklıyordu, bu değişiklik
+  sadece render/CSS katmanında).
+
+**Kök neden ve düzeltme:** Grid içindeki koşullu mount, kart yüksekliğini değiştirip aynı satırdaki
+komşu kartı da yeniden konumlandırıyordu (CSS Grid satır yüksekliği en uzun öğeye göre belirlenir);
+ayrıca `overflow-y-auto` içerik alanı `scrollbar-gutter` tanımlamadığından scrollbar görünürlüğü
+değiştikçe kullanılabilir genişlik anlık değişiyordu. Düzeltme: (1) alanı her zaman mount edip
+sadece görünürlüğünü gizlemek (yükseklik sabit kalır), (2) `scrollbar-gutter-stable` ile genişliği
+sabitlemek.
+
+**Doğrulama:**
+- `npx tsc --noEmit -p tsconfig.app.json`: aynı 4 pre-existing, ilgisiz hata — yeni hata yok.
+- `npx eslint` (`Modal.tsx`, `CustomerFormModal.tsx`): 0 hata, sadece daha önce de var olan
+  react-hook-form `watch()` React Compiler uyarısı.
+- Tarayıcı doğrulaması bu ortamda yapılamadı (otomasyon aracı yok) — bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-31 — Yeni Müşteri Modalı Düzeltmeleri (kullanıcı geri bildirimi)
+
+**Durum:** Tamamlandı (kod tarafı) — tarayıcı doğrulaması bekliyor.
+
+**Özet:** Bir önceki "Yeni Müşteri Modalı Modern Redesign" sonrası kullanıcının verdiği 6 maddelik
+düzeltme listesi uygulandı: modal header/footer yüksekliği daraltıldı, Web Adresi ve Faks alanları
+Kurumsal karttan İletişim Bilgileri kartına taşındı, İletişim ve Adres kartlarının satır sırası
+yeniden düzenlendi.
+
+**Frontend:**
+- Değiştirme: `frontend/src/components/Modal.tsx` — sadece `size="xl"` varyantında header
+  (`p-6` → `px-6 py-3.5`) ve footer (`p-6` → `px-6 py-3`) padding'i daraltıldı; `size="md"`
+  (diğer 2 kullanım yeri) etkilenmedi.
+- Değiştirme: `frontend/src/features/customers/components/CustomerFormModal.tsx`:
+  - Kurumsal & Finansal Bilgiler kartından `website` ve `fax` alanları çıkarıldı (sadece
+    `mersis_no` tek başına kaldı).
+  - İletişim Bilgileri kartı yeniden sıralandı: 1. satır E-posta (tam genişlik), 2. satır
+    Web Adresi (tam genişlik, `prefix="https://"` mantığı aynen taşındı), 3. satır 2 kolon
+    Telefon/Faks.
+  - Adres Detayları kartı yeniden sıralandı: 1. satır Adres (tam genişlik), 2. satır 3 kolon
+    Şehir/Posta Kodu/Ülke (`CountryAutocomplete` üçüncü kolonda).
+  - Validasyon/submit mantığı (website `https://` auto-prefix, `fax`/`mersis_no` boşsa
+    `undefined`) değişmedi — sadece alanların hangi kartta/sırada render edildiği değişti.
+
+**Kök neden ve düzeltme:** Yok — bug fix değil, kullanıcının önceki redesign'ı gördükten sonraki
+görsel/gruplama tercihi. Backend'e dokunulmadı.
+
+**Doğrulama:**
+- `npx tsc --noEmit -p tsconfig.app.json`: aynı 4 pre-existing, ilgisiz hata (`Checkbox.tsx`,
+  `navigation.ts`, `InvoiceSendEmailModal.tsx`, `ProfileTab.tsx`) — yeni hata yok.
+- `npx eslint` (`Modal.tsx`, `CustomerFormModal.tsx`): 0 hata, sadece daha önce de var olan
+  react-hook-form `watch()` React Compiler uyarısı.
+- Tarayıcı doğrulaması bu ortamda yapılamadı (otomasyon aracı yok) — bkz. `docs/todo.md`.
+
+---
+
+## 2026-08-31 — Yeni Müşteri Modalı Modern Redesign
+
+**Durum:** Tamamlandı (kod tarafı) — tarayıcı doğrulaması bekliyor.
+
+**Özet:** `dashboard/customers`'daki "+ Yeni Müşteri" modalı, tek parça dikey form yığınından
+geniş (`max-w-6xl`), 4 karta bölünmüş, ikonlu/alt-çizili input'lara sahip modüler bir yapıya
+çevrildi. Backend'e ve form validasyon mantığına (`customerSchema.ts`, submit akışı) dokunulmadı —
+sadece görsel/yapısal katman yenilendi.
+
+**Frontend:**
+- Ekleme: `frontend/src/components/SegmentedControl.tsx` — generic, ikonlu segmented
+  control/toggle (`role="radiogroup"`), aktif seçenek koyu lacivert (`#111827`) dolgu.
+- Ekleme: `frontend/src/components/FormCard.tsx` — ikon+başlıklı beyaz kart wrapper
+  (`shadow-sm`, `rounded-2xl`), form bölümlerini gruplamak için.
+- Ekleme: `frontend/src/components/UnderlinedInput.tsx` — sol ikonlu, alt çizgili modern input
+  varyantı (mevcut `Input.tsx`'e dokunulmadı, o diğer formlarda kullanılmaya devam ediyor).
+- Değiştirme: `frontend/src/components/Modal.tsx` — geriye dönük uyumlu `size?: 'md'|'xl'` ve
+  `footer?: ReactNode` prop'ları eklendi (varsayılanlar mevcut davranışı birebir korur; diğer 2
+  kullanım yeri — `CustomerDetailPage`, `InvoiceSendEmailModal` — hiçbir prop değişikliği
+  yapmadan aynı görünümde kalır).
+- Değiştirme: `frontend/src/components/CountryAutocomplete.tsx` — sadece `CustomerFormModal`
+  içinde kullanıldığı için doğrudan alt-çizili + `Flag` ikonlu stile çevrildi, arama/klavye
+  navigasyon mantığı aynen korundu.
+- Değiştirme: `frontend/src/features/customers/components/CustomerFormModal.tsx` — `Modal`
+  artık `size="xl"` ve sağ altta sabit `footer` (Vazgeç/Ekle) ile kullanılıyor. Başlığın altına
+  Bireysel/Kurumsal `SegmentedControl` (User/Building2 ikonlu) eklendi. Form gövdesi
+  `grid md:grid-cols-2` ile 4 `FormCard`'a bölündü: Kişisel & Kategori (ad/soyad/kategori),
+  Kurumsal & Finansal (şirket adı/vergi dairesi/vergi no-TCKN/faks/MERSİS/website), İletişim
+  (e-posta/telefon), Adres Detayları (adres/şehir/posta kodu/ülke). Tüm alanlar `UnderlinedInput`
+  ve uygun lucide ikonlarla (`User`, `Building2`, `Landmark`, `CreditCard`, `Printer`,
+  `FileText`, `Globe`, `Mail`, `Phone`, `MapPin`, `Building`, `Hash`) yeniden yazıldı.
+  Bireysel/kurumsal'a göre koşullu alan gösterimi (şirket adı), zorunluluk (vergi dairesi) ve
+  label/maxLength değişimi (TCKN) mantığı birebir korundu.
+- i18n (`tr.json`/`en.json`): `customers.form` altına `sectionPersonal`, `sectionCorporate`,
+  `sectionContact`, `sectionAddress` anahtarları eklendi; `newTitle` metni "Yeni Müşteri" →
+  "Yeni Müşteri Kaydı" / "New Customer" → "New Customer Registration" olarak güncellendi.
+
+**Kök neden ve düzeltme:** Yok — bu bir bug fix değil, kullanıcı isteğiyle başlatılan bilinçli bir
+UI/UX redesign. Yan not: `Input.tsx`'de daha önce tanımsız bir `prefix` prop'u kullanımı (bilinen
+pre-existing TS hatası kaynağıydı) vardı; `CustomerFormModal.tsx` artık `Input` yerine düzgün
+tipli `prefix` destekleyen `UnderlinedInput` kullandığı için bu dosyaya özel hata kendiliğinden
+ortadan kalktı.
+
+**Doğrulama:**
+- `npx tsc --noEmit -p tsconfig.app.json` çalıştırıldı — yeni/değişen dosyalarda sıfır hata; kalan
+  4 hata (`Checkbox.tsx`, `navigation.ts`, `InvoiceSendEmailModal.tsx`, `ProfileTab.tsx`) bu
+  değişiklikten önce de mevcuttu, ilgisiz.
+- `git diff --stat` ile değişen dosya kapsamı plana birebir uyduğu doğrulandı (5 değişen + 3 yeni
+  dosya, backend'e hiç dokunulmadı).
+- Tarayıcıda gerçek görsel/etkileşim testi bu oturumda yapılamadı (ortamda tarayıcı otomasyon
+  aracı yok) — bkz. `docs/todo.md`.
+
+---
+
 ## 2026-08-28 — Faz 2: "Şifremi Unuttum" Şifre Sıfırlama Akışı
 
 **Durum:** Tamamlandı

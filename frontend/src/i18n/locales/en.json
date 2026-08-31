@@ -385,7 +385,11 @@
       "update": "Update",
       "cancel": "Cancel",
       "editTitle": "Edit Customer",
-      "newTitle": "New Customer",
+      "newTitle": "New Customer Registration",
+      "sectionPersonal": "Personal & Category Details",
+      "sectionCorporate": "Corporate & Financial Details",
+      "sectionContact": "Contact Details",
+      "sectionAddress": "Address Details",
       "errors": {
         "firstNameRequired": "First name is required.",
         "lastNameRequired": "Last name is required.",

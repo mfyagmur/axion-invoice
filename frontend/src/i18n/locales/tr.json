@@ -385,7 +385,11 @@
       "update": "Güncelle",
       "cancel": "Vazgeç",
       "editTitle": "Müşteriyi Düzenle",
-      "newTitle": "Yeni Müşteri",
+      "newTitle": "Yeni Müşteri Kaydı",
+      "sectionPersonal": "Kişisel & Kategori Bilgileri",
+      "sectionCorporate": "Kurumsal & Finansal Bilgiler",
+      "sectionContact": "İletişim Bilgileri",
+      "sectionAddress": "Adres Detayları",
       "errors": {
         "firstNameRequired": "Ad zorunludur.",
         "lastNameRequired": "Soyad zorunludur.",

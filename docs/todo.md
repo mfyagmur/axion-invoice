@@ -1,5 +1,58 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-08-31 — Yeni Müşteri Modalı Kaydırmayı Tamamen Kaldırma sonrası
+
+- [ ] 2026-08-31: Modal artık `overflow-hidden` + `max-h-[95vh]` ile scroll'suz; kullanıcının
+  tarayıcıda hem küçük hem büyük ekranlarda modalı açıp fare tekerleğiyle üzerinde gezinerek
+  içeriğin hareket etmediğini, 4 kartın tamamının (özellikle en alttaki Adres kartının) kesilmeden
+  göründüğünü teyit etmesi gerekiyor. Eğer düşük çözünürlüklü bir ekranda içerik `95vh`'e sığmazsa
+  (örn. hata mesajları aynı anda çok satır alanı büyütürse) alt kısım `overflow-hidden` nedeniyle
+  kırpılabilir — böyle bir durum görülürse haber verilmeli, o zaman farklı bir yaklaşım (örn. daha
+  kompakt kart aralıkları) gerekecek. Bkz. `docs/PROJECT_DESING.md` "Yeni Müşteri Modalı Kaydırmayı
+  Tamamen Kaldırma".
+
+## 2026-08-31 — Yeni Müşteri Modalı Dikey Scrollbar Gizleme sonrası
+
+- [ ] 2026-08-31: Modal içeriği taştığında (birçok alan/hata mesajı ile) artık dikey scrollbar
+  görünmemesi gerekiyor ama kaydırma (fare tekerleği/touch) çalışmaya devam etmeli; kullanıcının
+  tarayıcıda içerik taşacak kadar alan doldurup teyit etmesi gerekiyor — bkz.
+  `docs/PROJECT_DESING.md` "Yeni Müşteri Modalı Dikey Scrollbar Gizleme".
+
+## 2026-08-31 — Yeni Müşteri Modalı Layout Sıçraması Düzeltmesi sonrası
+
+- [ ] 2026-08-31: Kurumsal/Bireysel geçişinde artık ne dikey "sıçrama" ne de scrollbar
+  genişlik zıplaması olmaması gerekiyor; kullanıcının tarayıcıda Bireysel↔Kurumsal arasında
+  birkaç kez geçiş yaparak modalın tamamen sabit kalıp kalmadığını teyit etmesi gerekiyor — bkz.
+  `docs/PROJECT_DESING.md` "Yeni Müşteri Modalı Layout Sıçraması Düzeltmesi".
+
+## 2026-08-31 — Yeni Müşteri Modalı Düzeltmeleri sonrası
+
+- [ ] 2026-08-31: 6 maddelik düzeltme (header/footer daraltma, website/faks'ın İletişim kartına
+  taşınması, İletişim ve Adres kartlarının yeni satır sırası) bu ortamda tarayıcıda teyit
+  edilemedi. Kullanıcının kontrol etmesi gerekenler: modal header/footer'ın gözle görülür şekilde
+  daha ince olması, Kurumsal & Finansal kartında artık sadece MERSİS No kalması, İletişim
+  Bilgileri kartında sıranın E-posta → Web Adresi → (Telefon/Faks) olması, Adres Detayları
+  kartında Şehir/Posta Kodu/Ülke'nin tek satırda 3 kolon halinde görünmesi (ülke autocomplete
+  dropdown'ının dar kolonda taşma/kesilme yaşamaması) — bkz. `docs/PROJECT_DESING.md`
+  "Yeni Müşteri Modalı Düzeltmeleri (kullanıcı geri bildirimi)".
+
+## 2026-08-31 — Yeni Müşteri Modalı Modern Redesign sonrası
+
+- [ ] 2026-08-31: Yeni müşteri modalının (`CustomerFormModal.tsx`) 4 kartlı/segmented-control'lü
+  yeni tasarımı bu oturumda gerçek tarayıcıda teyit edilmedi (ortamda tarayıcı otomasyon aracı
+  yok) — tip kontrolü (`tsc --noEmit`) ve statik kod incelemesiyle sınırlı kaldı. Kullanıcının
+  kendi tarayıcısında kontrol etmesi gerekenler: `dashboard/customers`'da "+ Yeni Müşteri" →
+  modalın geniş/kartlı açılması, Bireysel/Kurumsal segmented control'ün şirket adı/vergi no
+  alanlarını doğru koşullu değiştirmesi, kategori dropdown ve ülke autocomplete'in çalışması,
+  submit ile müşterinin gerçekten oluşması, "Müşteriyi Düzenle" (edit) akışının aynı tasarımla
+  bozulmadan çalışması, dark mode'da 4 kartın/footer butonlarının görünümü, ve
+  `CustomerDetailPage`/`InvoiceSendEmailModal`'daki mevcut `Modal` kullanımlarının görsel olarak
+  değişmediği — bkz. `docs/PROJECT_DESING.md` "Yeni Müşteri Modalı Modern Redesign".
+- [ ] 2026-08-31: `SignupForm.tsx`'teki bireysel/kurumsal toggle, yeni `SegmentedControl.tsx`
+  bileşenine henüz taşınmadı — bu turda bilinçli olarak kapsam dışı bırakıldı ("sadece istenilen
+  yerleri değiştir" talimatı). İleride auth formlarıyla tutarlılık için ayrı bir turda ele
+  alınabilir.
+
 ## 2026-08-28 — Faz 2: "Şifremi Unuttum" Akışı sonrası
 
 - [ ] 2026-08-28: "Şifremi unuttum" akışı (forgot/reset-password endpoint'leri + yeni frontend

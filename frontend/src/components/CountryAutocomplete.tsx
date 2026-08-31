@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Flag } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { COUNTRIES } from '@/data/countries'
 
@@ -94,35 +95,40 @@ export function CountryAutocomplete({
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-1">
-      <label htmlFor="country-input" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+      <label htmlFor="country-input" className="text-xs font-medium text-slate-500 dark:text-slate-400">
         {label}
       </label>
-      <input
-        id="country-input"
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={handleInputChange}
-        onBlur={onBlur}
-        onKeyDown={handleKeyDown}
-        onFocus={() => {
-          if (value.length >= 3) {
-            const lower = value.toLowerCase()
-            const matches = COUNTRIES.filter(
-              (c) =>
-                c.name.toLowerCase().startsWith(lower) ||
-                c.name.toLowerCase().includes(lower),
-            ).slice(0, 8)
-            setFiltered(matches)
-            setIsOpen(matches.length > 0)
-          }
-        }}
+      <div
         className={twMerge(
-          'rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-400',
+          'flex items-center gap-2 border-b border-slate-300 py-1.5 transition-colors focus-within:border-slate-900 dark:border-slate-600 dark:focus-within:border-slate-300',
           error && 'border-red-500 dark:border-red-500',
         )}
-        placeholder=""
-      />
+      >
+        <Flag size={15} className="shrink-0 text-slate-400 dark:text-slate-500" />
+        <input
+          id="country-input"
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={handleInputChange}
+          onBlur={onBlur}
+          onKeyDown={handleKeyDown}
+          onFocus={() => {
+            if (value.length >= 3) {
+              const lower = value.toLowerCase()
+              const matches = COUNTRIES.filter(
+                (c) =>
+                  c.name.toLowerCase().startsWith(lower) ||
+                  c.name.toLowerCase().includes(lower),
+              ).slice(0, 8)
+              setFiltered(matches)
+              setIsOpen(matches.length > 0)
+            }
+          }}
+          className="w-full border-none bg-transparent p-0 text-sm text-slate-900 outline-none focus:ring-0 dark:text-slate-100"
+          placeholder=""
+        />
+      </div>
       {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
 
       {isOpen && filtered.length > 0 && (
