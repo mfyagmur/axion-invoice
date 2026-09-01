@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_not_demo
 from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import (
@@ -55,7 +55,7 @@ def update_profile(
 @router.patch("/account", response_model=UserResponse)
 def update_account(
     payload: AccountUpdatePayload,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> User:
     if payload.company_name is not None:
@@ -87,7 +87,7 @@ def update_account(
 
 @router.post("/account/logo", response_model=UserResponse)
 async def upload_account_logo(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
     file: UploadFile = File(...),
 ) -> User:
@@ -128,7 +128,7 @@ async def upload_account_logo(
 
 @router.delete("/account/logo", response_model=UserResponse)
 def remove_account_logo(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> User:
     _delete_logo_file(current_user.logo_url)
@@ -162,7 +162,7 @@ def update_preferences(
 @router.patch("/company-settings", response_model=UserResponse)
 def update_company_settings(
     payload: CompanySettingsUpdatePayload,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> User:
     if payload.default_currency is not None:
@@ -183,7 +183,7 @@ def update_company_settings(
 @router.post("/password", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(
     payload: PasswordChangePayload,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
     if current_user.password_hash is None:

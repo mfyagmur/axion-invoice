@@ -79,6 +79,7 @@ export function LogoUpload() {
   const openFilePicker = () => fileInputRef.current?.click()
 
   const isBusy = isUploading || isRemoving
+  const isDemo = user?.is_demo ?? false
 
   return (
     <div>
@@ -88,24 +89,29 @@ export function LogoUpload() {
         accept={ALLOWED_TYPES.join(',')}
         className="hidden"
         onChange={handleInputChange}
+        disabled={isDemo}
       />
 
       {!displayUrl ? (
         <div
           role="button"
-          tabIndex={0}
-          onClick={openFilePicker}
-          onKeyDown={(e) => e.key === 'Enter' && openFilePicker()}
+          tabIndex={isDemo ? -1 : 0}
+          onClick={isDemo ? undefined : openFilePicker}
+          onKeyDown={(e) => !isDemo && e.key === 'Enter' && openFilePicker()}
           onDragOver={(e) => {
-            e.preventDefault()
-            setDragActive(true)
+            if (!isDemo) {
+              e.preventDefault()
+              setDragActive(true)
+            }
           }}
-          onDragLeave={() => setDragActive(false)}
-          onDrop={handleDrop}
-          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-            dragActive
-              ? 'border-slate-400 bg-slate-100 dark:border-slate-500 dark:bg-slate-700'
-              : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-slate-500 dark:hover:bg-slate-700'
+          onDragLeave={() => !isDemo && setDragActive(false)}
+          onDrop={(e) => !isDemo && handleDrop(e)}
+          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+            isDemo
+              ? 'cursor-not-allowed border-gray-300 bg-gray-100 dark:border-slate-700 dark:bg-slate-800 opacity-60'
+              : dragActive
+                ? 'cursor-pointer border-slate-400 bg-slate-100 dark:border-slate-500 dark:bg-slate-700'
+                : 'cursor-pointer border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-slate-500 dark:hover:bg-slate-700'
           }`}
         >
           <UploadCloud className="text-slate-400 dark:text-slate-500" size={32} />
@@ -127,7 +133,14 @@ export function LogoUpload() {
             )}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={openFilePicker} disabled={isBusy} className="gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={openFilePicker}
+              disabled={isBusy || isDemo}
+              title={isDemo ? t('demo.actionBlocked') : undefined}
+              className="gap-2"
+            >
               <RefreshCw size={16} />
               {t('settings.account.logo.changeButton')}
             </Button>
@@ -135,7 +148,8 @@ export function LogoUpload() {
               type="button"
               variant="ghost"
               onClick={() => removeLogo.mutate()}
-              disabled={isBusy}
+              disabled={isBusy || isDemo}
+              title={isDemo ? t('demo.actionBlocked') : undefined}
               className="gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
             >
               <Trash2 size={16} />

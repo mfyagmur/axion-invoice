@@ -4,6 +4,55 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-01 — Demo Hesabı Profil Bilgisi ve Düzenleme Kilidi
+
+**Durum:** Ekleme — Tamamlandı.
+
+**Özet:** Demo hesabı (`demo@axioninvoice.app`) `dashboard/settings?tab=account` sayfasında şirket
+profil bilgileri dolduruldu ve bu bilgilerin/logo'nun değiştirilmesi engellendi. Kullanıcı isteği:
+demo user'a şu bilgileri seed et: Şirket Unvanı "Test Demo A.Ş.", Faaliyet "Bilgi Teknolojileri",
+Vergi Dairesi "Yenibosna", Vergi Numarası "111111111111", Ticaret Sicil No "1234567891011",
+Merkez Adresi "Merkez Mah. 12345 Sokak No: 11", Ülke "Turkiye", Şehir "İstanbul",
+Kurumsal E-posta "demo@axioninvoice.app", Şirket Telefonu "212 1234578".
+
+Demo user'ın bu alanları güncelleyememesi, logo upload/siliş yapamaması, ve bu işlemlere
+basıldığında "Demo modunda bu işlem yapılamaz" (i18n: `demo.actionBlocked`) toast'ı gösterilmesi
+gerekiyor.
+
+**Yapılan değişiklikler:**
+
+1. **Backend Migration** (`backend/alembic/versions/c9d8e7f6a5b4_seed_demo_user_profile.py`):
+   - Yeni migration, `down_revision='a6b7c8d9e0f1'` (mevcut head)
+   - Demo user'ın (`DEMO_USER_ID = ...d1`) 10 profile alanını (company_name, sector, tax_office,
+     tax_number, trade_registry_no, address, country, city, corporate_email, phone) UPDATE et
+   - `downgrade()` alanları NULL'a sıfırlar
+
+2. **Backend Profile Endpoints** (`backend/app/api/v1/profile.py`):
+   - `require_not_demo` dependency'si import et (line 10)
+   - Aşağıdaki 5 endpoint'in `current_user` dependency'sini `Depends(require_not_demo)` olarak
+     güncelle → demo user'lar 403 alırlar:
+     - `PATCH /profile/account` (update_account, line 55)
+     - `POST /profile/account/logo` (upload_account_logo, line 88)
+     - `DELETE /profile/account/logo` (remove_account_logo, line 129)
+     - `PATCH /profile/company-settings` (update_company_settings, line 162)
+     - `POST /profile/password` (change_password, line 183)
+
+3. **Frontend Hooks** — 403 error'unda `demo.actionBlocked` toast göster:
+   - `frontend/src/features/profile/hooks/useUpdateAccount.ts`: onError handler (AxiosError check)
+   - `frontend/src/features/profile/hooks/useUploadLogo.ts`: onError handler
+   - `frontend/src/features/profile/hooks/useRemoveLogo.ts`: onError handler
+
+4. **Frontend UI Disable**:
+   - `AccountTab.tsx` (line ~100): "Güncelle" butonu → `disabled={user.is_demo}`
+   - `LogoUpload.tsx`: Upload area dropzone disabled/opacity, Change/Remove butonları
+     `disabled={isBusy || isDemo}`, CSS de `cursor-not-allowed` + `opacity-60`
+
+**I18n:** `demo.actionBlocked` zaten mevcut — yeni çeviri eklenmedi.
+
+**Dosyalar:** 7 dosya değişti (1 ekleme, 6 güncelleme).
+
+---
+
 ## 2026-09-01 — Demo Hesabına Örnek Müşteri ve Fatura Verisi
 
 **Durum:** Ekleme — Tamamlandı ve doğrulandı.

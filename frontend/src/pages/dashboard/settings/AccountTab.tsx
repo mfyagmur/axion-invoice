@@ -96,6 +96,8 @@ export function AccountTab() {
               variant="secondary"
               className="w-fit shrink-0"
               onClick={() => setIsEditing(true)}
+              disabled={user.is_demo}
+              title={user.is_demo ? t('demo.actionBlocked') : undefined}
             >
               {t('settings.account.companyProfile.updateButton')}
             </Button>
