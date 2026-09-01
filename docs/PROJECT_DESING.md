@@ -4,6 +4,66 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-01 — Login/Signup Kayan Panel Geri Getirildi + "Ücretsiz Başla" Ayrı Demo Girişi
+
+**Durum:** Değiştirme — Tamamlandı (frontend build/test yeşil; tarayıcı görsel teyidi bekliyor).
+
+**Özet:** Bu, aynı gün içindeki önceki "Login Ekranı Sadeleştirme" girişiminin **düzeltmesidir**.
+Kullanıcı geri bildirdi: Login'i `AuthShell`'den çıkarıp bağımsız/animasyonsuz sayfa yapmak
+Login/Signup'ın orijinal kayan panel (sliding) tasarımını bozdu — oysa istenen, `/login` ve
+`/signup`'ın eskisi gibi kalıp, demo ön-dolu giriş formunun **"Ücretsiz Başla" akışına** ait
+olmasıydı. Buna göre:
+- `frontend/src/features/auth/components/LoginForm.tsx`, `frontend/src/routes/index.tsx`
+  (`/login` route'u) ve `frontend/src/features/auth/components/LoginForm.test.tsx` `git checkout`
+  ile bir önceki commit'teki orijinal hâline geri döndürüldü — `/login` ve `/signup` yine
+  `AuthShell`'in kayan panel/overlay animasyonuyla çalışıyor, hiçbir alan ön dolu değil.
+- Demo ön-dolu form, **yeni ve ayrı** bir bileşene taşındı:
+  `frontend/src/features/auth/components/DemoLoginForm.tsx` — `ForgotPasswordForm` ile aynı
+  statik kart deseninde, `defaultValues: { email: 'demo@axioninvoice.app', password: 'Demo.12345' }`
+  ile ön dolu, "Giriş Yap" normal `/auth/login` akışını çağırıyor (bkz. bir önceki girdideki
+  `e5f6a7b8c9d0_set_demo_user_password.py` migration'ı — hâlâ geçerli, bu formun çalışması için
+  gerekli).
+- Yeni route: `frontend/src/routes/index.tsx` içine `{ path: '/get-started', element:
+  <DemoLoginForm /> }` eklendi (aynı `PublicOnlyRoute` altında, `/login`/`/signup` ile birlikte).
+- `frontend/src/layouts/AuthLayout.tsx`'teki "Ücretsiz Başla" butonu (daha önce `useDemoLogin`
+  ile tıklanınca sessizce/formsuz `/auth/demo`'ya bağlanıp direkt giriş yapıyordu — bkz.
+  2026-08-27 notu, "pre-existing quirk") artık `/get-started`'a yönlendiren bir `Link`; kullanıcı
+  önce ön dolu formu görüyor, girişi "Giriş Yap" butonuna tıklayarak kendisi tetikliyor.
+- Yeni i18n key'leri: `auth.demoLogin.title`, `auth.demoLogin.subtitle`,
+  `auth.demoLogin.backToLogin` (tr.json + en.json).
+
+**Yapılan dosyalar:**
+- Geri alma (`git checkout` ile orijinale döndürüldü): `frontend/src/features/auth/components/LoginForm.tsx`,
+  `frontend/src/features/auth/components/LoginForm.test.tsx`, `frontend/src/routes/index.tsx`
+  (route kısmı; import eklemeleri korunarak).
+- Ekleme: `frontend/src/features/auth/components/DemoLoginForm.tsx`.
+- Değiştirme: `frontend/src/routes/index.tsx` — `DemoLoginForm` import edildi, `/get-started`
+  route'u eklendi.
+- Değiştirme: `frontend/src/layouts/AuthLayout.tsx` — `useDemoLogin` kullanımı kaldırıldı,
+  "Ücretsiz Başla" butonu `/get-started`'a giden bir `Link`'e çevrildi.
+- Değiştirme: `frontend/src/i18n/locales/tr.json`, `frontend/src/i18n/locales/en.json` —
+  `auth.demoLogin.*` key'leri eklendi.
+
+**Not — `CTASection.tsx`'teki "Demoyu Dene" butonuna dokunulmadı:** Landing page'in alt
+CTA'sındaki ayrı "Demoyu Dene" butonu hâlâ `useDemoLogin.mutate()` ile tek tıkla (formsuz)
+giriş yapıyor. Kullanıcının şikâyeti özellikle `AuthLayout`'taki (Login/Signup sayfalarının
+üst barındaki) "Ücretsiz Başla" butonuyla ilgiliydi ("Ücretsiz başla kısmında sadece Giriş yap
+formu olacak"); `landing.hero.ctaPrimary` ("Ücretsiz Başla", zaten `/signup`'a `Link`) ve
+`CTASection`'daki "Demoyu Dene" ayrı, kapsam dışı bırakıldı — istenirse ayrı bir görev olarak
+ele alınabilir.
+
+**Doğrulama:**
+- Frontend: `npx vitest run src/features/auth` → 3/3 geçti (orijinal `LoginForm.test.tsx`
+  değişmeden geri geldiği için aynı testler). `npm run build`'de dokunulan dosyalarda hata yok
+  (projede önceden var olan 4 ilgisiz tip hatası duruyor — `Checkbox.tsx`, `navigation.ts`,
+  `InvoiceSendEmailModal.tsx`, `ProfileTab.tsx`). `npx eslint` değişen/yeni dosyalarda 0 hata.
+- `npm run test -- --run` çalıştırıldığında `InvoiceForm.test.tsx`'te 2 test kırmızı çıkıyor —
+  `git stash` ile bu değişikliklerden bağımsız olarak da aynı şekilde kırmızı olduğu doğrulandı
+  (önceden var olan, bu görevle ilgisiz bir regresyon — ayrı bir konu).
+- Tarayıcı görsel teyidi bu ortamda yapılamadı (otomasyon aracı yok) — bkz. `docs/todo.md`.
+
+---
+
 ## 2026-08-31 — Yeni Müşteri Modalı Kaydırmayı Tamamen Kaldırma
 
 **Durum:** Tamamlandı (kod tarafı) — tarayıcı doğrulaması bekliyor.

@@ -96,6 +96,11 @@
         "emailTaken": "Bu e-posta zaten kayıtlı"
       }
     },
+    "demoLogin": {
+      "title": "Demo Hesabıyla Başla",
+      "subtitle": "Demo bilgileri hazır, giriş yapmak için Giriş Yap'a tıklayın",
+      "backToLogin": "Kendi hesabınla giriş yap"
+    },
     "forgotPassword": {
       "title": "Şifremi Unuttum",
       "subtitle": "E-posta adresinizi girin, şifre sıfırlama bağlantısı gönderelim",

@@ -96,6 +96,11 @@
         "emailTaken": "This email is already registered"
       }
     },
+    "demoLogin": {
+      "title": "Start with the Demo Account",
+      "subtitle": "Demo credentials are pre-filled — click Log In to continue",
+      "backToLogin": "Log in with your own account"
+    },
     "forgotPassword": {
       "title": "Forgot Password",
       "subtitle": "Enter your email and we'll send you a password reset link",

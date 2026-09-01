@@ -6,6 +6,7 @@ import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { AdminTemplatesPage } from '@/pages/admin/AdminTemplatesPage'
 import { AuthShell } from '@/features/auth/components/AuthShell'
+import { DemoLoginForm } from '@/features/auth/components/DemoLoginForm'
 import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordForm'
 import { ResetPasswordForm } from '@/features/auth/components/ResetPasswordForm'
 import { CustomerDetailPage } from '@/pages/dashboard/CustomerDetailPage'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/login', element: <AuthShell mode="login" /> },
           { path: '/signup', element: <AuthShell mode="signup" /> },
+          { path: '/get-started', element: <DemoLoginForm /> },
           { path: '/forgot-password', element: <ForgotPasswordForm /> },
           { path: '/reset-password', element: <ResetPasswordForm /> },
         ],

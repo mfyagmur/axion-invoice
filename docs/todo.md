@@ -1,5 +1,21 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-09-01 — Login/Signup Kayan Panel Geri Getirildi + "Ücretsiz Başla" Ayrı Demo Girişi sonrası
+
+- [ ] 2026-09-01: Tarayıcıda teyit gerekiyor — `/login` ve `/signup`'ın eskisi gibi kayan
+  panel/overlay animasyonuyla çalıştığı, alanların artık ön dolu OLMADIĞI; `/get-started`
+  sayfasının (AuthLayout'taki "Ücretsiz Başla" butonundan erişilen) `demo@axioninvoice.app` /
+  `Demo.12345` ile ön dolu geldiği ve "Giriş Yap" ile `/dashboard`'a yönlendirdiği kontrol
+  edilmeli. Bu ortamda tarayıcı otomasyon aracı olmadığı için yapılamadı — bkz.
+  `docs/PROJECT_DESING.md` "Login/Signup Kayan Panel Geri Getirildi + ...".
+- [ ] 2026-09-01: `landing.hero.ctaPrimary` ("Ücretsiz Başla", ana sayfada `/signup`'a giden
+  `Link`) ve `CTASection.tsx`'teki "Demoyu Dene" butonu (hâlâ tek tıkla formsuz `/auth/demo`
+  girişi yapıyor) bu görevin kapsamı dışında bırakıldı — kullanıcı isterse bunların da
+  `/get-started` akışına yönlendirilip yönlendirilmeyeceği ayrıca netleştirilmeli.
+- [ ] 2026-09-01: `frontend/src/features/auth/components/AuthShell.tsx` ve `LoginForm.tsx`
+  orijinal hâline döndü, artık bu konuda ek bir teknik borç yok — önceki (yanlış) girişimde
+  önerilen `AuthShell` temizliği maddesi bu düzeltmeyle geçersiz olduğu için kaldırıldı.
+
 ## 2026-08-31 — Yeni Müşteri Modalı Kaydırmayı Tamamen Kaldırma sonrası
 
 - [ ] 2026-08-31: Modal artık `overflow-hidden` + `max-h-[95vh]` ile scroll'suz; kullanıcının
