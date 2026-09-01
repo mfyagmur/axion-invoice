@@ -1092,3 +1092,32 @@ doğrulaması yapıldı ama gerçek tarayıcı/React akışı üzerinden değil.
 **Doğrulama:** `npx tsc -b` derlemesi, mock'ler güncellendikten sonra başarılı. Görsel/tarayıcı testi yapılmadı.
 
 **Not:** Sistem kartı şimdilik boş yer tutucu içeriyor — ileride tema switcher, zaman dilimi, tarih formatı vb. tercihler eklenebilir.
+
+---
+
+## 2026-09-01 — Demo Hesabı Faturalandırma Sekmesi (Billing Tab) Kilitlemesi
+
+**Durum:** Ekleme — Tamamlandı.
+
+**Özet:** Demo hesabı (`demo@axioninvoice.app`) `dashboard/settings?tab=billing` sayfasındaki 
+upgrade (yükselt) butonlarının pasif (disabled) olması sağlandı. Aylık/yıllık interval seçimi 
+ve mevcut plan gösterimi erişilebilir kalırken, Pro ve Business planlarına yükselt butonları 
+demo user'lar için disable edildi. Tooltip ile `demo.actionBlocked` mesajı gösterilir.
+
+**Yapılan değişiklikler:**
+
+1. **Frontend Component** (`frontend/src/pages/dashboard/BillingPage.tsx`):
+   - Line 5: `useAuthStore` import'u eklendi
+   - Lines 22-23: `const user = useAuthStore((state) => state.user)` ve `const isDemo = user?.is_demo ?? false` ekledildi
+   - Line 107: Upgrade Button'unda `disabled={isCurrent || plan.key === 'free' || checkout.isPending || isDemo}` 
+     ve `title={isDemo ? t('demo.actionBlocked') : undefined}` eklendi
+
+**I18n:** `demo.actionBlocked` key'i zaten mevcut — yeni çeviri eklenmedi.
+
+**Dosyalar:** 1 dosya değişti (BillingPage.tsx).
+
+**Doğrulama:**
+- `npm run build` — tarayıcı hatasız derlenmiş.
+- TypeScript strict — types doğru.
+- Upgrade butonları konuma göre conditional render'da değil, sadece disable state'inde — 
+  UI tutarlığını ve aylık/yıllık interval seçimi arasında geçişi korur.

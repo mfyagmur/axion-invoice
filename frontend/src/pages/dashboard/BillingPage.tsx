@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/Button'
+import { useAuthStore } from '@/store/authStore'
 import { useCheckout } from '@/features/billing/hooks/useCheckout'
 import { useMySubscription } from '@/features/billing/hooks/useMySubscription'
 import { usePlans } from '@/features/billing/hooks/usePlans'
@@ -17,6 +18,8 @@ export function BillingPage() {
   const [searchParams] = useSearchParams()
   const checkoutResult = searchParams.get('checkout')
   const [interval, setBillingInterval] = useState<BillingInterval>('monthly')
+  const user = useAuthStore((state) => state.user)
+  const isDemo = user?.is_demo ?? false
 
   const { data: subscription, isLoading: isSubscriptionLoading } = useMySubscription()
   const { data: plans, isLoading: isPlansLoading } = usePlans()
@@ -97,8 +100,9 @@ export function BillingPage() {
                 </li>
               </ul>
               <Button
-                disabled={isCurrent || plan.key === 'free' || checkout.isPending}
+                disabled={isCurrent || plan.key === 'free' || checkout.isPending || isDemo}
                 onClick={() => checkout.mutate({ plan_key: plan.key as 'pro' | 'business', interval })}
+                title={isDemo ? t('demo.actionBlocked') : undefined}
               >
                 {isCurrent ? t('billing.currentPlanBadge') : t('billing.upgrade')}
               </Button>
