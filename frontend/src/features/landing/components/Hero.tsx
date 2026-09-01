@@ -12,7 +12,7 @@ export function Hero() {
       </h1>
       <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600">{t('landing.hero.subtitle')}</p>
       <div className="mt-8 flex justify-center gap-3">
-        <Link to="/signup">
+        <Link to="/get-started">
           <Button>{t('landing.hero.ctaPrimary')}</Button>
         </Link>
         <Link to="/login">

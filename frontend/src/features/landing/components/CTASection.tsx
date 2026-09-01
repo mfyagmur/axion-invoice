@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/Button'
-import { useDemoLogin } from '@/features/auth/hooks/useDemoLogin'
 
 export function CTASection() {
   const { t } = useTranslation()
-  const demoLogin = useDemoLogin()
 
   return (
     <section className="bg-slate-900 px-6 py-16 text-center">
@@ -15,9 +13,11 @@ export function CTASection() {
         <Link to="/signup">
           <Button variant="secondary">{t('landing.cta.button')}</Button>
         </Link>
-        <Button variant="ghost" className="text-white" onClick={() => demoLogin.mutate()} disabled={demoLogin.isPending}>
-          {t('landing.cta.demoButton')}
-        </Button>
+        <Link to="/get-started">
+          <Button variant="ghost" className="text-white">
+            {t('landing.cta.demoButton')}
+          </Button>
+        </Link>
       </div>
     </section>
   )

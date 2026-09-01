@@ -17,7 +17,7 @@ export function PublicLayout() {
           <Link to="/login" className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100">
             {t('landing.nav.login')}
           </Link>
-          <Link to="/signup">
+          <Link to="/get-started">
             <Button>{t('landing.nav.signup')}</Button>
           </Link>
         </div>
