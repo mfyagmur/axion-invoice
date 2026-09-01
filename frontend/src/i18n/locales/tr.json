@@ -360,7 +360,8 @@
   },
   "demo": {
     "banner": "Demo modundasınız, değişiklikler kaydedilmez.",
-    "actionBlocked": "Demo modunda bu işlem yapılamaz."
+    "actionBlocked": "Demo modunda bu işlem yapılamaz.",
+    "pdfDownloadNotAllowed": "Demo modunda PDF indirmesi yapılamaz."
   },
   "session": {
     "idleTimeout": "Oturumunuz uzun süre işlem yapılmadığı için sonlandırıldı."

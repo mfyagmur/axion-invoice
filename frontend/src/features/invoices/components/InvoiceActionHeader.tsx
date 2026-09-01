@@ -7,6 +7,7 @@ import { InvoiceRowActions } from '@/features/invoices/components/InvoiceRowActi
 import { useDateFormat } from '@/hooks/useDateFormat'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 import { useRetryInvoicePdf } from '@/features/invoices/hooks/useRetryInvoicePdf'
+import { useAuthStore } from '@/store/authStore'
 import type { InvoiceDetail } from '@/types/invoice'
 import type { InvoiceRow } from '@/features/invoices/types/invoiceRow'
 
@@ -31,6 +32,7 @@ export function InvoiceActionHeader({
   const { formatDate } = useDateFormat()
   const downloadPdf = useDownloadInvoicePdf()
   const retryPdf = useRetryInvoicePdf()
+  const isDemo = useAuthStore((state) => state.user?.is_demo ?? false)
   const isPdfReady = invoice.pdf_status === 'ready' && !!invoice.pdf_url
   const isPdfRegenerating = invoice.pdf_status === 'pending' || retryPdf.isPending
   const isCancelled = invoice.status === 'cancelled'
@@ -99,7 +101,8 @@ export function InvoiceActionHeader({
         <Button
           type="button"
           onClick={() => downloadPdf.mutate({ id: invoice.id, filename: invoice.invoice_number })}
-          disabled={!isPdfReady || downloadPdf.isPending}
+          disabled={isDemo || !isPdfReady || downloadPdf.isPending}
+          title={isDemo ? t('demo.pdfDownloadNotAllowed') : undefined}
         >
           {t('invoices.detail.download')}
         </Button>

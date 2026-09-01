@@ -75,7 +75,7 @@ def update_invoice_endpoint(
 @router.get("/{invoice_id}/download")
 def download_invoice_pdf(
     invoice_id: uuid.UUID,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_not_demo)],
     db: Annotated[Session, Depends(get_db)],
 ) -> FileResponse:
     invoice = get_own_invoice(db, invoice_id, current_user)

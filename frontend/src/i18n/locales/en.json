@@ -360,7 +360,8 @@
   },
   "demo": {
     "banner": "You're in demo mode, changes won't be saved.",
-    "actionBlocked": "This action isn't available in demo mode."
+    "actionBlocked": "This action isn't available in demo mode.",
+    "pdfDownloadNotAllowed": "PDF download isn't available in demo mode."
   },
   "session": {
     "idleTimeout": "Your session was ended due to inactivity."

@@ -5,6 +5,7 @@ import { Button } from '@/components/Button'
 import { ErrorState } from '@/components/ErrorState'
 import { useInvoicePreview } from '@/features/invoices/hooks/useInvoicePreview'
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
+import { useAuthStore } from '@/store/authStore'
 import { A4_WIDTH_MM, A4_HEIGHT_MM, PX_PER_MM } from '@/features/invoice-editor/canvasGeometry'
 
 interface InvoiceDocumentPreviewProps {
@@ -33,6 +34,7 @@ export function InvoiceDocumentPreview({
   const { t } = useTranslation()
   const { data: html, isLoading, isError, refetch } = useInvoicePreview(invoiceId, isOpen)
   const downloadPdf = useDownloadInvoicePdf()
+  const isDemo = useAuthStore((state) => state.user?.is_demo ?? false)
   const containerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [pageSizePx, setPageSizePx] = useState(DEFAULT_PAGE_SIZE_PX)
@@ -85,7 +87,8 @@ export function InvoiceDocumentPreview({
             variant="secondary"
             className="gap-2"
             onClick={() => downloadPdf.mutate({ id: invoiceId, filename: invoiceNumber })}
-            disabled={!isPdfReady || downloadPdf.isPending}
+            disabled={isDemo || !isPdfReady || downloadPdf.isPending}
+            title={isDemo ? t('demo.pdfDownloadNotAllowed') : undefined}
           >
             <Download size={16} />
             {t('invoices.detail.download')}
