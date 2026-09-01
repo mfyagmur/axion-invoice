@@ -4,6 +4,67 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-01 — Demo Hesabına Örnek Müşteri ve Fatura Verisi
+
+**Durum:** Ekleme — Tamamlandı ve doğrulandı.
+
+**Özet:** Kullanıcı isteği: demo hesabıyla (`demo@axioninvoice.app`) giriş yapıldığında ürünün
+daha dolu/gerçekçi görünmesi için Müşteriler'e 5 (3 kurumsal, 2 bireysel), Faturalar'a 5 örnek
+kayıt eklendi. Mevcut tek demo müşteri/fatura (`a85ba64f8453` migration'ından, `...d1`-`...d5`
+ID'leri) silinmeden korundu, üzerine ekleme yapıldı.
+
+Yeni Alembic migration `backend/alembic/versions/a6b7c8d9e0f1_seed_demo_customers_and_invoices.py`
+(`down_revision='e5f6a7b8c9d0'`, mevcut migration head'i), `a85ba64f8453`'teki desenle birebir
+aynı yöntem: `sa.table()` reflection + `op.bulk_insert`, sabit UUID'ler
+(`...d6`-`...da` müşteriler, `...db`-`...df` faturalar, `...e0`-`...e4` fatura kalemleri),
+idempotency guard (ilk müşteri ID'si zaten varsa `upgrade()` no-op).
+
+- **5 müşteri** (`invoice_customers`): 3 kurumsal (`customer_type="kurumsal"`, `company_name`,
+  `tax_office`/`tax_number` dolu — Mavi Teknoloji A.Ş., Yıldız İnşaat Ltd. Şti., Deniz Lojistik
+  San. Tic. A.Ş.), 2 bireysel (`customer_type="bireysel"`, `first_name`/`last_name` — Ahmet
+  Yılmaz, Elif Kaya).
+- **5 fatura** (`invoices`): her biri farklı bir `status` ile (PAID, SENT, OVERDUE, PAID, DRAFT —
+  Postgres enum'ları `InvoiceStatus.name` değerlerini, yani **büyük harf** kullanıyor, `.value`
+  değil — bu, ilk denemede `invalid input value for enum invoice_status: "paid"` hatasıyla
+  keşfedildi ve düzeltildi), `invoice_number` `"0002"`-`"0006"` (mevcut
+  `invoice_service.next_invoice_number` formatı taklit edilerek: prefix yok + 4 haneli sıfır
+  dolgu), her biri 1 satır kalemiyle, KDV %10 tutarlı (`subtotal`/`tax_total`/`grand_total` ve
+  satır `tax_amount` birbirini tutuyor). Migration sonunda `users.invoice_sequence` `6`'ya
+  güncellendi ki demo hesabından gerçek fatura oluşturulursa numara çakışmasın.
+- `downgrade()` yeni eklenen tüm satırları (kalemler → faturalar → müşteriler) siler,
+  `invoice_sequence`'ı `1`'e geri çeker; eski `...d1`-`...d5` verilerine dokunmaz.
+
+**Karşılaşılan ve düzeltilen sorunlar:**
+1. İlk revision ID (`f1a2b3c4d5e6`) repo'da zaten var olan başka bir migration'la çakıştı
+   (`f1a2b3c4d5e6_add_invoice_pdf_status.py`) → `alembic heads` "Cycle detected" hatası verdi;
+   dosya `a6b7c8d9e0f1` olarak yeniden adlandırıldı.
+2. UUID sonek şeması `...d10`, `...d11` gibi 13 karakterlik son segmentler üretiyordu (geçersiz
+   UUID — son segment tam 12 hex karakter olmalı) → hex sırasına devam edilerek (`d6`...`d9`,
+   `da`, `db`...`df`, `e0`...`e4`) düzeltildi.
+3. `status`/`invoice_type`/`scenario`/`commission_payer`/`pdf_status` alanları ilk denemede
+   küçük harfle (`"paid"`, `"sale"` vb.) yazılmıştı; DB'deki Postgres enum tipleri büyük harf
+   (`PAID`, `SALE` vb.) bekliyor → tüm değerler büyük harfe çevrildi.
+
+**Yapılan dosyalar:**
+- Ekleme: `backend/alembic/versions/a6b7c8d9e0f1_seed_demo_customers_and_invoices.py`.
+
+**Doğrulama:**
+- `docker exec backend-backend-1 alembic upgrade head` → hatasız tamamlandı.
+- `docker exec backend-backend-1 alembic downgrade -1` sonra tekrar `upgrade head` → idempotent
+  şekilde geri alınıp yeniden uygulanabildiği doğrulandı.
+- Postgres'te doğrudan sorgu: 3 kurumsal + 2 bireysel yeni müşteri, 5 yeni fatura (durumları
+  PAID/SENT/OVERDUE/PAID/DRAFT), `invoice_sequence=6` — beklenen değerlerle eşleşti.
+- `docker exec backend-backend-1 pytest -q`: 60 geçti, 1 hata
+  (`test_download_pdf_not_ready_returns_404`) — bu hata bu migration'dan **bağımsız, önceden var
+  olan** bir sorun: `app/api/v1/invoices.py`'deki `download_invoice_pdf` endpoint'i PDF'i
+  senkron/anında üretip 200 dönüyor, testin beklediği "henüz üretilmemişse 404" davranışı koda
+  hiç yazılmamış — seed verisiyle veya bu değişiklikle hiçbir ilgisi yok, ayrı bir düzeltme
+  gerektirir.
+- Tarayıcıda demo hesabıyla giriş yapılıp Müşteriler/Faturalar sayfalarında görsel teyit henüz
+  yapılmadı (bu ortamda tarayıcı aracı yok) — `docs/todo.md`'ye not düşüldü.
+
+---
+
 ## 2026-09-01 — Login/Signup Kayan Panel Geri Getirildi + "Ücretsiz Başla" Ayrı Demo Girişi
 
 **Durum:** Değiştirme — Tamamlandı (frontend build/test yeşil; tarayıcı görsel teyidi bekliyor).

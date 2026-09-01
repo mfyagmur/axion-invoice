@@ -1,5 +1,18 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-09-01 — Demo Hesabına Örnek Müşteri ve Fatura Verisi sonrası
+
+- [ ] 2026-09-01: Tarayıcıda teyit gerekiyor — demo hesabıyla (`/get-started` üzerinden) giriş
+  yapılıp Müşteriler sayfasında toplam 6 müşteri (1 eski bireysel + 3 yeni kurumsal + 2 yeni
+  bireysel), Faturalar sayfasında toplam 6 fatura (1 eski draft + 5 yeni: PAID/SENT/OVERDUE/
+  PAID/DRAFT) göründüğü kontrol edilmeli. Bu ortamda tarayıcı otomasyon aracı olmadığı için
+  yapılamadı — bkz. `docs/PROJECT_DESING.md` "Demo Hesabına Örnek Müşteri ve Fatura Verisi".
+- [ ] 2026-09-01: `test_invoices.py::test_download_pdf_not_ready_returns_404` başarısız —
+  bu görevden **bağımsız, önceden var olan** bir sorun. `app/api/v1/invoices.py`'deki
+  `download_invoice_pdf` endpoint'i PDF'i her zaman senkron üretip 200 dönüyor; testin beklediği
+  "PDF henüz üretilmemişse 404" davranışı hiç implemente edilmemiş. Ayrı bir görev olarak ele
+  alınmalı (ya test güncellenmeli ya da endpoint'e "hazır değilse 404" mantığı eklenmeli).
+
 ## 2026-09-01 — Login/Signup Kayan Panel Geri Getirildi + "Ücretsiz Başla" Ayrı Demo Girişi sonrası
 
 - [ ] 2026-09-01: Tarayıcıda teyit gerekiyor — `/login` ve `/signup`'ın eskisi gibi kayan
