@@ -180,12 +180,16 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
         {viewItem && <div className="border-t border-slate-100" />}
         <button
           type="button"
+          disabled={isDemo}
           onClick={() => {
             setIsOpen(false)
-            if (blockIfDemo()) return
+            if (isDemo) {
+              blockIfDemo()
+              return
+            }
             navigate(`/dashboard/invoices/new?duplicateFrom=${invoiceId}`)
           }}
-          className={activeItemClass}
+          className={isDemo ? disabledItemClass : activeItemClass}
         >
           {t('invoices.actions.duplicate')}
         </button>
@@ -214,10 +218,13 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
             </button>
             <button
               type="button"
-              disabled={sendEmail.isPending}
+              disabled={isDemo || sendEmail.isPending}
               onClick={() => {
                 setIsOpen(false)
-                if (blockIfDemo()) return
+                if (isDemo) {
+                  blockIfDemo()
+                  return
+                }
                 sendEmail.mutate(invoiceId, {
                   onSuccess: () => pushToast(t('invoices.detail.emailSent'), 'success'),
                   onError: (error) => {
@@ -226,18 +233,22 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
                   },
                 })
               }}
-              className={activeItemClass}
+              className={isDemo ? disabledItemClass : activeItemClass}
             >
               {t('invoices.actions.sendEmail')}
             </button>
             <button
               type="button"
-              disabled={!isPdfReady || downloadPdf.isPending}
+              disabled={isDemo || !isPdfReady || downloadPdf.isPending}
               onClick={() => {
                 setIsOpen(false)
+                if (isDemo) {
+                  blockIfDemo()
+                  return
+                }
                 downloadPdf.mutate({ id: invoiceId, filename: row.invoiceNumber })
               }}
-              className={isPdfReady ? activeItemClass : disabledItemClass}
+              className={isDemo || !isPdfReady ? disabledItemClass : activeItemClass}
             >
               {t('invoices.actions.downloadPdf')}
             </button>
@@ -245,24 +256,31 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
         )}
         <button
           type="button"
-          disabled={!isCancellable}
+          disabled={isDemo || !isCancellable}
           onClick={() => {
             setIsOpen(false)
-            if (blockIfDemo()) return
+            if (isDemo) {
+              blockIfDemo()
+              return
+            }
             setConfirmAction('cancel')
           }}
-          className={isCancellable ? activeItemClass : disabledItemClass}
+          className={isDemo || !isCancellable ? disabledItemClass : activeItemClass}
         >
           {t('invoices.actions.cancelInvoice')}
         </button>
         <button
           type="button"
+          disabled={isDemo}
           onClick={() => {
             setIsOpen(false)
-            if (blockIfDemo()) return
+            if (isDemo) {
+              blockIfDemo()
+              return
+            }
             archiveMutation.mutate(invoiceId)
           }}
-          className={activeItemClass}
+          className={isDemo ? disabledItemClass : activeItemClass}
         >
           {t('invoices.actions.archive')}
         </button>
