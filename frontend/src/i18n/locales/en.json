@@ -763,7 +763,8 @@
         "title": "Two-Factor Authentication (2FA)",
         "description": "Enable two-factor authentication to increase your account security.",
         "setupButton": "Start Setup"
-      }
+      },
+      "demoSessionsMessage": "Active sessions are not displayed on demo accounts for privacy compliance reasons."
     },
     "definitions": {
       "units": "Units",

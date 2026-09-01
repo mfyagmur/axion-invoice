@@ -763,7 +763,8 @@
         "title": "İki Adımlı Doğrulama (2FA)",
         "description": "Hesabınızın güvenliğini artırmak için iki adımlı doğrulamayı etkinleştirin.",
         "setupButton": "Kurulumu Başlat"
-      }
+      },
+      "demoSessionsMessage": "Demo hesabında KVKK gizlilik ilkesi nedeniyle açık oturumlar gösterilmemektedir."
     },
     "definitions": {
       "units": "Birimler",

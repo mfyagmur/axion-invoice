@@ -20,6 +20,7 @@ export function SecurityTab() {
   const { data: sessions, isLoading: isSessionsLoading } = useSessions()
   const revokeSession = useRevokeSession()
   const revokeOthers = useRevokeOtherSessions()
+  const isDemo = user?.is_demo ?? false
 
   // TODO: backend TOTP entegrasyonu — docs/todo.md. Şimdilik sadece görsel, persist edilmiyor.
   const [is2faEnabled, setIs2faEnabled] = useState(false)
@@ -94,8 +95,8 @@ export function SecurityTab() {
       >
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
-            <p className="text-sm text-slate-600 dark:text-slate-300">{t('settings.security.twoFactor.description')}</p>
-            <Switch checked={is2faEnabled} onChange={setIs2faEnabled} label={t('settings.security.twoFactor.title')} />
+            <p className={`text-sm ${isDemo ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{t('settings.security.twoFactor.description')}</p>
+            <Switch checked={is2faEnabled} onChange={isDemo ? undefined : setIs2faEnabled} disabled={isDemo} label={t('settings.security.twoFactor.title')} />
           </div>
           <Button type="button" variant="secondary" disabled className="w-fit">
             {t('settings.security.twoFactor.setupButton')}
@@ -117,6 +118,7 @@ export function SecurityTab() {
                 placeholder="••••••••"
                 value={passwordForm.current_password}
                 onChange={(e) => handlePasswordChange('current_password', e.target.value)}
+                disabled={isDemo}
                 required
               />
             )}
@@ -127,6 +129,7 @@ export function SecurityTab() {
               placeholder="••••••••"
               value={passwordForm.new_password}
               onChange={(e) => handlePasswordChange('new_password', e.target.value)}
+              disabled={isDemo}
               required
             />
 
@@ -136,81 +139,92 @@ export function SecurityTab() {
               placeholder="••••••••"
               value={passwordForm.confirm_password}
               onChange={(e) => handlePasswordChange('confirm_password', e.target.value)}
+              disabled={isDemo}
               required
             />
 
             {passwordError && <p className="text-xs text-red-600">{passwordError}</p>}
           </div>
 
-          <Button type="submit" disabled={changePassword.isPending} className="w-fit">
+          <Button type="submit" disabled={changePassword.isPending || isDemo} className="w-fit" title={isDemo ? t('demo.actionBlocked') : undefined}>
             {changePassword.isPending ? t('common.loading') : t('settings.security.changePassword')}
           </Button>
         </form>
       </Card>
 
-      <Card
-        className="rounded-xl border-gray-100 shadow-sm lg:col-span-2"
-        icon={<Monitor size={18} />}
-        title={t('settings.security.sessions')}
-        action={
-          sessions && sessions.length > 1 ? (
-            <Button
-              type="button"
-              onClick={() => revokeOthers.mutate()}
-              disabled={revokeOthers.isPending}
-              className="border border-red-500 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-500 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40"
-            >
-              {t('settings.security.revokeAllDevices')}
-            </Button>
-          ) : undefined
-        }
-      >
-        {isSessionsLoading ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>
-        ) : sessions && sessions.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {sessions.map((session) => {
-              const device = getDeviceInfo(session)
-              const DeviceIcon = device.isMobile ? Smartphone : Laptop
-              return (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 p-3 dark:border-slate-700"
-                >
-                  <div className="flex items-start gap-3">
-                    <DeviceIcon size={18} className="mt-0.5 shrink-0 text-slate-500 dark:text-slate-400" />
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{device.label}</span>
-                        {session.is_current && <Badge color="green">{t('settings.security.thisBrowser')}</Badge>}
+      {!isDemo ? (
+        <Card
+          className="rounded-xl border-gray-100 shadow-sm lg:col-span-2"
+          icon={<Monitor size={18} />}
+          title={t('settings.security.sessions')}
+          action={
+            sessions && sessions.length > 1 ? (
+              <Button
+                type="button"
+                onClick={() => revokeOthers.mutate()}
+                disabled={revokeOthers.isPending}
+                className="border border-red-500 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-500 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40"
+              >
+                {t('settings.security.revokeAllDevices')}
+              </Button>
+            ) : undefined
+          }
+        >
+          {isSessionsLoading ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>
+          ) : sessions && sessions.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {sessions.map((session) => {
+                const device = getDeviceInfo(session)
+                const DeviceIcon = device.isMobile ? Smartphone : Laptop
+                return (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 p-3 dark:border-slate-700"
+                  >
+                    <div className="flex items-start gap-3">
+                      <DeviceIcon size={18} className="mt-0.5 shrink-0 text-slate-500 dark:text-slate-400" />
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{device.label}</span>
+                          {session.is_current && <Badge color="green">{t('settings.security.thisBrowser')}</Badge>}
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{session.ip_address || 'IP unknown'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {session.is_current
+                            ? t('settings.security.thisBrowser')
+                            : `${t('settings.security.lastUsed')}: ${formatDateVerbal(session.last_used_at, { month: 'long', includeTime: true })}`}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{session.ip_address || 'IP unknown'}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {session.is_current
-                          ? t('settings.security.thisBrowser')
-                          : `${t('settings.security.lastUsed')}: ${formatDateVerbal(session.last_used_at, { month: 'long', includeTime: true })}`}
-                      </p>
                     </div>
+                    {!session.is_current && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => revokeSession.mutate(session.id)}
+                        disabled={revokeSession.isPending}
+                        className="shrink-0 px-3 py-1 text-xs"
+                      >
+                        {t('settings.security.revoke')}
+                      </Button>
+                    )}
                   </div>
-                  {!session.is_current && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => revokeSession.mutate(session.id)}
-                      disabled={revokeSession.isPending}
-                      className="shrink-0 px-3 py-1 text-xs"
-                    >
-                      {t('settings.security.revoke')}
-                    </Button>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.security.noSessions')}</p>
+          )}
+        </Card>
+      ) : (
+        <Card className="rounded-xl border-gray-100 shadow-sm lg:col-span-2" icon={<Monitor size={18} />} title={t('settings.security.sessions')}>
+          <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/20">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              {t('settings.security.demoSessionsMessage')}
+            </p>
           </div>
-        ) : (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.security.noSessions')}</p>
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   )
 }

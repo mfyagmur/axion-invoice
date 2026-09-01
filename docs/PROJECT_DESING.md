@@ -4,6 +4,49 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-01 — Demo Hesabı Güvenlik Sekmesi (Security Tab) Kilitlemesi
+
+**Durum:** Ekleme — Tamamlandı.
+
+**Özet:** Demo hesabı (`demo@axioninvoice.app`) `dashboard/settings?tab=security` sayfasında
+şifre değişikliği, iki adımlı doğrulama (2FA) ve açık oturumlar bölümlerini kullanıcı-engelleme +
+KVKK gizlilik mesajı ile kilitlenmiş. 
+
+Demo user'a yapılan işlemler:
+1. Şifre değişikliği form'u — tüm input'lar disabled, "Şifreyi Değiştir" butonu disabled
+2. 2FA (İki Adımlı Doğrulama) — Switch disabled, setup butonu disabled  
+3. Açık Oturumlar — bölüm gizli, yerine "Demo hesabında KVKK gizlilik ilkesi nedeniyle açık
+   oturumlar gösterilmemektedir" mesajı gösterilir
+
+**Yapılan değişiklikler:**
+
+1. **Backend** — ek değişiklik yok, önceki "Account Tab" kilitlemesinde zaten yapıldı:
+   - `change_password` endpoint'i zaten `Depends(require_not_demo)` ile korunmuş (line 186)
+   - Sessions endpoints'leri revoke işlemleri zaten `require_not_demo` ile korunmuş
+
+2. **Frontend Component** (`frontend/src/pages/dashboard/settings/SecurityTab.tsx`):
+   - Line 24: `const isDemo = user?.is_demo ?? false` ekledim
+   - 2FA Card (lines 90-104): 
+     - `<p>` metni gri renk (`.text-slate-400`) demo user'da
+     - `<Switch>` `disabled={isDemo}` ve `onChange={isDemo ? undefined : setIs2faEnabled}`
+   - Change Password form inputs (lines 114-139): `disabled={isDemo}` eklendi
+   - Change Password submit button (line 145): `disabled={changePassword.isPending || isDemo}`
+     ve `title={isDemo ? t('demo.actionBlocked') : undefined}`
+   - Sessions Card (lines 151-213): Tüm kart `!isDemo` koşuluyla conditional render'da;
+     demo user'lar için yeni amber alert box, `settings.security.demoSessionsMessage` mesajı
+
+3. **Frontend I18n:**
+   - `frontend/src/i18n/locales/tr.json` (line 767): 
+     `"demoSessionsMessage": "Demo hesabında KVKK gizlilik ilkesi nedeniyle açık oturumlar gösterilmemektedir."`
+   - `frontend/src/i18n/locales/en.json` (line 767):
+     `"demoSessionsMessage": "Active sessions are not displayed on demo accounts for privacy compliance reasons."`
+
+**I18n:** 1 yeni key (`settings.security.demoSessionsMessage`), `demo.actionBlocked` zaten mevcut.
+
+**Dosyalar:** 3 dosya değişti (1 tsx, 2 json).
+
+---
+
 ## 2026-09-01 — Demo Hesabı Profil Bilgisi ve Düzenleme Kilidi
 
 **Durum:** Ekleme — Tamamlandı.
