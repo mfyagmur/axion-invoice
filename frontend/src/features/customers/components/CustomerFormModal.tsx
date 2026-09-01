@@ -247,9 +247,9 @@ export function CustomerFormModal({ isOpen, onClose, customer, onSuccess }: Cust
                   label={t('customers.form.website')}
                   icon={Globe}
                   type="url"
-                  prefix="https://"
+                  //prefix="https://"
                   error={errors.website && t(errors.website.message ?? '')}
-                  placeholder="www.example.com"
+                  placeholder="https://www.example.com"
                   value={field.value}
                   onChange={(e) => {
                     let val = e.target.value
