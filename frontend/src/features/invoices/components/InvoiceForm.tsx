@@ -120,6 +120,9 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const paymentCurrency = watch('payment_currency')
   const dueAtValue = watch('due_at')
 
+  const isDemo = user?.is_demo ?? false
+  const maxLineItems = isDemo ? 3 : Infinity
+
   const { data: selectedCustomer } = useCustomer(customerId || undefined)
   const { data: paymentTerms } = usePaymentTerms()
   const { data: units } = useUnits()
@@ -234,7 +237,11 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   }, [customerId, setValue])
 
   function handleAppend() {
-    append(emptyLineItem())
+    if (lineItemFields.length < maxLineItems) {
+      append(emptyLineItem())
+    } else if (isDemo) {
+      pushToast(t('invoices.form.demoLineItemLimit'))
+    }
   }
 
   function handleInsertFixedNote() {
@@ -297,7 +304,10 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
               <Select
                 value={field.value}
                 onChange={field.onChange}
-                options={templates?.filter((tpl) => tpl.is_active !== false || tpl.id === templateId).map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
+                options={templates?.filter((tpl) => {
+                  if (isDemo) return tpl.name === 'Classic' && (tpl.is_active !== false || tpl.id === templateId)
+                  return tpl.is_active !== false || tpl.id === templateId
+                }).map((tpl) => ({ value: tpl.id, label: tpl.name })) || []}
                 placeholder={t('invoices.form.selectTemplate')}
                 error={errors.template_id ? t('invoices.form.errors.templateRequired') : undefined}
               />
@@ -568,7 +578,12 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
         <Card icon={<List size={20} />} title={t('invoices.form.lineItems')}>
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <Button type="button" variant="secondary" onClick={handleAppend}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleAppend}
+                disabled={isDemo && lineItemFields.length >= maxLineItems}
+              >
                 <Plus size={16} />
                 <span>{t('invoices.form.addLineItem')}</span>
               </Button>
@@ -592,7 +607,8 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
             <button
               type="button"
               onClick={handleAppend}
-              className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-slate-900 hover:text-slate-900 hover:bg-slate-50 active:text-black transition-colors dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 dark:active:text-white"
+              disabled={isDemo && lineItemFields.length >= maxLineItems}
+              className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-slate-900 hover:text-slate-900 hover:bg-slate-50 active:text-black transition-colors dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 dark:active:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={16} />
               <span>{t('invoices.form.addLineItem')}</span>

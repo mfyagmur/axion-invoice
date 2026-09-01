@@ -586,6 +586,7 @@
       "otherTaxesTooltip": "Ürüne eklenecek diğer vergi tutarı (ÖTV, damga vergisi vb.)",
       "insertFixedNote": "Sabit Açıklamayı Getir",
       "noDefaultNote": "Varsayılan sabit açıklama bulunamadı. Lütfen Ayarlar > Tanımlar sekmesinden bir açıklamayı varsayılan olarak işaretleyin.",
+      "demoLineItemLimit": "Demo modunda maksimum 3 kalem ekleyebilirsiniz.",
       "errors": {
         "templateRequired": "Şablon seçimi zorunludur.",
         "customerRequired": "Şirket adı seçimi zorunludur.",

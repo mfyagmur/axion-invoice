@@ -586,6 +586,7 @@
       "otherTaxesTooltip": "Other tax amount added to the product (excise duty, stamp tax, etc.)",
       "insertFixedNote": "Insert Fixed Note",
       "noDefaultNote": "No default fixed note found. Please mark one as default under Settings > Definitions.",
+      "demoLineItemLimit": "You can add a maximum of 3 line items in demo mode.",
       "errors": {
         "templateRequired": "Template selection is required.",
         "customerRequired": "Company name selection is required.",
