@@ -4,9 +4,10 @@ import { Pencil } from 'lucide-react'
 interface EditableFieldProps {
   value: string
   onSave: (newValue: string) => void
+  onBeforeEdit?: () => boolean
 }
 
-export function EditableField({ value, onSave }: EditableFieldProps) {
+export function EditableField({ value, onSave, onBeforeEdit }: EditableFieldProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState(value)
 
@@ -36,6 +37,7 @@ export function EditableField({ value, onSave }: EditableFieldProps) {
     <button
       type="button"
       onClick={() => {
+        if (onBeforeEdit?.()) return
         setDraft(value)
         setIsEditing(true)
       }}

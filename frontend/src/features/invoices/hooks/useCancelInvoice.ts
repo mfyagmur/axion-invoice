@@ -1,9 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { invoicesApi } from '@/features/invoices/api/invoicesApi'
 
 export function useCancelInvoice() {
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   return useMutation({
     mutationFn: (id: string) => invoicesApi.cancel(id),
@@ -11,8 +14,8 @@ export function useCancelInvoice() {
       void queryClient.invalidateQueries({ queryKey: ['invoices'] })
       toast.success('Fatura iptal edildi')
     },
-    onError: () => {
-      toast.error('Fatura iptal edilemedi')
+    onError: (error: AxiosError) => {
+      toast.error(error.response?.status === 403 ? t('demo.actionBlocked') : 'Fatura iptal edilemedi')
     },
   })
 }

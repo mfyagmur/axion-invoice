@@ -15,6 +15,7 @@ import { useUnarchiveInvoice } from '@/features/invoices/hooks/useUnarchiveInvoi
 import { useDownloadInvoicePdf } from '@/features/invoices/hooks/useDownloadInvoicePdf'
 import { useSendInvoiceEmail } from '@/features/invoices/hooks/useSendInvoiceEmail'
 import { useToastStore } from '@/store/toastStore'
+import { useAuthStore } from '@/store/authStore'
 
 interface InvoiceRowActionsProps {
   row: InvoiceRow
@@ -43,6 +44,14 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
   const downloadPdf = useDownloadInvoicePdf()
   const sendEmail = useSendInvoiceEmail()
   const pushToast = useToastStore((state) => state.push)
+  const isDemo = useAuthStore((state) => state.user?.is_demo ?? false)
+
+  function blockIfDemo(): boolean {
+    if (isDemo) {
+      pushToast(t('demo.actionBlocked'), 'error')
+    }
+    return isDemo
+  }
 
   const isPdfReady = row.pdfStatus === 'ready'
   const isCancelled = row.status === 'cancelled'
@@ -114,6 +123,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
       type="button"
       onClick={() => {
         setIsOpen(false)
+        if (blockIfDemo()) return
         unarchiveMutation.mutate(invoiceId)
       }}
       className={activeItemClass}
@@ -133,6 +143,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
           type="button"
           onClick={() => {
             setIsOpen(false)
+            if (blockIfDemo()) return
             setConfirmAction('restore')
           }}
           className={activeItemClass}
@@ -152,6 +163,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
           disabled={!isCancellable}
           onClick={() => {
             setIsOpen(false)
+            if (blockIfDemo()) return
             setConfirmAction('cancel')
           }}
           className={isCancellable ? activeItemClass : disabledItemClass}
@@ -170,6 +182,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
           type="button"
           onClick={() => {
             setIsOpen(false)
+            if (blockIfDemo()) return
             navigate(`/dashboard/invoices/new?duplicateFrom=${invoiceId}`)
           }}
           className={activeItemClass}
@@ -180,6 +193,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
           type="button"
           onClick={() => {
             setIsOpen(false)
+            if (blockIfDemo()) return
             setIsPaymentChaserOpen(true)
           }}
           className={activeItemClass}
@@ -203,6 +217,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
               disabled={sendEmail.isPending}
               onClick={() => {
                 setIsOpen(false)
+                if (blockIfDemo()) return
                 sendEmail.mutate(invoiceId, {
                   onSuccess: () => pushToast(t('invoices.detail.emailSent'), 'success'),
                   onError: (error) => {
@@ -233,6 +248,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
           disabled={!isCancellable}
           onClick={() => {
             setIsOpen(false)
+            if (blockIfDemo()) return
             setConfirmAction('cancel')
           }}
           className={isCancellable ? activeItemClass : disabledItemClass}
@@ -243,6 +259,7 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
           type="button"
           onClick={() => {
             setIsOpen(false)
+            if (blockIfDemo()) return
             archiveMutation.mutate(invoiceId)
           }}
           className={activeItemClass}

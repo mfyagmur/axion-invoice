@@ -1,17 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { invoicesApi } from '@/features/invoices/api/invoicesApi'
 
 export function usePaymentReminder() {
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   const activateMutation = useMutation({
     mutationFn: (id: string) => invoicesApi.activatePaymentReminder(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['invoices'] })
     },
-    onError: () => {
-      toast.error('Ödeme hatırlatıcısı aktif edilemedi')
+    onError: (error: AxiosError) => {
+      toast.error(error.response?.status === 403 ? t('demo.actionBlocked') : 'Ödeme hatırlatıcısı aktif edilemedi')
     },
   })
 
@@ -20,8 +23,8 @@ export function usePaymentReminder() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['invoices'] })
     },
-    onError: () => {
-      toast.error('Ödeme hatırlatıcısı devre dışı bırakılamadı')
+    onError: (error: AxiosError) => {
+      toast.error(error.response?.status === 403 ? t('demo.actionBlocked') : 'Ödeme hatırlatıcısı devre dışı bırakılamadı')
     },
   })
 

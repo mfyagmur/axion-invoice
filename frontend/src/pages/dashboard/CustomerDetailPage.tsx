@@ -20,6 +20,8 @@ import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
 import { useUpdateCustomerContact } from '@/features/customers/hooks/useUpdateCustomerContact'
 import { useDeleteCustomerContact } from '@/features/customers/hooks/useDeleteCustomerContact'
+import { useAuthStore } from '@/store/authStore'
+import { useToastStore } from '@/store/toastStore'
 import type { CustomerUpdatePayload, CustomerContactPayload } from '@/types/customer'
 
 const STATUS_KEYS: Record<string, string> = {
@@ -53,6 +55,15 @@ export function CustomerDetailPage() {
   const [activeTab, setActiveTab] = useState<'invoices' | 'contact'>('invoices')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const isDemo = useAuthStore((state) => state.user?.is_demo ?? false)
+  const pushToast = useToastStore((state) => state.push)
+
+  function blockIfDemo(): boolean {
+    if (isDemo) {
+      pushToast(t('demo.actionBlocked'), 'error')
+    }
+    return isDemo
+  }
 
   const {
     register,
@@ -160,7 +171,10 @@ export function CustomerDetailPage() {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setIsEditModalOpen(true)}
+            onClick={() => {
+              if (blockIfDemo()) return
+              setIsEditModalOpen(true)
+            }}
           >
             {t('customers.list.edit')}
           </Button>
@@ -168,7 +182,10 @@ export function CustomerDetailPage() {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => setIsContactModalOpen(true)}
+              onClick={() => {
+                if (blockIfDemo()) return
+                setIsContactModalOpen(true)
+              }}
             >
               <Plus size={16} className="mr-2" />
               {t('customers.detail.contact.addButton')}
@@ -263,14 +280,17 @@ export function CustomerDetailPage() {
               <EditableField
                 value={customer.name || ''}
                 onSave={(newValue) => saveCustomerField('name', newValue)}
+                onBeforeEdit={blockIfDemo}
               />
               <EditableField
                 value={customer.email || ''}
                 onSave={(newValue) => saveCustomerField('email', newValue)}
+                onBeforeEdit={blockIfDemo}
               />
               <EditableField
                 value={customer.phone || ''}
                 onSave={(newValue) => saveCustomerField('phone', newValue)}
+                onBeforeEdit={blockIfDemo}
               />
               <div />
 
@@ -286,14 +306,17 @@ export function CustomerDetailPage() {
                   <EditableField
                     value={`${contact.first_name} ${contact.last_name}`}
                     onSave={(newValue) => updateContactField(contact.id, 'name', newValue)}
+                    onBeforeEdit={blockIfDemo}
                   />
                   <EditableField
                     value={contact.email || ''}
                     onSave={(newValue) => updateContactField(contact.id, 'email', newValue)}
+                    onBeforeEdit={blockIfDemo}
                   />
                   <EditableField
                     value={contact.phone || ''}
                     onSave={(newValue) => updateContactField(contact.id, 'phone', newValue)}
+                    onBeforeEdit={blockIfDemo}
                   />
                   <button
                     type="button"
