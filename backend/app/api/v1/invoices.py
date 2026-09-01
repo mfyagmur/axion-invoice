@@ -21,6 +21,10 @@ from app.tasks.pdf_tasks import generate_invoice_pdf_task
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
+# Seeded system template "Classic" (see b3f9e7a2c114_seed_v2_system_templates.py) —
+# demo accounts always preview against this template regardless of their invoice's actual template.
+DEMO_PREVIEW_TEMPLATE_ID = "00000000-0000-0000-0000-000000000010"
+
 
 @router.get("", response_model=list[InvoiceSummaryResponse])
 def list_invoices(
@@ -123,11 +127,14 @@ def preview_invoice(
     db: Annotated[Session, Depends(get_db)],
 ) -> HTMLResponse:
     invoice = get_own_invoice(db, invoice_id, current_user)
-    template = db.get(InvoiceTemplate, invoice.template_id)
+    if current_user.is_demo:
+        template = db.get(InvoiceTemplate, uuid.UUID(DEMO_PREVIEW_TEMPLATE_ID))
+    else:
+        template = db.get(InvoiceTemplate, invoice.template_id)
     if template is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Şablon bulunamadı")
 
-    show_watermark = get_active_plan(db, current_user).key == "free"
+    show_watermark = current_user.is_demo or get_active_plan(db, current_user).key == "free"
     html = pdf_service.render_invoice_html(invoice, template, show_watermark)
     return HTMLResponse(content=html)
 
