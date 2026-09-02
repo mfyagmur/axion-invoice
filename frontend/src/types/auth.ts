@@ -67,6 +67,7 @@ export interface LoginResponse {
   requires_2fa: boolean
   two_factor_token: string | null
   two_factor_email_hint: string | null
+  two_factor_otp_expires_at: string | null
 }
 
 export interface VerifyTwoFactorPayload {

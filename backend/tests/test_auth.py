@@ -85,7 +85,35 @@ def test_login_with_2fa_enabled_returns_pending_challenge(client, db_session, te
     assert body["requires_2fa"] is True
     assert body["access_token"] is None
     assert body["two_factor_token"]
+    assert body["two_factor_otp_expires_at"]
     assert response.cookies.get("refresh_token") is None
+
+
+def test_resend_2fa_otp_within_cooldown_returns_429_with_retry_after(client, db_session, test_user: User):
+    _enable_2fa(db_session, test_user)
+    test_user.two_factor_otp_hash = hashlib.sha256(b"123456").hexdigest()
+    test_user.two_factor_otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=3)
+    test_user.two_factor_otp_purpose = "login"
+    db_session.commit()
+    two_factor_token = create_two_factor_token(str(test_user.id), 3)
+
+    response = client.post("/api/v1/auth/resend-2fa-otp", json={"two_factor_token": two_factor_token})
+    assert response.status_code == 429
+    assert response.headers.get("retry-after")
+    assert int(response.headers["retry-after"]) > 0
+
+
+def test_resend_2fa_otp_after_cooldown_returns_new_challenge(client, db_session, test_user: User):
+    _enable_2fa(db_session, test_user)
+    test_user.two_factor_otp_hash = hashlib.sha256(b"123456").hexdigest()
+    test_user.two_factor_otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=2, seconds=25)
+    test_user.two_factor_otp_purpose = "login"
+    db_session.commit()
+    two_factor_token = create_two_factor_token(str(test_user.id), 3)
+
+    response = client.post("/api/v1/auth/resend-2fa-otp", json={"two_factor_token": two_factor_token})
+    assert response.status_code == 200
+    assert response.json()["two_factor_otp_expires_at"]
 
 
 def test_verify_2fa_with_correct_code_issues_tokens(client, db_session, test_user: User):

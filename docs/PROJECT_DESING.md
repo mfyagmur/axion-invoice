@@ -1207,3 +1207,62 @@ Frontend:
 - `npx eslint` (değiştirilen tüm frontend dosyaları) → temiz.
 - `npx vitest run src/features/auth` → mevcut 3 `LoginForm` testi hâlâ geçiyor.
 - **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.
+
+## 2026-09-02 — Login OTP Ekranı Düzeltmeleri (Süre Sayacı, Hata Ayrımı, Resend Cooldown)
+
+**Durum:** Tamamlandı.
+
+**Özet:** Yukarıdaki 2FA login akışının kullanıcı testinde 5 sorun bulundu: OTP'nin 3 dakikalık
+süresi hiçbir yerde gösterilmiyordu, yanlış kod ile süresi dolmuş kod aynı tek mesajla
+gösteriliyordu, "Kodu Tekrar Gönder" butonu 30 saniyelik cooldown'a (429) takıldığında bunu
+gerçek bir gönderim hatasıymış gibi ("Kod gönderilemedi...") gösteriyordu ve uyarı toast'ları
+çok hızlı kayboluyordu. Backend'de `verify-2fa`'nın 400 (süre doldu, OTP temizlenir) / 401
+(yanlış kod, OTP korunur — tekrar deneme hakkı) ayrımı zaten doğruydu, sadece frontend'e
+taşınmamıştı; "Geri" butonu dışında otomatik yönlendirme olmadığı doğrulandı (zaten böyleydi,
+değişmedi). `OTP_EXPIRE_MINUTES=3`/`OTP_RESEND_COOLDOWN_SECONDS=30` sabitleri ve mevcut
+token/cookie/session mantığı değiştirilmedi.
+
+**Yapılan dosyalar:**
+
+Backend:
+- `backend/app/schemas/auth.py` — Değiştirme: `LoginResponse`'a `two_factor_otp_expires_at:
+  datetime | None` eklendi (frontend'in geri sayımı hesaplayabilmesi için).
+- `backend/app/api/v1/auth.py` — Değiştirme: `_issue_login_otp` artık `(token, expires_at)`
+  tuple'ı döndürüyor; `login`/`resend_two_factor_otp` bu değeri `LoginResponse`'a taşıyor.
+  `resend_two_factor_otp`'ta 429 fırlatılırken kalan saniye standart `Retry-After` header'ı
+  olarak eklendi (`detail` metni değişmedi, ekstra bilgi header üzerinden taşınıyor).
+- `backend/app/main.py` — Değiştirme: `CORSMiddleware`'e `expose_headers=["Retry-After"]`
+  eklendi (aksi halde tarayıcı JS'i bu header'ı okuyamıyor — CORS-safelist dışı header'lar
+  `Access-Control-Expose-Headers` olmadan JS'e görünmez).
+- `backend/tests/test_auth.py` — Ekleme: `test_resend_2fa_otp_within_cooldown_returns_429_
+  with_retry_after`, `test_resend_2fa_otp_after_cooldown_returns_new_challenge`; mevcut pending-
+  challenge testine `two_factor_otp_expires_at` alanının dolu geldiği assert'i eklendi.
+
+Frontend:
+- `frontend/src/types/auth.ts` — Değiştirme: `LoginResponse`'a `two_factor_otp_expires_at`
+  eklendi.
+- `frontend/src/store/toastStore.ts` — Değiştirme: `push(message, variant?, durationMs?)` —
+  opsiyonel `durationMs` parametresi eklendi (varsayılan mevcut `5000`, geriye dönük uyumlu).
+- `frontend/src/features/auth/hooks/useResendTwoFactorOtp.ts` — Değiştirme: `onError` artık
+  429'u (`Retry-After` header'ından kalan saniyeyi okuyarak) diğer hatalardan ayırıyor; her iki
+  toast da `8000`ms görünür kalıyor.
+- `frontend/src/features/auth/components/LoginForm.tsx` — Değiştirme: OTP formuna "Doğrulama
+  Kodu" satırının sağında canlı `mm:ss` geri sayım eklendi (`setInterval` ile saniyede bir
+  güncelleniyor); süre `0`'a inince veya backend `400` dönünce input/buton kilitlenip
+  `errorExpired` gösteriliyor, `401` durumunda ise sadece `errorInvalidCode` gösteriliyor.
+  "Tekrar Gönder" butonu artık ayrı bir state tutmadan `remainingSeconds`'tan türetilen 30
+  saniyelik yerel cooldown'u buton üzerinde sayaç olarak gösterip pasif tutuyor (backend'e
+  gereksiz 429 isteği gitmesini de önlüyor). "Geri" davranışı değişmedi.
+- `frontend/src/i18n/locales/{tr,en}.json` — Ekleme: `auth.login.twoFactor.{timeRemaining,
+  errorExpired,resendCooldown}`; `errorInvalidCode` metni süresi-dolmuş ihtimalini artık
+  içermeyecek şekilde sadeleştirildi.
+
+**Doğrulama:**
+- `docker exec backend-backend-1 pytest tests/test_auth.py -q` → 16/16 geçti (14 mevcut + 2 yeni).
+- `npx tsc -b` → değiştirilen dosyalarda yeni hata yok; bu işten önce de var olan, ilgisiz 4
+  hata kaldı (Checkbox.tsx, navigation.ts, InvoiceSendEmailModal.tsx, ProfileTab.tsx).
+- `npx eslint` (değiştirilen tüm dosyalar) → temiz (ilk denemede `react-hooks/set-state-in-effect`
+  hatası çıktı, resend-cooldown state'i kaldırılıp `remainingSeconds`'tan türetilerek çözüldü).
+- `npx vitest run` → `LoginForm.test.tsx` geçti; `InvoiceForm.test.tsx`/`InvoicesPage.test.tsx`'teki
+  2 başarısızlık bu işle ilgisiz, dokunulmayan dosyalarda (önceden var olan sorunlar).
+- **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.

@@ -37,6 +37,7 @@ class LoginResponse(BaseModel):
     requires_2fa: bool = False
     two_factor_token: str | None = None
     two_factor_email_hint: str | None = None
+    two_factor_otp_expires_at: datetime | None = None
 
 
 class VerifyTwoFactorRequest(BaseModel):

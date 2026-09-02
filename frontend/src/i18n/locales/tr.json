@@ -78,8 +78,11 @@
         "codeLabel": "Doğrulama Kodu",
         "submit": "Doğrula",
         "resend": "Kodu Tekrar Gönder",
+        "resendCooldown": "Tekrar gönder ({{seconds}}s)",
         "back": "Geri",
-        "errorInvalidCode": "Doğrulama kodu hatalı veya süresi dolmuş"
+        "timeRemaining": "Kalan süre: {{time}}",
+        "errorInvalidCode": "Doğrulama kodu hatalı",
+        "errorExpired": "Doğrulama kodunun süresi doldu, lütfen yeni kod isteyin"
       }
     },
     "signup": {

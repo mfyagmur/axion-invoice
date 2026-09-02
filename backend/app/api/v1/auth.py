@@ -80,14 +80,15 @@ def _mask_email(email: str) -> str:
     return f"{masked_local}@{domain}"
 
 
-def _issue_login_otp(user: User, db: Session) -> str:
+def _issue_login_otp(user: User, db: Session) -> tuple[str, datetime]:
     raw_code, code_hash = generate_otp_code()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES)
     user.two_factor_otp_hash = code_hash
-    user.two_factor_otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES)
+    user.two_factor_otp_expires_at = expires_at
     user.two_factor_otp_purpose = "login"
     db.commit()
     send_2fa_otp_email(user.two_factor_email, user, raw_code, purpose="login", expire_minutes=OTP_EXPIRE_MINUTES)
-    return create_two_factor_token(str(user.id), OTP_EXPIRE_MINUTES)
+    return create_two_factor_token(str(user.id), OTP_EXPIRE_MINUTES), expires_at
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -120,11 +121,12 @@ def login(payload: LoginRequest, request: Request, response: Response, db: Annot
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="E-posta veya şifre hatalı")
 
     if user.is_2fa_enabled and user.two_factor_email:
-        two_factor_token = _issue_login_otp(user, db)
+        two_factor_token, expires_at = _issue_login_otp(user, db)
         return LoginResponse(
             requires_2fa=True,
             two_factor_token=two_factor_token,
             two_factor_email_hint=_mask_email(user.two_factor_email),
+            two_factor_otp_expires_at=expires_at,
         )
 
     _set_refresh_cookie(response, str(user.id), request, db)
@@ -194,14 +196,21 @@ def resend_two_factor_otp(
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         last_sent_at = expires_at - timedelta(minutes=OTP_EXPIRE_MINUTES)
-        if (datetime.now(timezone.utc) - last_sent_at).total_seconds() < OTP_RESEND_COOLDOWN_SECONDS:
-            raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Lütfen tekrar göndermeden önce biraz bekleyin")
+        elapsed_seconds = (datetime.now(timezone.utc) - last_sent_at).total_seconds()
+        if elapsed_seconds < OTP_RESEND_COOLDOWN_SECONDS:
+            remaining = max(int(OTP_RESEND_COOLDOWN_SECONDS - elapsed_seconds), 1)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Lütfen tekrar göndermeden önce biraz bekleyin",
+                headers={"Retry-After": str(remaining)},
+            )
 
-    two_factor_token = _issue_login_otp(user, db)
+    two_factor_token, expires_at = _issue_login_otp(user, db)
     return LoginResponse(
         requires_2fa=True,
         two_factor_token=two_factor_token,
         two_factor_email_hint=_mask_email(user.two_factor_email),
+        two_factor_otp_expires_at=expires_at,
     )
 
 

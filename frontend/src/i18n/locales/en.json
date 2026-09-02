@@ -78,8 +78,11 @@
         "codeLabel": "Verification Code",
         "submit": "Verify",
         "resend": "Resend Code",
+        "resendCooldown": "Resend ({{seconds}}s)",
         "back": "Back",
-        "errorInvalidCode": "The verification code is invalid or has expired"
+        "timeRemaining": "Time remaining: {{time}}",
+        "errorInvalidCode": "The verification code is incorrect",
+        "errorExpired": "The code has expired, please request a new one"
       }
     },
     "signup": {
