@@ -45,7 +45,6 @@ export function InvoiceToolbar({
     { value: 'sent', label: t('invoices.status.sent') },
     { value: 'paid', label: t('invoices.status.paid') },
     { value: 'overdue', label: t('invoices.status.overdue') },
-    { value: 'cancelled', label: t('invoices.status.cancelled') },
   ]
 
   return (

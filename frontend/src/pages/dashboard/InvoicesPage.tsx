@@ -15,7 +15,7 @@ export function InvoicesPage() {
   const { t } = useTranslation()
   const { data: invoices, isLoading, isError, refetch } = useInvoices()
 
-  const [activeTab, setActiveTab] = useState<'all' | 'scheduled' | 'archive'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'scheduled' | 'archive' | 'cancelled'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFrom, setDateFrom] = useState<Date | null>(null)
@@ -40,8 +40,11 @@ export function InvoicesPage() {
     return matchesSearch && matchesStatus && matchesDateRange
   }
 
-  const filteredRows = displayRows.filter((row) => !row.archived && matchesFilters(row))
+  const filteredRows = displayRows.filter(
+    (row) => !row.archived && row.status !== 'cancelled' && matchesFilters(row),
+  )
   const archivedRows = displayRows.filter((row) => row.archived && matchesFilters(row))
+  const cancelledRows = displayRows.filter((row) => row.status === 'cancelled' && matchesFilters(row))
 
   return (
     <div className="flex flex-col gap-4">
@@ -60,9 +63,10 @@ export function InvoicesPage() {
           { key: 'all', label: t('invoices.tabs.all') },
           { key: 'scheduled', label: t('invoices.tabs.scheduled'), icon: <Clock size={14} /> },
           { key: 'archive', label: t('invoices.tabs.archive') },
+          { key: 'cancelled', label: t('invoices.tabs.cancelled') },
         ]}
         activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'all' | 'scheduled' | 'archive')}
+        onChange={(key) => setActiveTab(key as 'all' | 'scheduled' | 'archive' | 'cancelled')}
       />
 
       {activeTab === 'all' && (
@@ -115,6 +119,29 @@ export function InvoicesPage() {
           {isError && <ErrorState onRetry={() => refetch()} />}
 
           {!isLoading && !isError && <InvoiceTable rows={archivedRows} />}
+        </>
+      )}
+
+      {activeTab === 'cancelled' && (
+        <>
+          <InvoiceToolbar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateChange={(from, to) => {
+              setDateFrom(from)
+              setDateTo(to)
+            }}
+          />
+
+          {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
+
+          {isError && <ErrorState onRetry={() => refetch()} />}
+
+          {!isLoading && !isError && <InvoiceTable rows={cancelledRows} />}
         </>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import axios from 'axios'
 import { MoreHorizontal } from 'lucide-react'
@@ -34,7 +34,12 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
   const [isPaymentChaserOpen, setIsPaymentChaserOpen] = useState(false)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [confirmAction, setConfirmAction] = useState<'cancel' | 'restore' | null>(null)
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null)
+  const [menuPosition, setMenuPosition] = useState<{
+    top?: number
+    bottom?: number
+    right: number
+    maxHeight?: number
+  } | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const cancelMutation = useCancelInvoice()
@@ -81,8 +86,41 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
     }
 
     const handleScroll = () => setIsOpen(false)
+    const handleResize = () => setIsOpen(false)
     window.addEventListener('scroll', handleScroll, true)
-    return () => window.removeEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [isOpen])
+
+  // Measures the rendered menu after the initial (provisional) placement and,
+  // before the browser paints, flips it to a drop-up if it would overflow the
+  // bottom of the viewport (or clamps its height if it doesn't fit either way).
+  useLayoutEffect(() => {
+    if (!isOpen || !buttonRef.current || !menuRef.current) {
+      return
+    }
+
+    const buttonRect = buttonRef.current.getBoundingClientRect()
+    const menuHeight = menuRef.current.getBoundingClientRect().height
+    const viewportHeight = window.innerHeight
+    const margin = 8
+
+    const spaceBelow = viewportHeight - buttonRect.bottom - margin
+    const spaceAbove = buttonRect.top - margin
+    const right = window.innerWidth - buttonRect.right
+
+    if (menuHeight <= spaceBelow) {
+      setMenuPosition({ top: buttonRect.bottom + 4, right })
+    } else if (menuHeight <= spaceAbove) {
+      setMenuPosition({ bottom: viewportHeight - buttonRect.top + 4, right })
+    } else if (spaceBelow >= spaceAbove) {
+      setMenuPosition({ top: buttonRect.bottom + 4, right, maxHeight: spaceBelow })
+    } else {
+      setMenuPosition({ bottom: viewportHeight - buttonRect.top + 4, right, maxHeight: spaceAbove })
+    }
   }, [isOpen])
 
   function toggleMenu() {
@@ -291,7 +329,14 @@ export function InvoiceRowActions({ row, disableView = false, hideViewPreviewDow
   const menu = isOpen && menuPosition && (
     <div
       ref={menuRef}
-      style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
+      style={{
+        position: 'fixed',
+        top: menuPosition.top,
+        bottom: menuPosition.bottom,
+        right: menuPosition.right,
+        maxHeight: menuPosition.maxHeight,
+        overflowY: menuPosition.maxHeight ? 'auto' : undefined,
+      }}
       className="z-20 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
       onClick={(e) => e.stopPropagation()}
     >

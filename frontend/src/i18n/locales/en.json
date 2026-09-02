@@ -456,7 +456,8 @@
     "tabs": {
       "all": "All",
       "scheduled": "Scheduled Invoices",
-      "archive": "Archive"
+      "archive": "Archive",
+      "cancelled": "Cancelled"
     },
     "scheduled": {
       "empty": "Scheduled invoices are coming soon."

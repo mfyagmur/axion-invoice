@@ -456,7 +456,8 @@
     "tabs": {
       "all": "Tümü",
       "scheduled": "Planlanan Faturalar",
-      "archive": "Arşiv"
+      "archive": "Arşiv",
+      "cancelled": "İptal"
     },
     "scheduled": {
       "empty": "Planlanan fatura özelliği yakında kullanıma sunulacak."
