@@ -49,7 +49,6 @@ def _set_refresh_cookie(response: Response, user_id: str, request: Request, db: 
         httponly=True,
         samesite="lax",
         secure=settings.cookie_secure,
-        max_age=settings.refresh_token_expire_days * 24 * 3600,
         path=settings.refresh_cookie_path,
     )
     user_agent = request.headers.get("user-agent")
@@ -145,7 +144,6 @@ def refresh(
             httponly=True,
             samesite="lax",
             secure=settings.cookie_secure,
-            max_age=settings.refresh_token_expire_days * 24 * 3600,
             path=settings.refresh_cookie_path,
         )
         return TokenResponse(access_token=create_access_token(str(user.id)))
