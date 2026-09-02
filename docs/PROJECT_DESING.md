@@ -4,6 +4,87 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-02 — Fatura Durum Sistemi Düzeltmeleri (Round 3: kalıcı DRAFT kaydı ve geriye dönük düzeltme)
+
+**Durum:** Değiştirme — Tamamlandı.
+
+**Özet:** Round 2'deki `celery-worker` restart'ı yeterli olmadı çünkü sorun canlı process'in eski
+kodu değil, **veritabanındaki kalıcı veriydi**: bu faturalar ilk gönderildiklerinde `status: DRAFT →
+SENT` mutasyonu henüz hiç yazılmamıştı (Round 1'den önce gönderilmişlerdi), dolayısıyla `status`
+kolonu DB'de kalıcı olarak `DRAFT` yazılı kaldı — worker'ı yeniden başlatmak yeni gönderimleri
+düzeltir ama geçmişte kalmış satırları düzeltmez. `docker exec backend-postgres-1 psql` ile
+kontrol edilip 11 fatura (`email_sent_at` dolu ama `status='DRAFT'`) tek seferlik `UPDATE invoices
+SET status='SENT' WHERE status='DRAFT' AND email_sent_at IS NOT NULL` ile geriye dönük düzeltildi.
+Ayrıca `display_status` computed_field'ı, ham `status` kolonuna değil gerçek sinyal olan
+`email_sent_at`'e de bakacak şekilde güçlendirildi (`status == SENT or email_sent_at is not None`)
+— böylece ileride benzer bir veri tutarsızlığı (örn. bir worker restart'ı kaçırılırsa) tekrar aynı
+görsel bug'a yol açmaz.
+
+Ayrıca kullanıcıyla netleştirildi: **hiç e-posta ile gönderilmemiş (hâlâ gerçek Taslak) ama vade
+tarihi geçmiş bir fatura "Gecikmiş" değil "Taslak" olarak kalmaya devam eder** — "Gecikmiş" sadece
+gönderilmiş faturalar için anlamlıdır. Test sırasında rapor edilen "20.08.2026 gibi duran faturalar
+hâlâ Taslak" örnekleri incelendiğinde bunların gerçekten hiç gönderilmemiş (email_sent_at boş)
+taslaklar olduğu doğrulandı — bu, mevcut kapsam kararıyla tutarlı, bug değil.
+
+**Yapılan dosyalar:**
+- Backend: `backend/app/schemas/invoice.py` — `display_status`'ta `SENT` kontrolüne `or
+  self.email_sent_at is not None` fallback'i eklendi.
+- Veri: `axion_invoice` DB'sinde 11 satırlık tek seferlik backfill (`status`: `DRAFT` → `SENT`,
+  yalnızca `email_sent_at` dolu olanlar) — kod değişikliği değil, geçmiş veri düzeltmesi.
+
+**Doğrulama:** SQL ile backfill öncesi/sonrası satır sayısı ve değerleri doğrulandı (11/11 satır
+`SENT`'e döndü). `due_at <= today` / `email_sent_at` fallback mantığı gerçek veri üzerinden elle
+izlendi (örn. `INV202600015`: due_at 2026-08-24 ≤ bugün 2026-09-02 → beklenen sonuç "overdue").
+Backend `--reload` ile yeni koddan temiz başladığı log'dan doğrulandı.
+
+---
+
+## 2026-09-02 — Fatura Durum Sistemi Düzeltmeleri (Round 2: Timeline yapısı, gönderim bug'ı, gecikme kuralı)
+
+**Durum:** Değiştirme — Tamamlandı.
+
+**Özet:** Aynı günün ilk turunda eklenen `display_status`/`StatusTimeline` işini kullanıcı canlıda
+inceledi ve 3 sorun bildirdi, üçü de düzeltildi:
+
+1. **`StatusTimeline` yapısı bozulmuştu.** İlk turda sabit 4 adımlı akış (Oluşturuldu → E-posta
+   Gönderildi → Ödeme Alındı → Ödendi) kaldırılıp dallanan/dinamik bir adım listesiyle
+   değiştirilmişti. Bu geri alındı: adım listesi tekrar sabit 4 öğe, `tone`/dallanma mantığı
+   kaldırıldı. Arşiv/iptal/gecikme durumları artık adım listesini değiştirmiyor, bunun yerine
+   Card'ın üstünde bağımsız, aynı anda birden fazlası gösterilebilen renkli banner'lar olarak
+   ekleniyor (`timelineArchivedNote`/`timelineCancelledNote`/`timelineOverdueNote`). Alt mesaj
+   bloğu da eski `completedStepsCount`'a göre 4 durumlu (`created-only`/`sent`/`payment-received`/
+   `paid`) mantığa döndü, üstüne cancelled/overdue öncelikli iki mesaj eklendi.
+2. **Gönderilen faturalar "Taslak" görünmeye devam ediyordu.** Kök neden kod değil, ortamdı:
+   `email_tasks.py`'deki `status: DRAFT → SENT` mutasyonu doğru yazılmıştı ama çalışan
+   `celery-worker`/`celery-beat` container'ları ilk turun kodunu hiç yüklememiş, saatlerdir eski
+   process bellekte duruyordu (backend'in `--reload`'ı yalnızca `uvicorn`'u kapsıyor, Celery'yi
+   otomatik yeniden başlatmıyor) — `docker restart backend-celery-worker-1 backend-celery-beat-1`
+   ile çözüldü. Ayrıca gerçek bir kod kusuru da bulundu ve düzeltildi:
+   `PaymentChaserPanel.tsx:103`'te rozet hâlâ ham `row.status`'u kullanıyordu, `row.displayStatus`'a
+   çevrildi (diğer tüm kullanım noktaları ilk turda geçirilmişti, bu biri atlanmıştı).
+3. **Gecikmiş (overdue) hesabı eksikti.** Kural genişletildi: vade tarihi girilmişse artık
+   `due_at <= today` (vadesi bugün olan da "gecikmiş" sayılıyor, önceden kesin `<` idi); vade
+   tarihi hiç girilmemişse oluşturulma gününden bir gün sonrasından itibaren (`created_at.date() <
+   today`) gecikmiş sayılıyor. Kapsam aynı: yalnızca `SENT` durumundaki faturalar gecikmiş olabilir.
+
+**Yapılan dosyalar:**
+- Backend: `backend/app/schemas/invoice.py` — `display_status` computed_field'daki overdue dalı
+  genişletildi (yukarıdaki kural).
+- Frontend: `frontend/src/features/invoices/components/StatusTimeline.tsx` — sabit 4 adımlı yapıya
+  geri dönüldü, arşiv/iptal/gecikme banner olarak eklendi; `frontend/src/features/invoices/components/PaymentChaserPanel.tsx` —
+  rozet `row.displayStatus`'a çevrildi; `frontend/src/i18n/locales/tr.json` ve `en.json` —
+  `timelinePaymentReceived`, `timelineMessagePaymentReceived`, `timelineCancelledNote`,
+  `timelineOverdueNote` anahtarları eklendi.
+- Ortam: `celery-worker`/`celery-beat` container'ları yeniden başlatıldı (kod değişikliği değil,
+  ilk turun kodunun canlıya alınması için gerekliydi).
+
+**Doğrulama:** `npx tsc --noEmit` (4 önceden var olan, ilgisiz hata dışında temiz), `npx eslint` iki
+değişen dosyada temiz, iki locale dosyası JSON olarak geçerli, `docker logs backend-celery-worker-1`
+ile worker'ın yeni koddan temiz başladığı doğrulandı. Gerçek e-posta gönderimi ve tarayıcı üzerinden
+görsel doğrulama kullanıcıya kalıyor (bu ortamda tarayıcı aracı yok).
+
+---
+
 ## 2026-09-02 — Fatura Durum (Status) Sisteminin Gerçek Yaşam Döngüsünü Yansıtması
 
 **Durum:** Değiştirme — Tamamlandı.

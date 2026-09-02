@@ -100,7 +100,7 @@ export function PaymentChaserPanel({ row, isOpen, onClose }: PaymentChaserPanelP
                   <span className="font-semibold text-slate-900 dark:text-slate-100">{row.customerCompanyName}</span>
                 </div>
               </div>
-              <InvoiceStatusBadge status={row.status} />
+              <InvoiceStatusBadge status={row.displayStatus} />
             </div>
 
             <div className="mt-4 flex items-start justify-between gap-2">

@@ -151,8 +151,17 @@ class InvoiceSummaryResponse(BaseModel):
             return "cancelled"
         if self.status == InvoiceStatus.PAID:
             return "paid"
-        if self.status == InvoiceStatus.SENT and self.due_at and self.due_at < date.today():
-            return "overdue"
+        # `status` DB'de DRAFT olarak takılı kalmış olabilir (örn. eski kayıtlar, ya da e-posta
+        # gönderim task'ı worker restart edilmeden önce çalışmış olabilir) - gerçek sinyal olan
+        # email_sent_at'a bakarak "gönderildi" durumunu ham status'tan bağımsız olarak yakala.
+        if self.status == InvoiceStatus.SENT or self.email_sent_at is not None:
+            today = date.today()
+            if self.due_at is not None:
+                if self.due_at <= today:
+                    return "overdue"
+            elif self.created_at.date() < today:
+                return "overdue"
+            return "sent"
         return self.status.value
 
 
