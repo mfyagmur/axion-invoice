@@ -4,6 +4,80 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-02 — Demo Kullanıcı Dashboard'u
+
+**Durum:** Ekleme — Tamamlandı.
+
+**Özet:** `/dashboard` ekranı o güne kadar tamamen boş bir placeholder'dı ("Hoş geldiniz" yazısı
+dışında hiçbir şey göstermiyordu). Bu iterasyonda **sadece demo hesap** için modern, veri odaklı
+bir dashboard eklendi (normal kullanıcı ve admin dashboard'ları bilinçli olarak kapsam dışı
+bırakıldı, `docs/todo.md`'ye ertelendi). Backend'de dashboard/istatistik amaçlı hiçbir endpoint
+yoktu ve frontend'de hiç chart kütüphanesi kurulu değildi — bu nedenle iş hem yeni backend
+agregasyon katmanını hem frontend'e **Recharts** entegrasyonunu kapsadı.
+
+Ekran 3 bölümden oluşuyor: (1) "Genel Bakış" başlığı + bugünün tarihi + "Merhaba {ad}" + "Yeni
+Fatura Ekle"/"Yeni Müşteri Ekle" butonları, altında 4 KPI kartı (Toplam/Ödenen/Bekleyen/Geciken —
+her biri para birimi bazında gruplanmış tutar, fatura adedi ve TRY-bazlı aylık % trend oku ile);
+(2) tarih aralığı + para birimi filtresine tepki veren bir durum dağılım donut grafiği ("Faturalar")
+ve bir tutar aktivite bar grafiği ("Fatura Aktivitesi"); (3) son 10 faturayı listeleyen tıklanabilir
+bir tablo ve en yüksek tutarlı 6 müşteriyi listeleyen bir tablo.
+
+Kullanıcıyla netleştirilen iki ürün kararı: **"Toplam Fatura Tutarları"** arşivlenmemiş+iptal
+edilmemiş tüm faturaları kapsar (taslak dahil — diğer 3 kart bunun alt kümesidir ama toplamları
+"Toplam"a birebir eşit olmayabilir, bu kasıtlı); **aylık % trend** sadece **TRY cinsinden**
+faturaların tutar bazlı ay-üzeri-ay değişimidir (çoklu döviz + canlı kur sorgusu olmadan güvenilir
+toplanamayacağı için diğer para birimleri trend hesabına dahil edilmez, ilgili ay/geçen ay TRY
+faturası yoksa `null`/nötr gösterilir).
+
+Çoklu döviz her yerde **gruplanarak** gösterildi, asla sessizce toplanmadı (örn. "12.450,00 TRY" +
+"340,00 USD" ayrı satırlar) — projede canlı TCMB kuru dışında saklı bir kur tablosu olmadığından
+(bkz. `backend/app/services/fx_service.py`) cross-currency toplama güvenilir değil. Grafikler tek
+seferde tek para birimi gösterir (dropdown ile seçilir).
+
+**Yapılan dosyalar:**
+- Backend (yeni): `backend/app/schemas/dashboard.py` (KPI/currency-breakdown/chart response
+  şemaları), `backend/app/services/dashboard_service.py` (agregasyon mantığı — `display_status`
+  hesaplaması `InvoiceSummaryResponse`'takiyle birebir aynı kurallarla `compute_display_status`
+  helper'ında tekrarlandı, kova tanımları + TRY trend hesabı + top-6-müşteri sıralaması burada),
+  `backend/app/api/v1/dashboard.py` (`GET /dashboard/overview`, `GET /dashboard/charts?currency=&
+  from=&to=` — iki ayrı endpoint, KPI/son-faturalar/top-müşteriler filtre bağımsız olduğundan
+  filtre değişince yeniden hesaplanmasınlar diye ayrıldı).
+- Backend (değişiklik): `backend/app/main.py` — yeni `dashboard_router` kaydedildi.
+- Frontend (yeni): `frontend/src/features/dashboard/` — `api/dashboardApi.ts`,
+  `types/dashboard.ts`, `hooks/useDashboardOverview.ts` + `useDashboardCharts.ts`,
+  `components/{DemoDashboard,DashboardWelcomeHeader,KpiCardGrid,KpiCard,CurrencyAmountChips,
+  DashboardFilters,InvoiceStatusDonutChart,InvoiceActivityChart,RecentInvoicesTable,
+  TopCustomersTable}.tsx`.
+- Frontend (değişiklik): `frontend/src/pages/dashboard/DashboardHomePage.tsx` — `user.is_demo`
+  true ise yeni `<DemoDashboard />`, değilse eski placeholder aynen korunuyor (normal/admin
+  kullanıcı şimdilik dokunulmadı). `frontend/src/pages/dashboard/CustomersPage.tsx` — dashboard'daki
+  "Yeni Müşteri Ekle" butonu `navigate(..., { state: { openNewCustomerModal: true } })` ile
+  yönlendiriyor, `CustomersPage` bu state'i lazy `useState` initializer'ında okuyup modalı otomatik
+  açıyor (setState-in-effect lint kuralına takılmamak için state güncellemesi effect'te değil,
+  başlangıç state'inde yapıldı; effect sadece router state'ini temizlemek için kullanıldı).
+  `frontend/src/i18n/locales/{tr,en}.json` — yeni `dashboard.demo.*` namespace'i.
+- Bağımlılık: `frontend/package.json`'a `recharts` eklendi (SVG/React tabanlı, projedeki hand-rolled
+  Tailwind component tarzına uyduğu, Tremor gibi kendi tasarım sistemini dayatmadığı için tercih
+  edildi).
+
+**Doğrulama:** Backend `py -c "import app.main"` ile temiz import edildi. `npx tsc -b` ve
+`npx eslint` yeni dosyalarda hatasız (mevcut 4 pre-existing TS hatası bu değişiklikten bağımsız,
+dokunulmayan dosyalarda). Backend + frontend dev server'ları başlatılıp demo hesapla (`demo@
+axioninvoice.app`) gerçek giriş yapıldı, Playwright (headless Chromium, proje bağımlılığı değil —
+scratchpad'te ayrı kuruldu) ile: masaüstü (1440px), mobil (390px) ve dark mode (`document.
+documentElement.classList.add('dark')`) ekran görüntüleri alındı — tüm 3 bölüm doğru veriyle
+render oluyor, responsive grid'ler (KPI 4→2→1 col, chart/tablo 3→1 col) çalışıyor, dark mode'da
+grafik/tablo/kart renkleri okunabilir. "Yeni Müşteri Ekle" butonu tıklanıp `/dashboard/customers`'a
+yönlendiği ve `CustomerFormModal`'ın otomatik açıldığı doğrulandı. Son Faturalar tablosunda bir
+satıra tıklanıp `/dashboard/invoices/:id` detay sayfasına gittiği doğrulandı. Konsol/network
+hatası yok (tek gözlenen 401, `/auth/refresh`'in sayfa ilk yüklenirken oturum yokken denemesi —
+bu değişiklikten önce de var olan, ilgisiz bir davranış). Backend endpoint'leri demo kullanıcının
+gerçek seed verisiyle (6 fatura, 6 müşteri) curl ile de ayrı doğrulandı: KPI kova toplamları, TRY
+trend yüzdeleri (`-100.0%` — seed verisi tek seferde geçmiş tarihlere yazıldığı için "bu ay" 0
+fatura, beklenen davranış), top-6-müşteri sıralaması ve son-10-fatura listesi doğru döndü.
+
+---
+
 ## 2026-09-02 — Fatura Durum Sistemi Düzeltmeleri (Round 3: kalıcı DRAFT kaydı ve geriye dönük düzeltme)
 
 **Durum:** Değiştirme — Tamamlandı.

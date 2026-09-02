@@ -162,6 +162,38 @@
     "home": {
       "welcome": "Hoş geldiniz, {{name}}",
       "subtitle": "Axion Invoice panelinize genel bakış."
+    },
+    "demo": {
+      "overview": "Genel Bakış",
+      "greeting": "Merhaba {{name}}",
+      "newInvoice": "Yeni Fatura Ekle",
+      "newCustomer": "Yeni Müşteri Ekle",
+      "kpi": {
+        "total": "Toplam Fatura Tutarları",
+        "paid": "Ödenen Faturalar",
+        "pending": "Bekleyen Faturalar",
+        "overdue": "Geciken Faturalar",
+        "invoiceCount": "{{count}} fatura"
+      },
+      "charts": {
+        "distributionTitle": "Faturalar",
+        "activityTitle": "Fatura Aktivitesi",
+        "selectRange": "Tarih aralığı seç",
+        "empty": "Bu aralıkta veri yok"
+      },
+      "tables": {
+        "recentInvoices": "Son Faturalar",
+        "customers": "Müşteriler",
+        "invoiceNo": "Fatura No",
+        "customerName": "Müşteri Adı",
+        "date": "Tarih",
+        "amount": "Tutar",
+        "status": "Durum",
+        "typeIndividual": "Bireysel",
+        "typeCorporate": "Kurumsal",
+        "invoicedTotal": "Fatura Tutarları",
+        "pendingTotal": "Bekleyen Tutarlar"
+      }
     }
   },
   "notFound": {

@@ -162,6 +162,38 @@
     "home": {
       "welcome": "Welcome, {{name}}",
       "subtitle": "An overview of your Axion Invoice dashboard."
+    },
+    "demo": {
+      "overview": "Overview",
+      "greeting": "Hello {{name}}",
+      "newInvoice": "New Invoice",
+      "newCustomer": "New Customer",
+      "kpi": {
+        "total": "Total Invoiced",
+        "paid": "Paid Invoices",
+        "pending": "Pending Invoices",
+        "overdue": "Overdue Invoices",
+        "invoiceCount": "{{count}} invoices"
+      },
+      "charts": {
+        "distributionTitle": "Invoices",
+        "activityTitle": "Invoice Activity",
+        "selectRange": "Select date range",
+        "empty": "No data in this range"
+      },
+      "tables": {
+        "recentInvoices": "Recent Invoices",
+        "customers": "Customers",
+        "invoiceNo": "Invoice No",
+        "customerName": "Customer Name",
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status",
+        "typeIndividual": "Individual",
+        "typeCorporate": "Corporate",
+        "invoicedTotal": "Invoiced Total",
+        "pendingTotal": "Pending Total"
+      }
     }
   },
   "notFound": {

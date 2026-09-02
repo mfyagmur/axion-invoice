@@ -1,5 +1,29 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-09-02 — Demo Kullanıcı Dashboard'u sonrası
+
+- [ ] 2026-09-02: **Normal kullanıcı dashboard'u** — kullanıcı açıkça bu görevi "1: demo, 2:
+  kullanıcı, 3: Admin" sırasıyla istedi; bu görevde sadece demo yapıldı. Normal kullanıcı için
+  aynı 3 bölümlü yapı (KPI kartları + grafikler + tablolar) muhtemelen kullanılabilir ama demo
+  hesabın aksine gerçek kullanıcı verisi çok daha büyük olabileceğinden `dashboard_service.py`'deki
+  Python-taraflı (SQL değil) `display_status` kova mantığının ölçeklenebilirliği gözden
+  geçirilmeli (bkz. `docs/PROJECT_DESING.md` "Demo Kullanıcı Dashboard'u"). Route zaten hazır
+  (`DashboardHomePage.tsx`'te `user.is_demo` dallanması var) — sadece `else` dalına yeni bir
+  `<UserDashboard />` eklenmesi yeterli olabilir.
+- [ ] 2026-09-02: **Admin kullanıcı dashboard'u** — kullanıcı tarafından açıkça "en sona bırakılsın"
+  denildi. Yönetim odaklı, muhtemelen tüm kullanıcılar/sistem geneli metrikler gösteren farklı bir
+  yapı gerekecek (demo/normal kullanıcı dashboard'undan tamamen ayrı bir tasarım).
+- [ ] 2026-09-02: Tarayıcıda ek teyit — bu oturumda Playwright ile demo hesap görsel olarak
+  doğrulandı, ama normal/admin kullanıcı girişiyle `/dashboard`'ın hâlâ eski placeholder'ı
+  gösterdiği (regresyon yok) canlı bir oturumla teyit edilmedi (admin hesabın şifresi bu ortamda
+  bilinmiyordu). Bir sonraki oturumda admin/normal kullanıcı şifresiyle kontrol edilmeli.
+- [ ] 2026-09-02: Demo hesabın seed verisi tek bir geçmiş tarih aralığına (Haziran-Ağustos 2026)
+  yığılı olduğundan, dashboard'daki "aylık % trend" göstergesi demo hesapta neredeyse her zaman
+  "-100%" veya "veri yok" gösteriyor (bu ay karşılaştırma için fatura yok). Fonksiyonel olarak
+  doğru ama demo'yu izleyen birine trend özelliğini iyi tanıtmıyor — istenirse seed verisine bu
+  ayı da kapsayan 1-2 fatura eklenebilir (ayrı, küçük bir görev; bu oturumda yapılmadı çünkü seed
+  migration'larına dokunmak kapsam dışıydı).
+
 ## 2026-09-02 — Fatura Durum (Status) Sisteminin Gerçek Yaşam Döngüsünü Yansıtması sonrası
 
 - [ ] 2026-09-02: **"Ödendi" (paid) durumu için manuel işaretleme özelliği** — şu an sistemde

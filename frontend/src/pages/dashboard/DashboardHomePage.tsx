@@ -1,9 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/authStore'
+import { DemoDashboard } from '@/features/dashboard/components/DemoDashboard'
 
 export function DashboardHomePage() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
+
+  if (user?.is_demo) {
+    return <DemoDashboard />
+  }
 
   return (
     <div className="flex flex-col gap-2">

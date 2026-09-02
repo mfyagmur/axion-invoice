@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Download, Plus } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { ErrorState } from '@/components/ErrorState'
@@ -15,10 +15,20 @@ import type { Customer } from '@/types/customer'
 export function CustomersPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const { data: customers, isLoading, isError, refetch } = useCustomers()
   const updateStatus = useUpdateCustomerStatus()
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(
+    () => Boolean((location.state as { openNewCustomerModal?: boolean } | null)?.openNewCustomerModal),
+  )
+
+  useEffect(() => {
+    if ((location.state as { openNewCustomerModal?: boolean } | null)?.openNewCustomerModal) {
+      navigate(location.pathname, { replace: true, state: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   return (
     <div className="flex flex-col gap-8">

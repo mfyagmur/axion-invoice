@@ -133,6 +133,10 @@ karar/ilerleme sonrası bu dosya güncellenmelidir. Detaylı mimari için `PROJE
 | Kur alanı görünürlüğü (`InvoiceForm`) | `currency !== payment_currency` (TRY'ye özel değil) | Fatura ve ödeme para birimi aynıysa kur gereksiz; farklıysa TRY içermese bile (örn. EUR→USD) gösterilip TCMB'den doldurulmalı |
 | `exchange_rate` alanının yönü | 1 birim `payment_currency` = X birim `currency` | Kullanıcıyla netleştirildi; `fx_service.get_conversion_rate(from, to)` bu yönde TRY köprüsüyle hesaplıyor, `local_amount` formülü de bu yöne göre yazıldı |
 | `local_amount` (Net TRY) — her iki taraf da TRY değilse | `None` döner, canlı ek TCMB sorgusu yapılmaz | Response serileştirme yolunda ağ çağrısına girmemek için bilinçli sınırlama; frontend `NetReceivableBox` bunu `secondaryAmount ?? "${amount} ${currency}"` ile karşılıyor |
+| Frontend chart kütüphanesi | Recharts (`recharts`) | Dashboard'a kadar hiç chart kütüphanesi kurulu değildi; Recharts SVG/React tabanlı olduğu için projedeki hand-rolled Tailwind component tarzına uyuyor, Tremor gibi kendi tasarım sistemini dayatmıyor |
+| Dashboard KPI/istatistik endpoint'i | `GET /dashboard/overview` + `GET /dashboard/charts?currency&from&to` (2 ayrı endpoint) | KPI kartları/son faturalar/top müşteriler tarih-para birimi filtresinden bağımsız; filtre değişince sadece chart verisi yeniden hesaplansın diye ayrıldı |
+| Dashboard'da çoklu döviz gösterimi | Her zaman para birimi bazında gruplanır, asla sessizce toplanmaz | Saklı bir kur tablosu yok (sadece canlı TCMB), cross-currency toplama güvenilir değil; grafikler tek seferde tek para birimi gösterir (dropdown ile seçilir) |
+| Dashboard "aylık % trend" metriği | Sadece TRY cinsinden faturaların tutar bazlı ay-üzeri-ay değişimi | Kullanıcıyla netleştirildi; diğer para birimleri canlı kur sorgusu olmadan güvenilir toplanamıyor, ilgili ay/geçen ay TRY faturası yoksa `null`/nötr gösterilir |
 
 **Bu tablo yeni bir mimari karar alındığında güncellenmeli, silinmemelidir.**
 
