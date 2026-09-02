@@ -2,16 +2,15 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { applyAuthSuccess } from '@/features/auth/applyAuthSuccess'
 import { authApi } from '@/features/auth/api/authApi'
-import type { LoginPayload } from '@/types/auth'
+import type { VerifyTwoFactorPayload } from '@/types/auth'
 
-export function useLogin() {
+export function useVerifyTwoFactor() {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: (payload: LoginPayload) => authApi.login(payload),
-    onSuccess: async (data) => {
-      if (data.requires_2fa || !data.access_token) return
-      await applyAuthSuccess(data.access_token)
+    mutationFn: (payload: VerifyTwoFactorPayload) => authApi.verifyTwoFactor(payload),
+    onSuccess: async ({ access_token }) => {
+      await applyAuthSuccess(access_token)
       navigate('/dashboard')
     },
   })

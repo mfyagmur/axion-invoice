@@ -1121,3 +1121,89 @@ demo user'lar için disable edildi. Tooltip ile `demo.actionBlocked` mesajı gö
 - TypeScript strict — types doğru.
 - Upgrade butonları konuma göre conditional render'da değil, sadece disable state'inde — 
   UI tutarlığını ve aylık/yıllık interval seçimi arasında geçişi korur.
+
+---
+
+## 2026-09-02 — E-posta Tabanlı İki Adımlı Doğrulama (2FA)
+
+**Durum:** Ekleme — Tamamlandı.
+
+**Özet:** `dashboard/settings?tab=security` sayfasındaki 2FA kartı, şimdiye kadar hiçbir
+backend'e bağlı olmayan görsel bir placeholder'dı (lokal `useState`, kalıcı `disabled` buton).
+Bu iş kapsamında e-posta tabanlı, tam işlevsel bir iki adımlı doğrulama sistemi eklendi: kullanıcı
+şifreyle giriş yaptıktan sonra `is_2fa_enabled=True` ise 6 haneli, 3 dakika geçerli bir OTP kodu
+üretilip kayıtlı 2FA e-postasına gönderiliyor, doğrulama başarılı olunca normal access/refresh
+token'lar veriliyor. Settings → Security'de kullanıcı doğrulama e-postasını girip onaylayabiliyor
+(sonradan değiştirilebilir). SMS ve Authenticator yöntemleri UI'da pasif buton olarak hazırlandı,
+ileride kolayca aktifleştirilebilecek şekilde (bkz. `docs/todo.md`).
+
+**Korunan kurallar:** `access_token_expire_minutes=15`, `refresh_token_expire_days=7`,
+`session_timeout_minutes` (idle-logout) ve `refresh_token` cookie'sinin session-cookie davranışı
+(`max_age` yok) hiç değiştirilmedi — `_set_refresh_cookie` helper'ı aynen yeniden kullanıldı.
+`signup`/`google_login`/`demo_login`/`refresh` endpoint'leri dokunulmadan kaldı, sadece şifreli
+`login()` 2FA'ya göre dallandı. Demo hesap `require_not_demo` guard'ı ile 2FA'yı hiç
+etkinleştiremiyor.
+
+**Yapılan dosyalar:**
+
+Backend:
+- `backend/app/models/user.py` — `is_2fa_enabled`, `two_factor_email`, `two_factor_pending_email`,
+  `two_factor_otp_hash`, `two_factor_otp_expires_at`, `two_factor_otp_purpose` kolonları eklendi.
+- `backend/alembic/versions/c2d3e4f5a6b7_add_two_factor_columns_to_users.py` — Ekleme. Ayrıca
+  repoda önceden var olan, fark edilmemiş iki bağımsız migration head'ini (`a1218f0ebf82` ve
+  `c9d8e7f6a5b4`) merge eden bir revizyon olarak yazıldı (`down_revision` tuple) — bu ikisi
+  benim değişikliğimden bağımsız, önceden var olan bir dallanma sorunuydu, test veritabanının
+  `alembic upgrade head` ile açılmasını engelliyordu.
+- `backend/app/core/security.py` — Değiştirme: `_create_token`'a `"two_factor"` token tipi
+  eklendi. Ekleme: `create_two_factor_token`, `generate_otp_code`.
+- `backend/app/schemas/auth.py` — Ekleme: `LoginResponse`, `VerifyTwoFactorRequest`,
+  `ResendTwoFactorRequest`, `TwoFactorEmailSetupRequest`, `TwoFactorEmailConfirmRequest`,
+  `TwoFactorToggleRequest`. `UserResponse`'a `is_2fa_enabled`/`two_factor_email`/
+  `two_factor_pending_email` eklendi.
+- `backend/app/services/email_service.py` — Ekleme: `OTP_EMAIL_LABELS` (tr/en), `send_2fa_otp_email`.
+- `backend/app/templates_html/email_2fa_otp.html` — Ekleme: `email_password_reset.html`
+  deseninden türetilmiş OTP e-posta şablonu.
+- `backend/app/api/v1/auth.py` — Değiştirme: `login()` artık `LoginResponse` dönüyor ve
+  `is_2fa_enabled` ise `_issue_login_otp` ile OTP akışına giriyor. Ekleme:
+  `OTP_EXPIRE_MINUTES`/`OTP_RESEND_COOLDOWN_SECONDS` sabitleri, `_mask_email`,
+  `_issue_login_otp`, `POST /auth/verify-2fa`, `POST /auth/resend-2fa-otp`.
+- `backend/app/api/v1/two_factor.py` — Ekleme: `/2fa/email/setup`, `/2fa/email/confirm`,
+  `/2fa/toggle` (hepsi `require_not_demo`).
+- `backend/app/main.py` — Değiştirme: `two_factor_router` kaydedildi.
+- `backend/tests/test_auth.py` — Ekleme: 7 yeni test (2FA'lı login pending-challenge döndürüyor,
+  doğru/yanlış/süresi-dolmuş kod senaryoları + OTP alanlarının temizlenip temizlenmediği,
+  e-posta kurulum+onay happy path, e-postasız toggle 400, demo kullanıcı 403).
+
+Frontend:
+- `frontend/src/types/auth.ts` — `User`'a 3 yeni alan + `LoginResponse` ve 2FA payload tipleri.
+- `frontend/src/features/auth/api/authApi.ts` — `login` dönüş tipi `LoginResponse`; `verifyTwoFactor`,
+  `resendTwoFactorOtp` eklendi.
+- `frontend/src/features/twoFactor/api/twoFactorApi.ts`, `hooks/{useSetupTwoFactorEmail,
+  useConfirmTwoFactorEmail,useToggleTwoFactor,index}.ts` — Ekleme (yeni modül, `features/profile`
+  ile aynı desen; başarıda `useAuthStore.getState().setAuth(...)` ile store güncelleniyor).
+- `frontend/src/features/auth/hooks/useLogin.ts` — Değiştirme: `requires_2fa` ise finalize etmiyor.
+- `frontend/src/features/auth/hooks/useVerifyTwoFactor.ts`,
+  `useResendTwoFactorOtp.ts` — Ekleme.
+- `frontend/src/features/auth/components/LoginForm.tsx` — Değiştirme: `login.data?.requires_2fa`
+  true iken kimlik bilgisi formu yerine 6 haneli kod formu render ediliyor (maskelenmiş e-posta
+  ipucu, tekrar gönder, geri). `AuthShell.tsx`'in mevcut `ResizeObserver` yükseklik animasyonu
+  panel değişimini otomatik yakaladığı için `AuthShell`'e dokunulmadı.
+- `frontend/src/pages/dashboard/settings/SecurityTab.tsx` — Değiştirme: placeholder kaldırıldı,
+  üç yöntemli (E-posta aktif, SMS/Authenticator pasif) kart eklendi; switch artık `user.is_2fa_enabled`'a
+  bağlı ve `two_factor_email` onaylı değilse disabled.
+- `frontend/src/i18n/locales/{tr,en}.json` — `auth.login.twoFactor.*` ve
+  `settings.security.twoFactor.{methods,emailSetup,comingSoon,enableRequiresEmail}` anahtarları eklendi.
+
+**Doğrulama:**
+- `docker compose exec backend pytest tests/test_auth.py -q` → 14/14 geçti (7 mevcut + 7 yeni).
+- `docker compose exec backend pytest -q` → 67 geçti, 1 ilgisiz önceden var olan başarısızlık
+  (`test_invoices.py::test_download_pdf_not_ready_returns_404`, bu işle alakasız).
+- `docker compose exec backend alembic upgrade head` → dev veritabanına başarıyla uygulandı
+  (iki head merge edilip 2FA kolonları eklendi).
+- Backend `app.openapi()` ile tüm yeni endpoint'lerin (`/api/v1/2fa/*`, `/api/v1/auth/verify-2fa`,
+  `/api/v1/auth/resend-2fa-otp`) doğru kayıtlı olduğu doğrulandı.
+- Frontend: `npx tsc -b` → sadece bu işten önce de var olan, ilgisiz 4 hata kaldı (Checkbox.tsx,
+  navigation.ts, InvoiceSendEmailModal.tsx, ProfileTab.tsx); yeni kod hatasız derleniyor.
+- `npx eslint` (değiştirilen tüm frontend dosyaları) → temiz.
+- `npx vitest run src/features/auth` → mevcut 3 `LoginForm` testi hâlâ geçiyor.
+- **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.

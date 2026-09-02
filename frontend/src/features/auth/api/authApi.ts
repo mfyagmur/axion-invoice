@@ -3,10 +3,13 @@ import type {
   ForgotPasswordPayload,
   GoogleLoginPayload,
   LoginPayload,
+  LoginResponse,
+  ResendTwoFactorPayload,
   ResetPasswordPayload,
   SignupPayload,
   TokenResponse,
   User,
+  VerifyTwoFactorPayload,
 } from '@/types/auth'
 
 export const authApi = {
@@ -14,7 +17,13 @@ export const authApi = {
     apiClient.post<TokenResponse>('/auth/signup', payload).then((res) => res.data),
 
   login: (payload: LoginPayload) =>
-    apiClient.post<TokenResponse>('/auth/login', payload).then((res) => res.data),
+    apiClient.post<LoginResponse>('/auth/login', payload).then((res) => res.data),
+
+  verifyTwoFactor: (payload: VerifyTwoFactorPayload) =>
+    apiClient.post<TokenResponse>('/auth/verify-2fa', payload).then((res) => res.data),
+
+  resendTwoFactorOtp: (payload: ResendTwoFactorPayload) =>
+    apiClient.post<LoginResponse>('/auth/resend-2fa-otp', payload).then((res) => res.data),
 
   refresh: () => apiClient.post<TokenResponse>('/auth/refresh').then((res) => res.data),
 

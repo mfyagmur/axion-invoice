@@ -16,6 +16,7 @@ from app.api.v1.sessions import router as sessions_router
 from app.api.v1.subscriptions import router as subscriptions_router
 from app.api.v1.template_assets import router as template_assets_router
 from app.api.v1.templates import router as templates_router
+from app.api.v1.two_factor import router as two_factor_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.core.config import settings
 
@@ -42,6 +43,7 @@ app.mount(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(profile_router, prefix="/api/v1")
 app.include_router(sessions_router, prefix="/api/v1")
+app.include_router(two_factor_router, prefix="/api/v1")
 app.include_router(definitions_router, prefix="/api/v1")
 app.include_router(templates_router, prefix="/api/v1")
 app.include_router(template_assets_router, prefix="/api/v1")

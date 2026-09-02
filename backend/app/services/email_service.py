@@ -155,6 +155,67 @@ RESET_PASSWORD_LABELS = {
 }
 
 
+OTP_EMAIL_LABELS = {
+    "tr": {
+        "lang": "tr",
+        "subject_login": "Axion Invoice — Giriş Doğrulama Kodunuz",
+        "subject_email_verify": "Axion Invoice — E-posta Doğrulama Kodunuz",
+        "greeting": "Merhaba {full_name},",
+        "body_login": "Hesabınıza giriş yapmak için aşağıdaki doğrulama kodunu kullanın.",
+        "body_email_verify": "İki adımlı doğrulama için bu e-posta adresini onaylamak üzere aşağıdaki kodu kullanın.",
+        "code_label": "Doğrulama Kodu",
+        "expiry_note": "Bu kod {minutes} dakika içinde geçerliliğini yitirecektir. Bu talebi siz oluşturmadıysanız bu e-postayı görmezden gelebilirsiniz.",
+        "footer": "Tüm hakları saklıdır.",
+        "text_regards": "Saygılarımızla,",
+    },
+    "en": {
+        "lang": "en",
+        "subject_login": "Axion Invoice — Your Login Verification Code",
+        "subject_email_verify": "Axion Invoice — Your Email Verification Code",
+        "greeting": "Hi {full_name},",
+        "body_login": "Use the verification code below to sign in to your account.",
+        "body_email_verify": "Use the code below to confirm this email address for two-factor authentication.",
+        "code_label": "Verification Code",
+        "expiry_note": "This code will expire in {minutes} minutes. If you didn't request this, you can safely ignore this email.",
+        "footer": "All rights reserved.",
+        "text_regards": "Sincerely,",
+    },
+}
+
+
+def send_2fa_otp_email(to_email: str, user: User, otp_code: str, purpose: str, expire_minutes: int) -> bool:
+    """Sends the 6-digit 2FA verification code to `to_email` via SMTP.
+
+    `purpose` is "login" (sign-in challenge) or "email_verify" (confirming a new 2FA email).
+    """
+    labels = OTP_EMAIL_LABELS.get(user.locale, OTP_EMAIL_LABELS["tr"])
+    subject = labels["subject_login"] if purpose == "login" else labels["subject_email_verify"]
+    body = labels["body_login"] if purpose == "login" else labels["body_email_verify"]
+
+    text_body = f"""{labels['greeting'].format(full_name=user.full_name)}
+
+{body}
+
+{labels['code_label']}: {otp_code}
+
+{labels['expiry_note'].format(minutes=expire_minutes)}
+
+{labels['text_regards']}
+Axion Invoice Sistemi
+"""
+
+    html_body = _env.get_template("email_2fa_otp.html").render(
+        labels=labels,
+        full_name=user.full_name,
+        body=body,
+        otp_code=otp_code,
+        expire_minutes=expire_minutes,
+        current_year=date.today().year,
+    )
+
+    return _dispatch_email(to_email, subject, text_body, html_body, log_context=f"2fa-otp/{purpose}")
+
+
 def _labels_for(invoice: Invoice, labels_dict: dict[str, dict[str, str]] = LABELS) -> dict[str, str]:
     locale = getattr(invoice.user, "locale", None)
     return labels_dict.get(locale, labels_dict["tr"])

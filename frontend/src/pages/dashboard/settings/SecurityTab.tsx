@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Shield, Lock, Monitor, Laptop, Smartphone } from 'lucide-react'
+import { Shield, Lock, Monitor, Laptop, Smartphone, Mail, MessageSquare, KeyRound } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useDateFormat } from '@/hooks/useDateFormat'
 import { useChangePassword } from '@/features/profile/hooks/useChangePassword'
 import { useSessions, useRevokeSession, useRevokeOtherSessions } from '@/features/sessions/hooks'
+import { useSetupTwoFactorEmail, useConfirmTwoFactorEmail, useToggleTwoFactor } from '@/features/twoFactor/hooks'
 import type { UserSession } from '@/types/session'
 
 export function SecurityTab() {
@@ -22,8 +23,12 @@ export function SecurityTab() {
   const revokeOthers = useRevokeOtherSessions()
   const isDemo = user?.is_demo ?? false
 
-  // TODO: backend TOTP entegrasyonu — docs/todo.md. Şimdilik sadece görsel, persist edilmiyor.
-  const [is2faEnabled, setIs2faEnabled] = useState(false)
+  const setupTwoFactorEmail = useSetupTwoFactorEmail()
+  const confirmTwoFactorEmail = useConfirmTwoFactorEmail()
+  const toggleTwoFactor = useToggleTwoFactor()
+  const [emailSetupOpen, setEmailSetupOpen] = useState(false)
+  const [emailInput, setEmailInput] = useState('')
+  const [otpInput, setOtpInput] = useState('')
 
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -96,11 +101,156 @@ export function SecurityTab() {
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
             <p className={`text-sm ${isDemo ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{t('settings.security.twoFactor.description')}</p>
-            <Switch checked={is2faEnabled} onChange={isDemo ? undefined : setIs2faEnabled} disabled={isDemo} label={t('settings.security.twoFactor.title')} />
+            <Switch
+              checked={user.is_2fa_enabled}
+              onChange={(enabled) => toggleTwoFactor.mutate({ enabled })}
+              disabled={isDemo || !user.two_factor_email || toggleTwoFactor.isPending}
+              label={t('settings.security.twoFactor.title')}
+            />
           </div>
-          <Button type="button" variant="secondary" disabled className="w-fit">
-            {t('settings.security.twoFactor.setupButton')}
-          </Button>
+          {!isDemo && !user.two_factor_email && (
+            <p className="text-xs text-amber-700 dark:text-amber-400">{t('settings.security.twoFactor.enableRequiresEmail')}</p>
+          )}
+
+          <div className="flex flex-col divide-y divide-gray-100 dark:divide-slate-700">
+            {/* E-posta yöntemi */}
+            <div className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Mail size={18} className="mt-0.5 shrink-0 text-slate-500 dark:text-slate-400" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {t('settings.security.twoFactor.methods.email.title')}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {t('settings.security.twoFactor.methods.email.description')}
+                    </p>
+                    {user.two_factor_email && !emailSetupOpen && (
+                      <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
+                        {t('settings.security.twoFactor.methods.email.currentEmail', { email: user.two_factor_email })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {!emailSetupOpen && !user.two_factor_pending_email && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={isDemo}
+                    title={isDemo ? t('demo.actionBlocked') : undefined}
+                    onClick={() => {
+                      setEmailInput(user.two_factor_email ?? '')
+                      setEmailSetupOpen(true)
+                    }}
+                    className="shrink-0 px-3 py-1.5 text-xs"
+                  >
+                    {user.two_factor_email
+                      ? t('settings.security.twoFactor.methods.email.changeEmail')
+                      : t('settings.security.twoFactor.methods.email.startSetup')}
+                  </Button>
+                )}
+              </div>
+
+              {!isDemo && (emailSetupOpen || user.two_factor_pending_email) && !user.two_factor_pending_email && (
+                <form
+                  className="flex flex-col gap-2 sm:flex-row sm:items-end"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    setupTwoFactorEmail.mutate(
+                      { email: emailInput },
+                      { onSuccess: () => setEmailSetupOpen(false) },
+                    )
+                  }}
+                >
+                  <Input
+                    label={t('settings.security.twoFactor.emailSetup.inputLabel')}
+                    type="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    required
+                    className="sm:max-w-xs"
+                  />
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={setupTwoFactorEmail.isPending} className="px-3 py-1.5 text-xs">
+                      {t('settings.security.twoFactor.emailSetup.sendCodeButton')}
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setEmailSetupOpen(false)} className="px-3 py-1.5 text-xs">
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {!isDemo && user.two_factor_pending_email && (
+                <form
+                  className="flex flex-col gap-2 sm:flex-row sm:items-end"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    confirmTwoFactorEmail.mutate(
+                      { code: otpInput },
+                      { onSuccess: () => { setEmailSetupOpen(false); setOtpInput('') } },
+                    )
+                  }}
+                >
+                  <Input
+                    label={t('settings.security.twoFactor.emailSetup.codeLabel', { email: user.two_factor_pending_email })}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpInput}
+                    onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    required
+                    className="sm:max-w-40"
+                  />
+                  <Button type="submit" disabled={confirmTwoFactorEmail.isPending || otpInput.length !== 6} className="px-3 py-1.5 text-xs">
+                    {t('settings.security.twoFactor.emailSetup.confirmButton')}
+                  </Button>
+                </form>
+              )}
+            </div>
+
+            {/* SMS yöntemi (pasif) */}
+            <div className="flex items-start justify-between gap-4 py-3">
+              <div className="flex items-start gap-3">
+                <MessageSquare size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {t('settings.security.twoFactor.methods.sms.title')}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    {t('settings.security.twoFactor.methods.sms.description')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge color="slate">{t('settings.security.twoFactor.comingSoon')}</Badge>
+                <Button type="button" variant="secondary" disabled className="px-3 py-1.5 text-xs">
+                  {t('settings.security.twoFactor.methods.sms.startSetup')}
+                </Button>
+              </div>
+            </div>
+
+            {/* Authenticator yöntemi (pasif) */}
+            <div className="flex items-start justify-between gap-4 py-3 last:pb-0">
+              <div className="flex items-start gap-3">
+                <KeyRound size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {t('settings.security.twoFactor.methods.authenticator.title')}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    {t('settings.security.twoFactor.methods.authenticator.description')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge color="slate">{t('settings.security.twoFactor.comingSoon')}</Badge>
+                <Button type="button" variant="secondary" disabled className="px-3 py-1.5 text-xs">
+                  {t('settings.security.twoFactor.methods.authenticator.startSetup')}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </Card>
 

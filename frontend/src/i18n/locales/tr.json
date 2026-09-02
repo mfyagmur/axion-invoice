@@ -71,7 +71,16 @@
       "signupLink": "Kayıt olun",
       "googleDivider": "veya",
       "error": "E-posta veya şifre hatalı",
-      "forgotPassword": "Şifremi unuttum?"
+      "forgotPassword": "Şifremi unuttum?",
+      "twoFactor": {
+        "title": "İki Adımlı Doğrulama",
+        "subtitle": "{{email}} adresine gönderilen 6 haneli kodu girin",
+        "codeLabel": "Doğrulama Kodu",
+        "submit": "Doğrula",
+        "resend": "Kodu Tekrar Gönder",
+        "back": "Geri",
+        "errorInvalidCode": "Doğrulama kodu hatalı veya süresi dolmuş"
+      }
     },
     "signup": {
       "title": "Hesap Oluştur",
@@ -764,7 +773,34 @@
       "twoFactor": {
         "title": "İki Adımlı Doğrulama (2FA)",
         "description": "Hesabınızın güvenliğini artırmak için iki adımlı doğrulamayı etkinleştirin.",
-        "setupButton": "Kurulumu Başlat"
+        "setupButton": "Kurulumu Başlat",
+        "comingSoon": "Yakında",
+        "enableRequiresEmail": "Etkinleştirmeden önce e-posta yöntemini doğrulamalısınız.",
+        "methods": {
+          "email": {
+            "title": "E-posta",
+            "description": "Doğrulama kodu e-posta adresinize gönderilir.",
+            "startSetup": "Kurulumu Başlat",
+            "changeEmail": "Değiştir",
+            "currentEmail": "Doğrulanmış e-posta: {{email}}"
+          },
+          "sms": {
+            "title": "SMS",
+            "description": "Doğrulama kodu telefon numaranıza gönderilir.",
+            "startSetup": "Kurulumu Başlat"
+          },
+          "authenticator": {
+            "title": "Authenticator",
+            "description": "Google Authenticator gibi bir uygulama ile kod üretin.",
+            "startSetup": "Kurulumu Başlat"
+          }
+        },
+        "emailSetup": {
+          "inputLabel": "Doğrulama kodunun gideceği e-posta",
+          "sendCodeButton": "Kod Gönder",
+          "codeLabel": "{{email}} adresine gönderilen kod",
+          "confirmButton": "Onayla"
+        }
       },
       "demoSessionsMessage": "Demo hesabında KVKK gizlilik ilkesi nedeniyle açık oturumlar gösterilmemektedir."
     },

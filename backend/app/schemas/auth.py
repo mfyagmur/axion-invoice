@@ -31,6 +31,35 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class LoginResponse(BaseModel):
+    access_token: str | None = None
+    token_type: str = "bearer"
+    requires_2fa: bool = False
+    two_factor_token: str | None = None
+    two_factor_email_hint: str | None = None
+
+
+class VerifyTwoFactorRequest(BaseModel):
+    two_factor_token: str
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class ResendTwoFactorRequest(BaseModel):
+    two_factor_token: str
+
+
+class TwoFactorEmailSetupRequest(BaseModel):
+    email: EmailStr
+
+
+class TwoFactorEmailConfirmRequest(BaseModel):
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class TwoFactorToggleRequest(BaseModel):
+    enabled: bool
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: EmailStr
@@ -61,6 +90,9 @@ class UserResponse(BaseModel):
     invoice_sequence: int
     is_demo: bool
     is_admin: bool
+    is_2fa_enabled: bool
+    two_factor_email: str | None = None
+    two_factor_pending_email: str | None = None
     has_password: bool
     created_at: datetime | None = None
 

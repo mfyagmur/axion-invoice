@@ -220,3 +220,13 @@
 - [ ] 2026-08-27: `PreferencesTab.tsx` yeni 3 kolon responsive yapısı (Bildirim/Süreler/Sistem kartları) tarayıcıda görsel ve responsive davranış açısından test edilmedi — mobil/tablet/desktop breakpoint'lerde görünüm kontrol edilmeli.
 - [ ] `REMINDER_STEPS` şu an hem `frontend/src/features/invoices/components/PaymentChaserPanel.tsx` hem `backend/app/tasks/email_tasks.py` içinde ayrı ayrı hardcoded (7/10/13 gün). İleride bu adımların kullanıcı tarafından özelleştirilebilir olması istenirse, tek bir backend kaynağından (örn. `/invoices/payment-reminder/steps` endpoint'i) okunacak şekilde merkezileştirilmesi gerekir.
 - [ ] Ödeme hatırlatma mailindeki "Pay Now" bağlantısı, mevcut manuel fatura mailiyle aynı yer tutucu `payment_url` (`{frontend_url}/odeme?fatura=...`) yapısını kullanıyor — gerçek bir online ödeme sayfası/entegrasyonu eklendiğinde bu URL'nin güncellenmesi gerekecek.
+
+## 2026-09-02 — E-posta Tabanlı 2FA sonrası
+
+- [ ] 2026-09-02: SMS tabanlı 2FA — `SecurityTab.tsx`'te UI'da pasif buton olarak duruyor, sağlayıcı entegrasyonu (Twilio vb.), telefon numarası alanı ve doğrulama akışı henüz yok.
+- [ ] 2026-09-02: Authenticator/TOTP tabanlı 2FA — UI'da pasif buton olarak duruyor, `pyotp`/QR kod üretimi ve doğrulama endpoint'leri henüz yok.
+- [ ] 2026-09-02: Kalıcı/global rate-limiting — şu an `POST /auth/resend-2fa-otp` için sadece basit bir cooldown (30sn, `expires_at` üzerinden hesaplanan) var; IP bazlı throttling veya `POST /auth/verify-2fa` için max-deneme kilidi yok.
+- [ ] 2026-09-02: Kurtarma/backup kodları — kullanıcı 2FA e-postasına erişimini kaybederse (örn. hesap ele geçirme sonrası e-posta değişmişse) hesabına giremiyor, bir kurtarma mekanizması yok.
+- [ ] 2026-09-02: Admin tarafında 2FA durumu görünürlüğü/denetimi eklenmedi (`require_admin` zaten var, bu iş kapsamına dahil edilmedi).
+- [ ] 2026-09-02: "Bu cihazda 30 gün hatırla" (güvenilir cihazlarda OTP atlama) istenmedi, eklenmedi.
+- [ ] 2026-09-02: Tarayıcıda uçtan uca teyit edilmedi — Settings → Security'de e-posta kurup onaylama, çıkış yapıp normal login'de OTP ekranının çıkması (SMTP yapılandırılı değilse backend log'undan kod okunarak), demo login ve Google login'in hiç OTP istemediğinin ve idle-logout/oturum-çerezi davranışının etkilenmediğinin görsel olarak doğrulanması gerekiyor.

@@ -1,3 +1,4 @@
+import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
@@ -12,7 +13,9 @@ from app.core.deps import get_current_user
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    create_two_factor_token,
     decode_token,
+    generate_otp_code,
     generate_reset_token,
     hash_password,
     hash_reset_token,
@@ -26,12 +29,15 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     GoogleAuthRequest,
     LoginRequest,
+    LoginResponse,
+    ResendTwoFactorRequest,
     ResetPasswordRequest,
     SignupRequest,
     TokenResponse,
     UserResponse,
+    VerifyTwoFactorRequest,
 )
-from app.services.email_service import send_password_reset_email
+from app.services.email_service import send_2fa_otp_email, send_password_reset_email
 from app.services.google_oauth import GoogleTokenError, verify_google_id_token
 from app.services.subscription_service import ensure_default_subscription
 from app.tasks.pdf_tasks import generate_invoice_pdf_task
@@ -39,6 +45,8 @@ from app.tasks.pdf_tasks import generate_invoice_pdf_task
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 RESET_TOKEN_EXPIRE_MINUTES = 30
+OTP_EXPIRE_MINUTES = 3
+OTP_RESEND_COOLDOWN_SECONDS = 30
 
 
 def _set_refresh_cookie(response: Response, user_id: str, request: Request, db: Session) -> None:
@@ -61,6 +69,25 @@ def _set_refresh_cookie(response: Response, user_id: str, request: Request, db: 
     )
     db.add(session)
     db.commit()
+
+
+def _mask_email(email: str) -> str:
+    local, _, domain = email.partition("@")
+    if len(local) <= 2:
+        masked_local = local[:1] + "*"
+    else:
+        masked_local = local[0] + "*" * (len(local) - 2) + local[-1]
+    return f"{masked_local}@{domain}"
+
+
+def _issue_login_otp(user: User, db: Session) -> str:
+    raw_code, code_hash = generate_otp_code()
+    user.two_factor_otp_hash = code_hash
+    user.two_factor_otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES)
+    user.two_factor_otp_purpose = "login"
+    db.commit()
+    send_2fa_otp_email(user.two_factor_email, user, raw_code, purpose="login", expire_minutes=OTP_EXPIRE_MINUTES)
+    return create_two_factor_token(str(user.id), OTP_EXPIRE_MINUTES)
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -86,14 +113,96 @@ def signup(payload: SignupRequest, request: Request, response: Response, db: Ann
     return TokenResponse(access_token=create_access_token(str(user.id)))
 
 
-@router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, request: Request, response: Response, db: Annotated[Session, Depends(get_db)]) -> TokenResponse:
+@router.post("/login", response_model=LoginResponse)
+def login(payload: LoginRequest, request: Request, response: Response, db: Annotated[Session, Depends(get_db)]) -> LoginResponse:
     user = db.query(User).filter(User.email == payload.email).first()
     if user is None or user.password_hash is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="E-posta veya şifre hatalı")
 
+    if user.is_2fa_enabled and user.two_factor_email:
+        two_factor_token = _issue_login_otp(user, db)
+        return LoginResponse(
+            requires_2fa=True,
+            two_factor_token=two_factor_token,
+            two_factor_email_hint=_mask_email(user.two_factor_email),
+        )
+
+    _set_refresh_cookie(response, str(user.id), request, db)
+    return LoginResponse(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/verify-2fa", response_model=TokenResponse)
+def verify_two_factor(
+    payload: VerifyTwoFactorRequest, request: Request, response: Response, db: Annotated[Session, Depends(get_db)]
+) -> TokenResponse:
+    token_payload = decode_token(payload.two_factor_token)
+    if token_payload is None or token_payload.get("type") != "two_factor":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya süresi dolmuş doğrulama oturumu")
+
+    try:
+        user_id = uuid.UUID(token_payload["sub"])
+    except (KeyError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz doğrulama oturumu")
+
+    user = db.get(User, user_id)
+    if user is None or user.two_factor_otp_purpose != "login" or user.two_factor_otp_hash is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Doğrulama kodu bulunamadı, lütfen tekrar giriş yapın")
+
+    now = datetime.now(timezone.utc)
+    expires_at = user.two_factor_otp_expires_at
+    if expires_at is not None and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at is None or expires_at < now:
+        user.two_factor_otp_hash = None
+        user.two_factor_otp_expires_at = None
+        user.two_factor_otp_purpose = None
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Doğrulama kodunun süresi doldu, lütfen tekrar giriş yapın")
+
+    if hashlib.sha256(payload.code.encode()).hexdigest() != user.two_factor_otp_hash:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Doğrulama kodu hatalı")
+
+    user.two_factor_otp_hash = None
+    user.two_factor_otp_expires_at = None
+    user.two_factor_otp_purpose = None
+    db.commit()
+
     _set_refresh_cookie(response, str(user.id), request, db)
     return TokenResponse(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/resend-2fa-otp", response_model=LoginResponse)
+def resend_two_factor_otp(
+    payload: ResendTwoFactorRequest, db: Annotated[Session, Depends(get_db)]
+) -> LoginResponse:
+    token_payload = decode_token(payload.two_factor_token)
+    if token_payload is None or token_payload.get("type") != "two_factor":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya süresi dolmuş doğrulama oturumu")
+
+    try:
+        user_id = uuid.UUID(token_payload["sub"])
+    except (KeyError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz doğrulama oturumu")
+
+    user = db.get(User, user_id)
+    if user is None or not user.two_factor_email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Doğrulama oturumu geçersiz")
+
+    if user.two_factor_otp_expires_at is not None:
+        expires_at = user.two_factor_otp_expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        last_sent_at = expires_at - timedelta(minutes=OTP_EXPIRE_MINUTES)
+        if (datetime.now(timezone.utc) - last_sent_at).total_seconds() < OTP_RESEND_COOLDOWN_SECONDS:
+            raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Lütfen tekrar göndermeden önce biraz bekleyin")
+
+    two_factor_token = _issue_login_otp(user, db)
+    return LoginResponse(
+        requires_2fa=True,
+        two_factor_token=two_factor_token,
+        two_factor_email_hint=_mask_email(user.two_factor_email),
+    )
 
 
 @router.post("/refresh", response_model=TokenResponse)

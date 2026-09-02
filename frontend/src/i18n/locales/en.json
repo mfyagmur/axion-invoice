@@ -71,7 +71,16 @@
       "signupLink": "Sign up",
       "googleDivider": "or",
       "error": "Invalid email or password",
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "twoFactor": {
+        "title": "Two-Factor Verification",
+        "subtitle": "Enter the 6-digit code sent to {{email}}",
+        "codeLabel": "Verification Code",
+        "submit": "Verify",
+        "resend": "Resend Code",
+        "back": "Back",
+        "errorInvalidCode": "The verification code is invalid or has expired"
+      }
     },
     "signup": {
       "title": "Create Account",
@@ -764,7 +773,34 @@
       "twoFactor": {
         "title": "Two-Factor Authentication (2FA)",
         "description": "Enable two-factor authentication to increase your account security.",
-        "setupButton": "Start Setup"
+        "setupButton": "Start Setup",
+        "comingSoon": "Coming Soon",
+        "enableRequiresEmail": "You must verify the email method before enabling this.",
+        "methods": {
+          "email": {
+            "title": "Email",
+            "description": "The verification code is sent to your email address.",
+            "startSetup": "Start Setup",
+            "changeEmail": "Change",
+            "currentEmail": "Verified email: {{email}}"
+          },
+          "sms": {
+            "title": "SMS",
+            "description": "The verification code is sent to your phone number.",
+            "startSetup": "Start Setup"
+          },
+          "authenticator": {
+            "title": "Authenticator",
+            "description": "Generate codes with an app like Google Authenticator.",
+            "startSetup": "Start Setup"
+          }
+        },
+        "emailSetup": {
+          "inputLabel": "Email address to send the verification code to",
+          "sendCodeButton": "Send Code",
+          "codeLabel": "Code sent to {{email}}",
+          "confirmButton": "Confirm"
+        }
       },
       "demoSessionsMessage": "Active sessions are not displayed on demo accounts for privacy compliance reasons."
     },

@@ -31,6 +31,9 @@ export interface User {
   invoice_sequence: number
   is_demo: boolean
   is_admin: boolean
+  is_2fa_enabled: boolean
+  two_factor_email: string | null
+  two_factor_pending_email: string | null
   has_password: boolean
   created_at: string
 }
@@ -56,6 +59,35 @@ export interface GoogleLoginPayload {
 export interface TokenResponse {
   access_token: string
   token_type: string
+}
+
+export interface LoginResponse {
+  access_token: string | null
+  token_type: string
+  requires_2fa: boolean
+  two_factor_token: string | null
+  two_factor_email_hint: string | null
+}
+
+export interface VerifyTwoFactorPayload {
+  two_factor_token: string
+  code: string
+}
+
+export interface ResendTwoFactorPayload {
+  two_factor_token: string
+}
+
+export interface TwoFactorEmailSetupPayload {
+  email: string
+}
+
+export interface TwoFactorEmailConfirmPayload {
+  code: string
+}
+
+export interface TwoFactorTogglePayload {
+  enabled: boolean
 }
 
 export interface ProfileUpdatePayload {
