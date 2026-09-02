@@ -3,7 +3,14 @@ import { env } from '@/config/env'
 import { useAuthStore } from '@/store/authStore'
 import type { TokenResponse } from '@/types/auth'
 
-const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/login', '/auth/signup', '/auth/google']
+const NO_REFRESH_PATHS = [
+  '/auth/refresh',
+  '/auth/login',
+  '/auth/signup',
+  '/auth/google',
+  '/auth/verify-2fa',
+  '/auth/resend-2fa-otp',
+]
 
 export const apiClient = axios.create({
   baseURL: env.apiBaseUrl,

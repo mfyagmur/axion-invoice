@@ -1266,3 +1266,48 @@ Frontend:
 - `npx vitest run` → `LoginForm.test.tsx` geçti; `InvoiceForm.test.tsx`/`InvoicesPage.test.tsx`'teki
   2 başarısızlık bu işle ilgisiz, dokunulmayan dosyalarda (önceden var olan sorunlar).
 - **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.
+
+## 2026-09-02 — Login OTP: Yanlış Kod Login Ekranına Atıyordu + Süre Dolunca Resend Çalışmıyordu
+
+**Durum:** Tamamlandı.
+
+**Özet:** Yukarıdaki düzeltmeden sonra kullanıcı iki ek sorun bildirdi: (1) OTP ekranında yanlış
+kod girilince doğrudan login ekranına düşülüyordu, hatalı kod bilgisi hiç gösterilmiyordu; (2)
+kodun süresi dolduktan sonra "Kodu Tekrar Gönder"e basınca da login ekranına atılıyordu, yeni kod
+istemek mümkün olmuyordu. Kök neden ikisi için de aynıydı: `apiClient.ts`'teki global 401
+interceptor'ı, `verify-2fa`/`resend-2fa-otp`'tan gelen her 401'i "oturum süresi doldu" sanıp
+refresh token ile yenilemeye çalışıyor, henüz login olmamış bir kullanıcı için refresh cookie'si
+olmadığından bu her zaman başarısız oluyor ve `clearAuth()` + `window.location.href = '/login'`
+ile sert yönlendirme yapıyordu — hem yanlış-kod 401'i hem de süresi-dolmuş-token 401'i bu yolu
+tetikliyordu. Ayrıca ikinci sorunun ayrı bir katmanı daha vardı: `_issue_login_otp`, doğrulama
+oturumunu taşıyan `two_factor_token` JWT'sini `OTP_EXPIRE_MINUTES` (3dk) ile üretiyordu — yani OTP
+kodu süresi dolduğunda JWT'nin kendisi de süresi dolmuş oluyor, bu yüzden backend "Kodu Tekrar
+Gönder" isteğini bile 401 ile reddediyordu (kod süresi dolsa da resend'in çalışması gerekirdi).
+`OTP_EXPIRE_MINUTES=3`/`OTP_RESEND_COOLDOWN_SECONDS=30` ve OTP kod doğrulama kuralları değişmedi.
+
+**Yapılan dosyalar:**
+
+Backend:
+- `backend/app/api/v1/auth.py` — Değiştirme: yeni `TWO_FACTOR_SESSION_EXPIRE_MINUTES = 15`
+  sabiti eklendi; `_issue_login_otp` artık `create_two_factor_token`'ı OTP süresi (3dk) yerine bu
+  15dk'lık oturum süresiyle çağırıyor. OTP kodunun kendi geçerliliği hâlâ ayrı olarak
+  `user.two_factor_otp_expires_at` üzerinden kontrol ediliyor (değişmedi) — yani kod hâlâ tam 3
+  dakika sonra geçersiz oluyor, sadece doğrulama oturumunun kendisi (resend hakkı) daha uzun
+  yaşıyor.
+- `backend/tests/test_auth.py` — Ekleme: `test_resend_2fa_otp_after_otp_expiry_still_succeeds` —
+  OTP kodu süresi dolmuş olsa bile (`two_factor_otp_expires_at` geçmişte), 15dk'lık token ile
+  resend isteğinin 401 değil 200 döndüğünü doğruluyor.
+
+Frontend:
+- `frontend/src/lib/apiClient.ts` — Değiştirme: `NO_REFRESH_PATHS`'e `/auth/verify-2fa` ve
+  `/auth/resend-2fa-otp` eklendi. Bu iki endpoint'ten gelen 401, artık refresh-token akışını
+  tetiklemiyor ve sert `/login` yönlendirmesi yapmıyor; hata normal şekilde `verifyTwoFactor`/
+  `resendTwoFactorOtp` mutation'ının `error`/`isError` state'ine düşüyor ve `LoginForm.tsx`
+  zaten var olan `errorInvalidCode`/`errorExpired` ayrımıyla ekranda gösteriliyor — OTP
+  ekranından ayrılmadan kullanıcı bilgilendiriliyor.
+
+**Doğrulama:**
+- `docker exec backend-backend-1 pytest tests/test_auth.py -q` → 17/17 geçti (16 mevcut + 1 yeni).
+- `npx tsc -b` → değiştirilen dosyada yeni hata yok; önceden var olan, ilgisiz 4 hata kaldı.
+- `npx eslint src/lib/apiClient.ts src/features/auth/components/LoginForm.tsx` → temiz.
+- **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.

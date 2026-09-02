@@ -16,6 +16,7 @@ import { loginSchema, type LoginFormValues } from '@/features/auth/schemas/login
 // Backend sabitleriyle eşleşir: OTP_EXPIRE_MINUTES=3, OTP_RESEND_COOLDOWN_SECONDS=30
 const OTP_EXPIRE_SECONDS = 180
 const RESEND_COOLDOWN_SECONDS = 30
+const ERROR_MESSAGE_VISIBLE_MS = 7000
 
 function formatDuration(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60)
@@ -30,6 +31,10 @@ export function LoginForm() {
   const resendTwoFactorOtp = useResendTwoFactorOtp()
   const [code, setCode] = useState('')
   const [remainingSeconds, setRemainingSeconds] = useState(0)
+  const [prevWrongCodeError, setPrevWrongCodeError] = useState(false)
+  const [wrongCodeVisible, setWrongCodeVisible] = useState(false)
+  const [prevIsExpired, setPrevIsExpired] = useState(false)
+  const [expiredMessageVisible, setExpiredMessageVisible] = useState(false)
   const {
     register,
     handleSubmit,
@@ -54,11 +59,36 @@ export function LoginForm() {
     return () => clearInterval(interval)
   }, [otpExpiresAt])
 
-  if (login.data?.requires_2fa && login.data.two_factor_token && session?.two_factor_token) {
-    const isServerExpiredError = axios.isAxiosError(verifyTwoFactor.error) && verifyTwoFactor.error.response?.status === 400
-    const isExpired = remainingSeconds <= 0 || (verifyTwoFactor.isError && isServerExpiredError)
-    const wrongCodeError = verifyTwoFactor.isError && !isServerExpiredError
+  const isServerExpiredError = axios.isAxiosError(verifyTwoFactor.error) && verifyTwoFactor.error.response?.status === 400
+  const isExpired = remainingSeconds <= 0 || (verifyTwoFactor.isError && isServerExpiredError)
+  const wrongCodeError = verifyTwoFactor.isError && !isServerExpiredError
 
+  // Yanlış kod / süre doldu mesajları belirli bir süre görünüp otomatik kaybolur.
+  // Koşul değiştiğinde görünürlük render sırasında senkronize edilir (bkz. React
+  // "you might not need an effect" - render sırasında state ayarlama deseni);
+  // gizleme zamanlayıcısı ise bir effect içinde, yalnızca setTimeout callback'inde çalışır.
+  if (wrongCodeError !== prevWrongCodeError) {
+    setPrevWrongCodeError(wrongCodeError)
+    setWrongCodeVisible(wrongCodeError)
+  }
+  if (isExpired !== prevIsExpired) {
+    setPrevIsExpired(isExpired)
+    setExpiredMessageVisible(isExpired)
+  }
+
+  useEffect(() => {
+    if (!wrongCodeVisible) return
+    const timer = setTimeout(() => setWrongCodeVisible(false), ERROR_MESSAGE_VISIBLE_MS)
+    return () => clearTimeout(timer)
+  }, [wrongCodeVisible])
+
+  useEffect(() => {
+    if (!expiredMessageVisible) return
+    const timer = setTimeout(() => setExpiredMessageVisible(false), ERROR_MESSAGE_VISIBLE_MS)
+    return () => clearTimeout(timer)
+  }, [expiredMessageVisible])
+
+  if (login.data?.requires_2fa && login.data.two_factor_token && session?.two_factor_token) {
     return (
       <form
         className="flex w-full max-w-sm flex-col gap-4 p-6 sm:p-8 md:p-10"
@@ -103,8 +133,10 @@ export function LoginForm() {
           />
         </div>
 
-        {isExpired && <p className="text-sm text-red-600">{t('auth.login.twoFactor.errorExpired')}</p>}
-        {!isExpired && wrongCodeError && (
+        {isExpired && expiredMessageVisible && (
+          <p className="text-sm text-red-600">{t('auth.login.twoFactor.errorExpired')}</p>
+        )}
+        {!isExpired && wrongCodeError && wrongCodeVisible && (
           <p className="text-sm text-red-600">{t('auth.login.twoFactor.errorInvalidCode')}</p>
         )}
 

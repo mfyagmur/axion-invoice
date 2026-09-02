@@ -47,6 +47,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 RESET_TOKEN_EXPIRE_MINUTES = 30
 OTP_EXPIRE_MINUTES = 3
 OTP_RESEND_COOLDOWN_SECONDS = 30
+# OTP kodu 3 dakikada geçersiz olur ama doğrulama oturumu (two_factor_token) daha uzun yaşamalı,
+# yoksa kod süresi dolduğunda "Kodu Tekrar Gönder" de aynı JWT süresi dolduğu için 401 ile başarısız olur.
+TWO_FACTOR_SESSION_EXPIRE_MINUTES = 15
 
 
 def _set_refresh_cookie(response: Response, user_id: str, request: Request, db: Session) -> None:
@@ -88,7 +91,7 @@ def _issue_login_otp(user: User, db: Session) -> tuple[str, datetime]:
     user.two_factor_otp_purpose = "login"
     db.commit()
     send_2fa_otp_email(user.two_factor_email, user, raw_code, purpose="login", expire_minutes=OTP_EXPIRE_MINUTES)
-    return create_two_factor_token(str(user.id), OTP_EXPIRE_MINUTES), expires_at
+    return create_two_factor_token(str(user.id), TWO_FACTOR_SESSION_EXPIRE_MINUTES), expires_at
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)

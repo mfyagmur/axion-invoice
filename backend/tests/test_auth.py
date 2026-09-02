@@ -116,6 +116,21 @@ def test_resend_2fa_otp_after_cooldown_returns_new_challenge(client, db_session,
     assert response.json()["two_factor_otp_expires_at"]
 
 
+def test_resend_2fa_otp_after_otp_expiry_still_succeeds(client, db_session, test_user: User):
+    # OTP kodu süresi dolmuş olsa bile (3dk), doğrulama oturumu (two_factor_token) daha uzun
+    # yaşadığı için "Kodu Tekrar Gönder" 401 yerine yeni bir kod göndermeli.
+    _enable_2fa(db_session, test_user)
+    test_user.two_factor_otp_hash = hashlib.sha256(b"123456").hexdigest()
+    test_user.two_factor_otp_expires_at = datetime.now(timezone.utc) - timedelta(seconds=5)
+    test_user.two_factor_otp_purpose = "login"
+    db_session.commit()
+    two_factor_token = create_two_factor_token(str(test_user.id), 15)
+
+    response = client.post("/api/v1/auth/resend-2fa-otp", json={"two_factor_token": two_factor_token})
+    assert response.status_code == 200
+    assert response.json()["two_factor_otp_expires_at"]
+
+
 def test_verify_2fa_with_correct_code_issues_tokens(client, db_session, test_user: User):
     _enable_2fa(db_session, test_user)
     raw_code = "123456"
