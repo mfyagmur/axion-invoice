@@ -4,6 +4,93 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-02 — Fatura Durum (Status) Sisteminin Gerçek Yaşam Döngüsünü Yansıtması
+
+**Durum:** Değiştirme — Tamamlandı.
+
+**Özet:** `dashboard/invoices` listesi ve fatura detay sayfası (`StatusTimeline` dahil), gerçekte
+hiç tetiklenmeyen durum geçişlerini gösteriyordu: `InvoiceStatus` enum'ında `SENT`/`OVERDUE` değerleri
+vardı ama hiçbir kod yolu bunları yazmıyordu (e-posta gönderildiğinde sadece `email_sent_at` doluyor,
+`status` hep `DRAFT` kalıyordu); `archived` alanı `status`'tan bağımsız bir boolean olduğu için
+arşivlenen bir fatura rozette hâlâ eski durumunu gösteriyordu. Artık: fatura oluşturulunca **Taslak**,
+e-posta gönderilince **Gönderildi** (gerçek DB geçişi), vade tarihi geçmiş ve hâlâ ödenmemiş
+gönderilmiş faturalar için **Gecikmiş** (response-time hesaplanan, DB'ye yazılmayan alan), arşive
+alınanlar **Arşiv**, iptal edilenler **İptal** rozetiyle gösteriliyor — hem listede hem detay sayfasının
+üst rozetinde hem `StatusTimeline`'da tutarlı.
+
+Kapsam kararı (kullanıcıyla netleştirildi): "Ödendi" (`paid`) durumuna geçecek hiçbir manuel/otomatik
+mekanizma sistemde yoktu ve bu işin kapsamı dışında bırakıldı — ayrı bir iş olarak `docs/todo.md`'ye
+eklendi. "Gecikmiş" DB'ye yazılan kalıcı bir durum değil, her API yanıtında anlık hesaplanan bir alan
+(`display_status`) olarak tasarlandı — böylece ek migration veya zamanlanmış görev (cron) gerekmeden
+her okumada güncel kalıyor, ve ödeme/iptal gibi bir aksiyon olduğunda otomatik olarak "gecikmiş"
+etiketinden çıkıyor.
+
+**Yapılan dosyalar:**
+
+Backend:
+- `backend/app/tasks/email_tasks.py` — Değiştirme: `send_invoice_email_task` içinde başarılı
+  gönderim sonrası (`successful_recipients` doluyken), fatura hâlâ `DRAFT` ise `invoice.status`
+  artık `SENT`'e gerçekten güncelleniyor (önceden sadece `email_sent_at`/`email_sent_to` doluyordu).
+- `backend/app/schemas/invoice.py` — Değiştirme: `due_at` alanı `InvoiceDetailResponse`'tan
+  `InvoiceSummaryResponse`'a taşındı (liste endpoint'i de vade tarihine ihtiyaç duyuyor);
+  `InvoiceSummaryResponse`'a yeni `display_status` computed field eklendi — öncelik sırası:
+  `archived` → `cancelled` → `paid` → (`sent` + vade geçmiş) `overdue` → ham `status`. Ham
+  `status` kolonu ve ona bağlı iş mantığı (örn. `update_invoice`'ın sadece `DRAFT`'ta izin vermesi,
+  cancel/restore guard'ları) değişmedi — `display_status` salt-okunur, DB'ye yazılmıyor.
+
+Frontend:
+- `frontend/src/types/invoice.ts` — Değiştirme: `InvoiceDisplayStatus = InvoiceStatus | 'archived'`
+  eklendi; `InvoiceSummary`'ye `display_status`/`due_at` eklendi (`due_at` `InvoiceDetail`'den
+  taşındı, artık Summary seviyesinde).
+- `frontend/src/features/invoices/types/invoiceRow.ts`,
+  `frontend/src/features/invoices/utils/mapInvoiceToRow.ts` — Değiştirme: `InvoiceRow`'a
+  `displayStatus` alanı eklendi.
+- `frontend/src/features/invoices/utils/invoiceStatusBadge.ts` — Değiştirme:
+  `INVOICE_STATUS_BADGE_COLOR` artık `InvoiceDisplayStatus` bazlı, `archived: 'amber'` eklendi
+  (mevcut `Badge` bileşeninde tanımlı ama hiç kullanılmayan `amber` rengi kullanıldı).
+- `frontend/src/features/invoices/components/InvoiceStatusBadge.tsx` — Değiştirme: `status` prop
+  tipi `InvoiceDisplayStatus`'a genişletildi.
+- `frontend/src/features/invoices/components/InvoiceTableRow.tsx`,
+  `frontend/src/features/invoices/components/InvoiceActionHeader.tsx` — Değiştirme: rozetler artık
+  ham `status` yerine `displayStatus`/`display_status` gösteriyor.
+- `frontend/src/pages/dashboard/CustomerDetailPage.tsx` — Değiştirme: lokal `STATUS_KEYS` sözlüğü
+  kaldırıldı, müşteri detayındaki fatura listesi artık paylaşılan `InvoiceStatusBadge` bileşenini
+  kullanıyor (kod tekrarı giderildi).
+- `frontend/src/pages/dashboard/InvoicesPage.tsx` — Değiştirme: durum filtresi (`InvoiceToolbar`)
+  artık `row.displayStatus`'a göre eşleşiyor (önceden ham `status`'a göreydi, "Gecikmiş" filtresi
+  hiçbir zaman eşleşmiyordu). Sekme ayrımı (`archived`/`cancelled` tab'ları) ham alanlara göre
+  kalmaya devam ediyor — bu iş mantığı, görsel etiketten bağımsız.
+- `frontend/src/features/invoices/components/StatusTimeline.tsx` — Değiştirme: sabit 4 adımlı
+  ("Oluşturuldu → E-posta Gönderildi → Ödeme Alındı → Ödendi") jenerik yapı kaldırıldı, yerine
+  gerçek duruma göre dinamik adım listesi geldi: Oluşturuldu → (varsa) E-posta Gönderildi → ardından
+  duruma göre **İptal Edildi** (kırmızı, terminal) veya **Ödendi** veya **Vade Geçti/Gecikmiş**
+  (kırmızı, "dikkat" vurgusu) adımı. `archived` true ise adımlardan bağımsız ayrı bir amber
+  "Arşivlendi" notu gösteriliyor. Hardcoded Türkçe mesaj metinleri kaldırılıp `t()` üzerinden i18n'e
+  taşındı; kullanılmayan "Ödeme Alındı" ara adımı silindi (backend'de zaten ayrı bir "ödeme alındı"
+  durumu yok).
+- `frontend/src/pages/dashboard/InvoiceDetailPage.tsx` — Değiştirme: `StatusTimeline`'a yeni
+  `displayStatus`/`archived`/`dueAt` prop'ları geçiliyor.
+- `frontend/src/features/invoices/mocks/mockInvoiceRows.ts` — Değiştirme: mock satırlara
+  `displayStatus` alanı eklendi (tip uyumu için).
+- `frontend/src/i18n/locales/tr.json`, `frontend/src/i18n/locales/en.json` — Değiştirme:
+  `invoices.status.archived` eklendi; `invoices.detail` altında `timelineOverdue`,
+  `timelineCancelled`, `timelineArchivedNote` ve mesaj key'leri (`timelineMessage*`) eklendi,
+  kullanılmayan `timelinePaymentReceived` kaldırıldı.
+
+**Kapsam dışı bırakılanlar:** `PAID` durumuna manuel/otomatik geçiş mekanizması (bkz.
+`docs/todo.md`); `archived` boolean kolonunun kendisi ve `/archive`/`/unarchive` endpoint'lerinin
+davranışı (değişmedi, sadece görsel yansıması eklendi); herhangi bir DB migration (`display_status`
+response-time hesaplanıyor, saklanmıyor).
+
+**Doğrulama:**
+- `npx tsc --noEmit -p tsconfig.app.json` → değiştirilen dosyalarda yeni hata yok; önceden var olan,
+  ilgisiz 4 hata (Checkbox, navigation, InvoiceSendEmailModal, ProfileTab) değişmeden kaldı.
+- Backend syntax'ı görsel olarak doğrulandı (bu ortamda çalışır bir Python yorumlayıcısı yoktu,
+  `pytest`/`docker compose exec backend pytest` bu oturumda çalıştırılamadı).
+- **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.
+
+---
+
 ## 2026-09-01 — Demo Hesabı Güvenlik Sekmesi (Security Tab) Kilitlemesi
 
 **Durum:** Ekleme — Tamamlandı.

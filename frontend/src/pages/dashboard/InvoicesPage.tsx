@@ -30,7 +30,7 @@ export function InvoicesPage() {
       row.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.customerName.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesStatus = statusFilter === 'all' || row.status === statusFilter
+    const matchesStatus = statusFilter === 'all' || row.displayStatus === statusFilter
 
     const rowDate = new Date(row.createdAt)
     const matchesDateRange =

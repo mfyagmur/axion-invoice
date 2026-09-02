@@ -504,7 +504,8 @@
       "sent": "Sent",
       "paid": "Paid",
       "overdue": "Overdue",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "archived": "Archived"
     },
     "paymentChaser": {
       "title": "Payment Reminder",
@@ -631,8 +632,15 @@
       "exchangeRateNote": "The final amount may vary based on the exchange rate at the time of payment.",
       "timelineCreated": "Created",
       "timelineEmailSent": "Email Sent",
-      "timelinePaymentReceived": "Payment Received",
       "timelinePaid": "Paid",
+      "timelineOverdue": "Payment Overdue",
+      "timelineCancelled": "Cancelled",
+      "timelineArchivedNote": "This invoice has been archived.",
+      "timelineMessageCreatedOnly": "Invoice was created on {{date}}. No email has been sent yet.",
+      "timelineMessageSent": "Invoice was sent to {{email}}. Waiting for the recipient to pay.",
+      "timelineMessageOverdue": "The invoice due date has passed and payment has not been received yet.",
+      "timelineMessagePaid": "Payment has been received from the recipient.",
+      "timelineMessageCancelled": "This invoice has been cancelled.",
       "recipientNameLabel": "Recipient Name",
       "dueDate": "Due Date",
       "bankAccount": "Bank Account",

@@ -504,7 +504,8 @@
       "sent": "Gönderildi",
       "paid": "Ödendi",
       "overdue": "Gecikmiş",
-      "cancelled": "İptal"
+      "cancelled": "İptal",
+      "archived": "Arşiv"
     },
     "paymentChaser": {
       "title": "Ödeme Hatırlatıcısı",
@@ -631,8 +632,15 @@
       "exchangeRateNote": "Nihai tutar, ödeme anındaki döviz kuruna göre değişiklik gösterebilir.",
       "timelineCreated": "Oluşturuldu",
       "timelineEmailSent": "E-posta Gönderildi",
-      "timelinePaymentReceived": "Ödeme Alındı",
       "timelinePaid": "Ödendi",
+      "timelineOverdue": "Vade Geçti",
+      "timelineCancelled": "İptal Edildi",
+      "timelineArchivedNote": "Bu fatura arşivlendi.",
+      "timelineMessageCreatedOnly": "Fatura {{date}} tarihinde oluşturuldu. Henüz e-posta gönderilmedi.",
+      "timelineMessageSent": "Fatura {{email}} adresine gönderilmiştir. Alıcının ödemeyi yapması bekleniyor.",
+      "timelineMessageOverdue": "Faturanın vade tarihi geçti ve ödeme henüz alınmadı.",
+      "timelineMessagePaid": "Alıcı tarafından ödeme gerçekleştirilmiştir.",
+      "timelineMessageCancelled": "Bu fatura iptal edilmiştir.",
       "recipientNameLabel": "Alıcı Adı",
       "dueDate": "Vade Tarihi",
       "bankAccount": "Banka Hesabı",

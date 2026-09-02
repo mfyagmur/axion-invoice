@@ -82,7 +82,7 @@ export function InvoiceTableRow({ row }: InvoiceTableRowProps) {
       </td>
 
       <td className="px-4 py-3 align-top">
-        <InvoiceStatusBadge status={row.status} />
+        <InvoiceStatusBadge status={row.displayStatus} />
       </td>
 
       <td className="px-4 py-3 align-top">

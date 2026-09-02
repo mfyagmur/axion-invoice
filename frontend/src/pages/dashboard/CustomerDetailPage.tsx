@@ -16,6 +16,7 @@ import { getCustomerBaseName } from '@/features/customers/utils/formatCustomerDi
 import { CustomerTypeBadge } from '@/features/customers/components/CustomerTypeBadge'
 import { CustomerFormModal } from '@/features/customers/components/CustomerFormModal'
 import { useInvoices } from '@/features/invoices/hooks/useInvoices'
+import { InvoiceStatusBadge } from '@/features/invoices/components/InvoiceStatusBadge'
 import { useUpdateCustomer } from '@/features/customers/hooks/useUpdateCustomer'
 import { useAddCustomerContact } from '@/features/customers/hooks/useAddCustomerContact'
 import { useUpdateCustomerContact } from '@/features/customers/hooks/useUpdateCustomerContact'
@@ -23,14 +24,6 @@ import { useDeleteCustomerContact } from '@/features/customers/hooks/useDeleteCu
 import { useAuthStore } from '@/store/authStore'
 import { useToastStore } from '@/store/toastStore'
 import type { CustomerUpdatePayload, CustomerContactPayload } from '@/types/customer'
-
-const STATUS_KEYS: Record<string, string> = {
-  draft: 'invoices.status.draft',
-  sent: 'invoices.status.sent',
-  paid: 'invoices.status.paid',
-  overdue: 'invoices.status.overdue',
-  cancelled: 'invoices.status.cancelled',
-}
 
 const contactSchema = z.object({
   first_name: z.string().min(1, 'customers.form.errors.firstNameRequired'),
@@ -244,7 +237,7 @@ export function CustomerDetailPage() {
               >
                 <span className="font-medium text-slate-900 dark:text-slate-100">{invoice.invoice_number}</span>
                 <div className="flex items-center gap-4 text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">{t(STATUS_KEYS[invoice.status])}</span>
+                  <InvoiceStatusBadge status={invoice.display_status} />
                   <span className="font-medium text-slate-900 dark:text-slate-100">
                     {Number(invoice.grand_total).toFixed(2)} {invoice.currency}
                   </span>

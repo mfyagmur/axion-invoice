@@ -72,6 +72,8 @@ def send_invoice_email_task(invoice_id: str) -> None:
         if successful_recipients:
             invoice.email_sent_at = datetime.now(UTC)
             invoice.email_sent_to = sorted(successful_recipients)
+            if invoice.status == InvoiceStatus.DRAFT:
+                invoice.status = InvoiceStatus.SENT
 
         db.commit()
     finally:

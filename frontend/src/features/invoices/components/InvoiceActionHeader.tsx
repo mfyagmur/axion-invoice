@@ -51,7 +51,7 @@ export function InvoiceActionHeader({
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{invoice.invoice_number}</h1>
-            <InvoiceStatusBadge status={invoice.status} />
+            <InvoiceStatusBadge status={invoice.display_status} />
           </div>
           <div className="flex flex-col gap-1 text-sm text-slate-500 dark:text-slate-400">
             <span>{formatDate(invoice.created_at)}</span>

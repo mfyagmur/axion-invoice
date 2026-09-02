@@ -1,4 +1,4 @@
-import type { InvoicePdfStatus, InvoiceStatus, PaymentReminderStep } from '@/types/invoice'
+import type { InvoiceDisplayStatus, InvoicePdfStatus, InvoiceStatus, PaymentReminderStep } from '@/types/invoice'
 
 export interface InvoiceRow {
   id: string
@@ -15,6 +15,7 @@ export interface InvoiceRow {
   createdAt: string
   createdAtRaw: string
   status: InvoiceStatus
+  displayStatus: InvoiceDisplayStatus
   paymentReminderActive: boolean
   reminderSteps: PaymentReminderStep[]
   archived: boolean

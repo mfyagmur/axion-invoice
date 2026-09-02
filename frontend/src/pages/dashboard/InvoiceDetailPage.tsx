@@ -76,9 +76,12 @@ export function InvoiceDetailPage() {
           <NetReceivableBox row={row} />
           <StatusTimeline
             status={invoice.status}
+            displayStatus={invoice.display_status}
+            archived={invoice.archived}
             createdAt={invoice.created_at}
             emailSentAt={invoice.email_sent_at}
             emailSentTo={invoice.email_sent_to}
+            dueAt={invoice.due_at}
           />
         </div>
       </div>

@@ -1,5 +1,24 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-09-02 — Fatura Durum (Status) Sisteminin Gerçek Yaşam Döngüsünü Yansıtması sonrası
+
+- [ ] 2026-09-02: **"Ödendi" (paid) durumu için manuel işaretleme özelliği** — şu an sistemde
+  hiçbir fatura hiçbir zaman `PAID` durumuna geçmiyor (ne otomatik ne manuel), kullanıcı onayıyla
+  bu görevin kapsamı dışında bırakıldı. Ayrı bir iş olarak: fatura detayında "Ödendi olarak
+  işaretle" butonu + `backend/app/api/v1/invoices.py`'ye buna karşılık gelen bir endpoint
+  (muhtemelen `POST /invoices/{id}/mark-paid`, sadece `SENT`/`overdue` durumundaki faturalarda
+  aktif) eklenmeli. Bkz. `docs/PROJECT_DESING.md` "Fatura Durum (Status) Sisteminin Gerçek Yaşam
+  Döngüsünü Yansıtması".
+- [ ] 2026-09-02: Tarayıcıda teyit gerekiyor — `dashboard/invoices` listesinde taslak/gönderilmiş/
+  gecikmiş(vadesi geçmiş)/arşivlenmiş/iptal edilmiş örnek faturalarla her rozetin doğru renk ve
+  etiketle göründüğü, fatura detayındaki üst rozet ile `StatusTimeline`'ın aynı durumu tutarlı
+  gösterdiği, dark mode'da renklerin okunabilir kaldığı ve dar ekranda (mobil) `StatusTimeline`
+  kartının taşmadığı kontrol edilmeli. Bu ortamda tarayıcı otomasyon aracı olmadığı için yapılamadı.
+- [ ] 2026-09-02: Backend testleri (`docker compose exec backend pytest`) bu değişiklikten sonra
+  çalıştırılıp `test_invoices.py` ve varsa e-posta gönderim testlerinin hâlâ geçtiği teyit
+  edilmeli — bu ortamda çalışan bir Python/pytest kurulumu yoktu, sadece kod görsel olarak
+  incelendi.
+
 ## 2026-09-01 — Demo Hesabına Örnek Müşteri ve Fatura Verisi sonrası
 
 - [ ] 2026-09-01: Tarayıcıda teyit gerekiyor — demo hesabıyla (`/get-started` üzerinden) giriş

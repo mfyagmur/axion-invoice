@@ -113,6 +113,7 @@ class InvoiceSummaryResponse(BaseModel):
     payment_reminder_active: bool
     archived: bool
     issued_at: date | None
+    due_at: date | None
     created_at: datetime
     email_sent_at: datetime | None
     email_sent_to: list[str] | None
@@ -141,6 +142,19 @@ class InvoiceSummaryResponse(BaseModel):
         # TCMB sorgusu gerekir - response serileştirmede canlı ağ çağrısı yapmamak için None dönülür.
         return None
 
+    @computed_field
+    @property
+    def display_status(self) -> str:
+        if self.archived:
+            return "archived"
+        if self.status == InvoiceStatus.CANCELLED:
+            return "cancelled"
+        if self.status == InvoiceStatus.PAID:
+            return "paid"
+        if self.status == InvoiceStatus.SENT and self.due_at and self.due_at < date.today():
+            return "overdue"
+        return self.status.value
+
 
 class InvoiceDetailResponse(InvoiceSummaryResponse):
     template_id: uuid.UUID
@@ -149,7 +163,6 @@ class InvoiceDetailResponse(InvoiceSummaryResponse):
     tax_total: Decimal
     pdf_error: str | None
     notes: str | None
-    due_at: date | None
     recipient_contact_ids: list[str]
     line_items: list[InvoiceLineItemResponse]
     customer_snapshot: dict[str, str | None] | None

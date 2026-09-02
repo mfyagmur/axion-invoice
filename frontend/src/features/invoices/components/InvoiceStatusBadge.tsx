@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import type { InvoiceStatus } from '@/types/invoice'
+import type { InvoiceDisplayStatus } from '@/types/invoice'
 import { Badge } from '@/components/Badge'
 import { INVOICE_STATUS_BADGE_COLOR } from '@/features/invoices/utils/invoiceStatusBadge'
 
 interface InvoiceStatusBadgeProps {
-  status: InvoiceStatus
+  status: InvoiceDisplayStatus
 }
 
 export function InvoiceStatusBadge({ status }: InvoiceStatusBadgeProps) {

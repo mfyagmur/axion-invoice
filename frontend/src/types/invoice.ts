@@ -2,6 +2,7 @@ import type { Customer } from '@/types/customer'
 import type { DefinitionBankAccount } from '@/types/definitions'
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+export type InvoiceDisplayStatus = InvoiceStatus | 'archived'
 export type InvoicePdfStatus = 'pending' | 'ready' | 'failed'
 export type InvoiceType = 'sale' | 'purchase'
 export type InvoiceScenario = 'commercial'
@@ -43,6 +44,7 @@ export interface InvoiceSummary {
   id: string
   invoice_number: string
   status: InvoiceStatus
+  display_status: InvoiceDisplayStatus
   currency: string
   payment_currency: string
   exchange_rate: string | null
@@ -56,6 +58,7 @@ export interface InvoiceSummary {
   payment_reminder_active: boolean
   archived: boolean
   issued_at: string | null
+  due_at: string | null
   created_at: string
   email_sent_at: string | null
   email_sent_to: string[] | null
@@ -82,7 +85,6 @@ export interface InvoiceDetail extends InvoiceSummary {
   tax_total: string
   pdf_error: string | null
   notes: string | null
-  due_at: string | null
   bank_account_id: string | null
   bank_account: DefinitionBankAccount | null
   bank_account_id_2: string | null
