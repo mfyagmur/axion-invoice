@@ -186,7 +186,10 @@
         "pending": "Pending Invoices",
         "overdue": "Overdue Invoices",
         "draft": "Draft Invoices",
-        "invoiceCount": "{{count}} invoices"
+        "invoiceCount": "{{count}} invoices",
+        "currency": "Currency",
+        "amount": "Amount",
+        "count": "Count"
       },
       "charts": {
         "distributionTitle": "Invoices",

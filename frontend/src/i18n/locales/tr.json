@@ -186,7 +186,10 @@
         "pending": "Bekleyen Faturalar",
         "overdue": "Geciken Faturalar",
         "draft": "Taslak Faturalar",
-        "invoiceCount": "{{count}} fatura"
+        "invoiceCount": "{{count}} fatura",
+        "currency": "Kur",
+        "amount": "Tutar",
+        "count": "Adet"
       },
       "charts": {
         "distributionTitle": "Faturalar",
