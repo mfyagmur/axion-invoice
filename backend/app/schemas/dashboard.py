@@ -54,3 +54,4 @@ class DashboardChartsResponse(BaseModel):
     to_date: date | None
     status_distribution: list[StatusDistributionSlice]
     activity: list[ActivityPoint]
+    customer_count: int

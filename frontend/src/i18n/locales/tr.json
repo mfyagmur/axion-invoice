@@ -194,6 +194,9 @@
       "charts": {
         "distributionTitle": "Faturalar",
         "activityTitle": "Fatura Aktivitesi",
+        "customerActivityTitle": "Müşteri Fatura Aktivitesi",
+        "customerCount": "Müşteri Sayısı",
+        "totalInvoices": "Toplam Fatura Sayısı",
         "selectRange": "Tarih aralığı seç",
         "allTime": "Tüm Zamanlar",
         "empty": "Bu aralıkta veri yok"

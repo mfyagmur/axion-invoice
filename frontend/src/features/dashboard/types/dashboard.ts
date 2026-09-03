@@ -47,4 +47,5 @@ export interface DashboardCharts {
   to_date: string | null
   status_distribution: StatusDistributionSlice[]
   activity: ActivityPoint[]
+  customer_count: number
 }

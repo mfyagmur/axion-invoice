@@ -194,6 +194,9 @@
       "charts": {
         "distributionTitle": "Invoices",
         "activityTitle": "Invoice Activity",
+        "customerActivityTitle": "Customer Invoice Activity",
+        "customerCount": "Customer Count",
+        "totalInvoices": "Total Invoices",
         "selectRange": "Select date range",
         "allTime": "All Time",
         "empty": "No data in this range"

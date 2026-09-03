@@ -207,10 +207,13 @@ def get_charts(db: Session, user: User, currency: str, from_date: date | None, t
         for bucket_date, amount in sorted(activity_totals.items())
     ]
 
+    customer_count = len({inv.customer_id for inv in in_range})
+
     return DashboardChartsResponse(
         currency=currency,
         from_date=from_date,
         to_date=to_date,
         status_distribution=status_distribution,
         activity=activity,
+        customer_count=customer_count,
     )
