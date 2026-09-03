@@ -12,6 +12,7 @@ import { ResetPasswordForm } from '@/features/auth/components/ResetPasswordForm'
 import { CustomerDetailPage } from '@/pages/dashboard/CustomerDetailPage'
 import { CustomersPage } from '@/pages/dashboard/CustomersPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
+import { DashboardPlaceholderPage } from '@/pages/dashboard/DashboardPlaceholderPage'
 import { InvoiceCreatePage } from '@/pages/dashboard/InvoiceCreatePage'
 import { InvoiceDetailPage } from '@/pages/dashboard/InvoiceDetailPage'
 import { InvoicesPage } from '@/pages/dashboard/InvoicesPage'
@@ -54,6 +55,14 @@ export const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { path: '/dashboard', element: <DashboardHomePage /> },
+          {
+            path: '/dashboard/nasil-calisir',
+            element: <DashboardPlaceholderPage titleKey="dashboardPlaceholder.howItWorks.title" />,
+          },
+          {
+            path: '/dashboard/ne-nedir-nasil',
+            element: <DashboardPlaceholderPage titleKey="dashboardPlaceholder.whatIsHow.title" />,
+          },
           { path: '/dashboard/invoices', element: <InvoicesPage /> },
           { path: '/dashboard/invoices/new', element: <InvoiceCreatePage /> },
           { path: '/dashboard/invoices/:id', element: <InvoiceDetailPage /> },

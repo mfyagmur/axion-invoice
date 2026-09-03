@@ -167,8 +167,19 @@
     "demo": {
       "overview": "Genel Bakış",
       "greeting": "Merhaba {{name}}",
+      "tagline": "Ödemelerinizi yönetin ve kazançlarınızı kolayca takip edin.",
       "newInvoice": "Yeni Fatura Ekle",
       "newCustomer": "Yeni Müşteri Ekle",
+      "newTemplate": "Yeni Şablon Ekle",
+      "quickActions": {
+        "title": "Hızlı İşlemler"
+      },
+      "support": {
+        "title": "Nasıl yardımcı olabilirim?",
+        "howItWorks": "Uygulama nasıl çalışır?",
+        "whatIsHow": "Ne? Nedir? Nasıl?",
+        "contact": "Destek Yöneticisine Başvurun"
+      },
       "kpi": {
         "total": "Toplam Fatura Tutarları",
         "paid": "Ödenen Faturalar",
@@ -186,7 +197,9 @@
       },
       "tables": {
         "recentInvoices": "Son Faturalar",
+        "recentInvoicesSubtitle": "Son 10 fatura hareketi",
         "customers": "Müşteriler",
+        "customersSubtitle": "En güncel 5 müşteri kaydı",
         "invoiceNo": "Fatura No",
         "customerName": "Müşteri Adı",
         "date": "Tarih",
@@ -211,6 +224,14 @@
   "contactPlaceholder": {
     "title": "İletişim sayfası yakında aktif olacak",
     "body": "Bize ulaşmak için bu sayfa çok yakında aktif olacak."
+  },
+  "dashboardPlaceholder": {
+    "howItWorks": {
+      "title": "Uygulama nasıl çalışır?"
+    },
+    "whatIsHow": {
+      "title": "Ne? Nedir? Nasıl?"
+    }
   },
   "templates": {
     "list": {

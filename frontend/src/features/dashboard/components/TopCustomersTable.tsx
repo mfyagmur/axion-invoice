@@ -13,7 +13,11 @@ export function TopCustomersTable({ customers }: TopCustomersTableProps) {
   const navigate = useNavigate()
 
   return (
-    <Card title={t('dashboard.demo.tables.customers')} className="h-full">
+    <Card
+      title={t('dashboard.demo.tables.customers')}
+      subtitle={t('dashboard.demo.tables.customersSubtitle')}
+      className="h-full"
+    >
       <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
         {customers.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">{t('customers.list.empty')}</p>

@@ -19,7 +19,7 @@ from app.schemas.dashboard import (
 from app.schemas.invoice import InvoiceSummaryResponse
 
 RECENT_INVOICES_LIMIT = 10
-TOP_CUSTOMERS_LIMIT = 6
+TOP_CUSTOMERS_LIMIT = 5
 
 
 def compute_display_status(invoice: Invoice) -> str:

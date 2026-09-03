@@ -5,7 +5,9 @@ import { useAuthStore } from '@/store/authStore'
 import { useDashboardOverview } from '@/features/dashboard/hooks/useDashboardOverview'
 import { useDashboardCharts } from '@/features/dashboard/hooks/useDashboardCharts'
 import { formatDateForInput } from '@/features/invoices/utils/dateHelpers'
-import { DashboardWelcomeHeader } from './DashboardWelcomeHeader'
+import { WelcomeCard } from './WelcomeCard'
+import { QuickActionsCard } from './QuickActionsCard'
+import { SupportCard } from './SupportCard'
 import { KpiCardGrid } from './KpiCardGrid'
 import { DashboardFilters } from './DashboardFilters'
 import { InvoiceStatusDonutChart } from './InvoiceStatusDonutChart'
@@ -44,7 +46,17 @@ export function DemoDashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <DashboardWelcomeHeader />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <div className="lg:col-span-2">
+          <WelcomeCard />
+        </div>
+        <div className="lg:col-span-1">
+          <QuickActionsCard />
+        </div>
+        <div className="lg:col-span-1">
+          <SupportCard />
+        </div>
+      </div>
 
       {overview.isError && <ErrorState onRetry={() => overview.refetch()} />}
       {!overview.isError && overview.isLoading && (

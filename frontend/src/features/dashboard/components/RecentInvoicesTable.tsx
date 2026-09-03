@@ -16,7 +16,11 @@ export function RecentInvoicesTable({ invoices }: RecentInvoicesTableProps) {
   const { formatDateVerbal } = useDateFormat()
 
   return (
-    <Card title={t('dashboard.demo.tables.recentInvoices')} className="h-full">
+    <Card
+      title={t('dashboard.demo.tables.recentInvoices')}
+      subtitle={t('dashboard.demo.tables.recentInvoicesSubtitle')}
+      className="h-full"
+    >
       <div className="overflow-x-auto">
         <table className="w-full min-w-150 text-left text-sm">
           <thead>

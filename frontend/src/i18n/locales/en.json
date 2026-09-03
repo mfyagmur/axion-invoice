@@ -167,8 +167,19 @@
     "demo": {
       "overview": "Overview",
       "greeting": "Hello {{name}}",
+      "tagline": "Manage your payments and track your earnings with ease.",
       "newInvoice": "New Invoice",
       "newCustomer": "New Customer",
+      "newTemplate": "New Template",
+      "quickActions": {
+        "title": "Quick Actions"
+      },
+      "support": {
+        "title": "How can I help?",
+        "howItWorks": "How does the app work?",
+        "whatIsHow": "What? What is it? How?",
+        "contact": "Contact Support"
+      },
       "kpi": {
         "total": "Total Invoiced",
         "paid": "Paid Invoices",
@@ -186,7 +197,9 @@
       },
       "tables": {
         "recentInvoices": "Recent Invoices",
+        "recentInvoicesSubtitle": "Last 10 invoice activities",
         "customers": "Customers",
+        "customersSubtitle": "5 most recent customer records",
         "invoiceNo": "Invoice No",
         "customerName": "Customer Name",
         "date": "Date",
@@ -211,6 +224,14 @@
   "contactPlaceholder": {
     "title": "Contact page coming soon",
     "body": "This page will be active very soon so you can reach us."
+  },
+  "dashboardPlaceholder": {
+    "howItWorks": {
+      "title": "How does the app work?"
+    },
+    "whatIsHow": {
+      "title": "What? What is it? How?"
+    }
   },
   "templates": {
     "list": {

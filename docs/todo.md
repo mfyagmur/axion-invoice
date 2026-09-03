@@ -1,5 +1,11 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-09-02 — Dashboard Linkleri
+- [ ] 2026-09-03: Uygulama Nasıl Çalışır ve Ne Nedir Nasıl linklerine yeni sayfa oluşturulacak
+- [ ] 2026-09-03: Detsk için mail belirle
+- [ ] 2026-09-03: Ekranın sağ alt Köşesine Yardım Sistemi
+
+
 ## 2026-09-02 — Demo Kullanıcı Dashboard'u sonrası
 
 - [ ] 2026-09-02: **Normal kullanıcı dashboard'u** — kullanıcı açıkça bu görevi "1: demo, 2:
