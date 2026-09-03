@@ -199,6 +199,7 @@
         "totalInvoices": "Total Invoices",
         "selectRange": "Select date range",
         "allTime": "All Time",
+        "allCurrencies": "All",
         "empty": "No data in this range"
       },
       "tables": {

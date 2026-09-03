@@ -50,7 +50,11 @@ export function InvoiceActivityChart({ data, isLoading, isError, onRetry }: Invo
               tickFormatter={(value: number) => formatCurrency(value)}
               width={80}
             />
-            <Tooltip formatter={(value: number) => `${formatCurrency(value)} ${data?.currency ?? ''}`} />
+            <Tooltip
+              formatter={(value: number) =>
+                `${formatCurrency(value)} ${data?.currency && data.currency !== 'ALL' ? data.currency : ''}`.trim()
+              }
+            />
             <Bar dataKey="amount" fill="#4f46e5" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

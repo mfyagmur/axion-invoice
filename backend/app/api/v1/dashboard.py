@@ -31,4 +31,6 @@ def get_charts(
 ) -> DashboardChartsResponse:
     if from_ is not None and to is not None and from_ > to:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="'from' tarihi 'to' tarihinden sonra olamaz")
-    return dashboard_service.get_charts(db, current_user, currency.upper(), from_, to)
+    normalized_currency = currency.upper()
+    filter_currency = None if normalized_currency == "ALL" else normalized_currency
+    return dashboard_service.get_charts(db, current_user, filter_currency, from_, to)

@@ -175,12 +175,13 @@ def _activity_bucket_key(eff_date: date, from_date: date, to_date: date) -> date
     return eff_date.replace(day=1)
 
 
-def get_charts(db: Session, user: User, currency: str, from_date: date | None, to_date: date | None) -> DashboardChartsResponse:
-    invoices = (
-        db.query(Invoice)
-        .filter(Invoice.user_id == user.id, Invoice.currency == currency)
-        .all()
-    )
+def get_charts(
+    db: Session, user: User, currency: str | None, from_date: date | None, to_date: date | None
+) -> DashboardChartsResponse:
+    query = db.query(Invoice).filter(Invoice.user_id == user.id)
+    if currency is not None:
+        query = query.filter(Invoice.currency == currency)
+    invoices = query.all()
     in_range = [
         inv
         for inv in invoices
@@ -210,7 +211,7 @@ def get_charts(db: Session, user: User, currency: str, from_date: date | None, t
     customer_count = len({inv.customer_id for inv in in_range})
 
     return DashboardChartsResponse(
-        currency=currency,
+        currency=currency or "ALL",
         from_date=from_date,
         to_date=to_date,
         status_distribution=status_distribution,

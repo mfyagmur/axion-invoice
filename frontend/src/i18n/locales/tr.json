@@ -199,6 +199,7 @@
         "totalInvoices": "Toplam Fatura Sayısı",
         "selectRange": "Tarih aralığı seç",
         "allTime": "Tüm Zamanlar",
+        "allCurrencies": "Tümü",
         "empty": "Bu aralıkta veri yok"
       },
       "tables": {

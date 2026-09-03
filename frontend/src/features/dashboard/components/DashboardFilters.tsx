@@ -38,7 +38,10 @@ export function DashboardFilters({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const currencyOptions = availableCurrencies.map((code) => ({ value: code, label: code }))
+  const currencyOptions = [
+    { value: 'ALL', label: t('dashboard.demo.charts.allCurrencies') },
+    ...availableCurrencies.map((code) => ({ value: code, label: code })),
+  ]
 
   return (
     <div className="flex flex-wrap items-center gap-3">

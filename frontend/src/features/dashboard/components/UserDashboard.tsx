@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ErrorState } from '@/components/ErrorState'
-import { useAuthStore } from '@/store/authStore'
 import { useDashboardOverview } from '@/features/dashboard/hooks/useDashboardOverview'
 import { useDashboardCharts } from '@/features/dashboard/hooks/useDashboardCharts'
 import { formatDateForInput } from '@/features/invoices/utils/dateHelpers'
@@ -18,12 +17,11 @@ const BASE_CURRENCIES = ['TRY', 'USD', 'EUR', 'GBP']
 
 export function UserDashboard() {
   const { t } = useTranslation()
-  const user = useAuthStore((state) => state.user)
   const overview = useDashboardOverview()
 
   const [dateFrom, setDateFrom] = useState<Date | null>(null)
   const [dateTo, setDateTo] = useState<Date | null>(null)
-  const [currency, setCurrency] = useState(user?.default_currency ?? 'TRY')
+  const [currency, setCurrency] = useState('ALL')
 
   const charts = useDashboardCharts({
     currency,
@@ -34,7 +32,7 @@ export function UserDashboard() {
   const availableCurrencies = useMemo(() => {
     const codes = new Set<string>(BASE_CURRENCIES)
     for (const item of overview.data?.total.currency_breakdown ?? []) codes.add(item.currency)
-    codes.add(currency)
+    if (currency !== 'ALL') codes.add(currency)
     return Array.from(codes).sort()
   }, [overview.data, currency])
 
@@ -64,7 +62,7 @@ export function UserDashboard() {
       {!overview.isError && overview.data && <KpiCardGrid overview={overview.data} />}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 flex justify-end">
           <DashboardFilters
             dateFrom={dateFrom}
             dateTo={dateTo}
