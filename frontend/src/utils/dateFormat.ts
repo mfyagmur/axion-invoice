@@ -21,9 +21,14 @@ export function normalizeDateFormat(p: string | undefined | null): DateFormatPat
   return isValidPattern(p ?? undefined) ? (p as DateFormatPattern) : DEFAULT_DATE_FORMAT
 }
 
+export interface FormatDateOptions {
+  includeYear?: boolean
+}
+
 export function formatDate(
   date: Date | string | null | undefined,
   pattern: DateFormatPattern = DEFAULT_DATE_FORMAT,
+  options: FormatDateOptions = {},
 ): string {
   const d = toValidDate(date)
   if (!d) return ''
@@ -33,7 +38,9 @@ export function formatDate(
     year: String(d.getFullYear()),
   }
   const { order, separator } = PATTERN_CONFIG[pattern]
-  return order.map((k) => parts[k]).join(separator)
+  const includeYear = options.includeYear ?? true
+  const keys = includeYear ? order : order.filter((k) => k !== 'year')
+  return keys.map((k) => parts[k]).join(separator)
 }
 
 export interface VerbalDateOptions {

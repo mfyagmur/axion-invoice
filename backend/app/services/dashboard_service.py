@@ -104,6 +104,7 @@ def get_overview(db: Session, user: User) -> DashboardOverviewResponse:
     paid_bucket: list[Invoice] = []
     pending_bucket: list[Invoice] = []
     overdue_bucket: list[Invoice] = []
+    draft_bucket: list[Invoice] = []
 
     for inv in invoices:
         display_status = compute_display_status(inv)
@@ -115,6 +116,8 @@ def get_overview(db: Session, user: User) -> DashboardOverviewResponse:
             pending_bucket.append(inv)
         elif display_status == "overdue":
             overdue_bucket.append(inv)
+        elif display_status == "draft":
+            draft_bucket.append(inv)
 
     recent_invoices = invoices[:RECENT_INVOICES_LIMIT]
 
@@ -157,6 +160,7 @@ def get_overview(db: Session, user: User) -> DashboardOverviewResponse:
         paid=_build_kpi_card(paid_bucket),
         pending=_build_kpi_card(pending_bucket),
         overdue=_build_kpi_card(overdue_bucket),
+        draft=_build_kpi_card(draft_bucket),
         recent_invoices=[InvoiceSummaryResponse.model_validate(inv) for inv in recent_invoices],
         top_customers=top_customers,
     )

@@ -26,6 +26,7 @@ export interface DashboardOverview {
   paid: KpiCard
   pending: KpiCard
   overdue: KpiCard
+  draft: KpiCard
   recent_invoices: InvoiceSummary[]
   top_customers: DashboardCustomerRow[]
 }

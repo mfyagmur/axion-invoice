@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import type { DashboardCharts } from '@/features/dashboard/types/dashboard'
 import type { InvoiceDisplayStatus } from '@/types/invoice'
 import { INVOICE_STATUS_BADGE_COLOR } from '@/features/invoices/utils/invoiceStatusBadge'
@@ -23,6 +24,7 @@ interface InvoiceStatusDonutChartProps {
 
 export function InvoiceStatusDonutChart({ data, isLoading, isError, onRetry }: InvoiceStatusDonutChartProps) {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
 
   const slices = (data?.status_distribution ?? []).map((slice) => ({
     name: t(`invoices.status.${slice.status}`),
@@ -30,9 +32,14 @@ export function InvoiceStatusDonutChart({ data, isLoading, isError, onRetry }: I
     color: STATUS_HEX[INVOICE_STATUS_BADGE_COLOR[slice.status as InvoiceDisplayStatus] ?? 'slate'],
   }))
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
+  const periodLabel = data ? `${formatDate(data.from_date)} – ${formatDate(data.to_date)}` : null
 
   return (
-    <Card title={t('dashboard.demo.charts.distributionTitle')} className="flex h-full flex-col">
+    <Card
+      title={t('dashboard.demo.charts.distributionTitle')}
+      action={periodLabel && <span className="text-xs text-slate-400 dark:text-slate-500">{periodLabel}</span>}
+      className="flex h-full flex-col"
+    >
       {isError && <ErrorState onRetry={onRetry} />}
       {!isError && isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isError && !isLoading && total === 0 && (

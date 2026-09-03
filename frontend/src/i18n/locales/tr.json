@@ -173,6 +173,7 @@
         "paid": "Ödenen Faturalar",
         "pending": "Bekleyen Faturalar",
         "overdue": "Geciken Faturalar",
+        "draft": "Taslak Faturalar",
         "invoiceCount": "{{count}} fatura"
       },
       "charts": {

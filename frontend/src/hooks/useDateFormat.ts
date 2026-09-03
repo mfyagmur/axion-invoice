@@ -5,6 +5,7 @@ import {
   formatDate,
   formatDateVerbal,
   normalizeDateFormat,
+  type FormatDateOptions,
   type VerbalDateOptions,
 } from '@/utils/dateFormat'
 
@@ -18,7 +19,7 @@ export function useDateFormat() {
     pattern,
     locale,
     formatDate: useCallback(
-      (date: Parameters<typeof formatDate>[0]) => formatDate(date, pattern),
+      (date: Parameters<typeof formatDate>[0], options?: FormatDateOptions) => formatDate(date, pattern, options),
       [pattern],
     ),
     formatDateVerbal: useCallback(

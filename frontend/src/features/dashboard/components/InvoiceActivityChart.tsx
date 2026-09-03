@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { useDateFormat } from '@/hooks/useDateFormat'
 import type { DashboardCharts } from '@/features/dashboard/types/dashboard'
 
 interface InvoiceActivityChartProps {
@@ -14,14 +15,20 @@ interface InvoiceActivityChartProps {
 
 export function InvoiceActivityChart({ data, isLoading, isError, onRetry }: InvoiceActivityChartProps) {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
 
   const points = (data?.activity ?? []).map((point) => ({
-    date: new Date(point.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
+    date: formatDate(point.date, { includeYear: false }),
     amount: Number(point.amount),
   }))
+  const periodLabel = data ? `${formatDate(data.from_date)} – ${formatDate(data.to_date)}` : null
 
   return (
-    <Card title={t('dashboard.demo.charts.activityTitle')} className="flex h-full flex-col">
+    <Card
+      title={t('dashboard.demo.charts.activityTitle')}
+      action={periodLabel && <span className="text-xs text-slate-400 dark:text-slate-500">{periodLabel}</span>}
+      className="flex h-full flex-col"
+    >
       {isError && <ErrorState onRetry={onRetry} />}
       {!isError && isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isError && !isLoading && points.length === 0 && (

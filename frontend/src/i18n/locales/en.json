@@ -173,6 +173,7 @@
         "paid": "Paid Invoices",
         "pending": "Pending Invoices",
         "overdue": "Overdue Invoices",
+        "draft": "Draft Invoices",
         "invoiceCount": "{{count}} invoices"
       },
       "charts": {

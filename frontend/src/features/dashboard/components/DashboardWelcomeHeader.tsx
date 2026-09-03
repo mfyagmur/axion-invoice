@@ -3,17 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { useAuthStore } from '@/store/authStore'
+import { useDateFormat } from '@/hooks/useDateFormat'
 
 export function DashboardWelcomeHeader() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  const { formatDateVerbal } = useDateFormat()
 
-  const today = new Date().toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'tr-TR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const today = formatDateVerbal(new Date(), { month: 'long' })
 
   return (
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">

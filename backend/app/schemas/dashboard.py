@@ -33,6 +33,7 @@ class DashboardOverviewResponse(BaseModel):
     paid: KpiCard
     pending: KpiCard
     overdue: KpiCard
+    draft: KpiCard
     recent_invoices: list[InvoiceSummaryResponse]
     top_customers: list[DashboardCustomerRow]
 
