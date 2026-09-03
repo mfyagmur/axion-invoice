@@ -46,6 +46,7 @@ class StatusDistributionSlice(BaseModel):
 class ActivityPoint(BaseModel):
     date: date
     amount: Decimal
+    currency_amounts: dict[str, Decimal] = {}
 
 
 class DashboardChartsResponse(BaseModel):

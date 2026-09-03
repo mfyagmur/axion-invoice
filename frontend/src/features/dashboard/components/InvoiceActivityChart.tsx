@@ -1,5 +1,6 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
 import { formatCurrency } from '@/utils/formatCurrency'
@@ -13,14 +14,33 @@ interface InvoiceActivityChartProps {
   onRetry: () => void
 }
 
+const SERIES_COLORS = ['#4f46e5', '#16a34a', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7', '#ec4899', '#84cc16']
+
 export function InvoiceActivityChart({ data, isLoading, isError, onRetry }: InvoiceActivityChartProps) {
   const { t } = useTranslation()
   const { formatDate } = useDateFormat()
 
-  const points = (data?.activity ?? []).map((point) => ({
-    date: formatDate(point.date, { includeYear: false }),
-    amount: Number(point.amount),
-  }))
+  const currencies = useMemo(() => {
+    const codes = new Set<string>()
+    for (const point of data?.activity ?? []) {
+      for (const code of Object.keys(point.currency_amounts)) codes.add(code)
+    }
+    return Array.from(codes).sort()
+  }, [data])
+
+  const colorByCurrency = useMemo(() => {
+    const map = new Map<string, string>()
+    currencies.forEach((code, index) => map.set(code, SERIES_COLORS[index % SERIES_COLORS.length]))
+    return map
+  }, [currencies])
+
+  const points = (data?.activity ?? []).map((point) => {
+    const row: Record<string, string | number> = { date: formatDate(point.date, { includeYear: false }) }
+    for (const [code, amount] of Object.entries(point.currency_amounts)) {
+      row[code] = Number(amount)
+    }
+    return row
+  })
   const periodLabel = !data
     ? null
     : data.from_date && data.to_date
@@ -50,12 +70,18 @@ export function InvoiceActivityChart({ data, isLoading, isError, onRetry }: Invo
               tickFormatter={(value: number) => formatCurrency(value)}
               width={80}
             />
-            <Tooltip
-              formatter={(value: number) =>
-                `${formatCurrency(value)} ${data?.currency && data.currency !== 'ALL' ? data.currency : ''}`.trim()
-              }
-            />
-            <Bar dataKey="amount" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+            <Tooltip formatter={(value: number, name: string) => [`${formatCurrency(value)} ${name}`, name]} />
+            {currencies.length > 1 && <Legend wrapperStyle={{ fontSize: 12 }} />}
+            {currencies.map((code, index) => (
+              <Bar
+                key={code}
+                dataKey={code}
+                name={code}
+                stackId="amount"
+                fill={colorByCurrency.get(code)}
+                radius={index === currencies.length - 1 ? [4, 4, 0, 0] : undefined}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       )}

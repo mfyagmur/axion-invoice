@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/Button'
@@ -27,6 +27,18 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
   const [tempStart, setTempStart] = useState<Date | null>(startDate)
   const [tempEnd, setTempEnd] = useState<Date | null>(endDate)
   const [currentMonth, setCurrentMonth] = useState(startOfDay(new Date()))
+  const popoverRef = useRef<HTMLDivElement>(null)
+  const [align, setAlign] = useState<'left' | 'right'>('left')
+
+  useLayoutEffect(() => {
+    if (!popoverRef.current) return
+    const rect = popoverRef.current.getBoundingClientRect()
+    if (rect.right > window.innerWidth) {
+      setAlign('right')
+    } else if (rect.left < 0) {
+      setAlign('left')
+    }
+  }, [])
 
   const presets = getDateRangePresets()
   const nextMonth = addMonths(currentMonth, 1)
@@ -65,7 +77,10 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
 
   return (
     <div
-      className="absolute left-0 top-full mt-2 z-50 rounded-lg border border-slate-200 bg-white shadow-lg"
+      ref={popoverRef}
+      className={`absolute top-full mt-2 z-50 rounded-lg border border-slate-200 bg-white shadow-lg ${
+        align === 'right' ? 'right-0' : 'left-0'
+      }`}
       style={{ width: 'clamp(20rem, 85vw, 42rem)', maxHeight: 'clamp(24rem, 80vh, 32rem)' }}
     >
       <div className="flex overflow-hidden">

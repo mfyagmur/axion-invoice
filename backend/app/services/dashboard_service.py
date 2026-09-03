@@ -199,13 +199,19 @@ def get_charts(
     bucket_from = from_date or (min(effective_dates) if effective_dates else date.today())
     bucket_to = to_date or (max(effective_dates) if effective_dates else date.today())
 
-    activity_totals: dict[date, Decimal] = defaultdict(lambda: Decimal("0"))
+    activity_totals: dict[date, dict[str, Decimal]] = defaultdict(lambda: defaultdict(lambda: Decimal("0")))
     for inv in in_range:
         bucket_date = _activity_bucket_key(_effective_date(inv), bucket_from, bucket_to)
-        activity_totals[bucket_date] += inv.grand_total
+        activity_totals[bucket_date][inv.currency] += inv.grand_total
     activity = [
-        ActivityPoint(date=bucket_date, amount=amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-        for bucket_date, amount in sorted(activity_totals.items())
+        ActivityPoint(
+            date=bucket_date,
+            amount=sum(currency_totals.values(), Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+            currency_amounts={
+                cur: amt.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP) for cur, amt in currency_totals.items()
+            },
+        )
+        for bucket_date, currency_totals in sorted(activity_totals.items())
     ]
 
     customer_count = len({inv.customer_id for inv in in_range})

@@ -39,6 +39,7 @@ export interface StatusDistributionSlice {
 export interface ActivityPoint {
   date: string
   amount: string
+  currency_amounts: Record<string, string>
 }
 
 export interface DashboardCharts {
