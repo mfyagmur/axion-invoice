@@ -4,7 +4,7 @@ import { ErrorState } from '@/components/ErrorState'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardOverview } from '@/features/dashboard/hooks/useDashboardOverview'
 import { useDashboardCharts } from '@/features/dashboard/hooks/useDashboardCharts'
-import { addDays, formatDateForInput, startOfDay } from '@/features/invoices/utils/dateHelpers'
+import { formatDateForInput } from '@/features/invoices/utils/dateHelpers'
 import { DashboardWelcomeHeader } from './DashboardWelcomeHeader'
 import { KpiCardGrid } from './KpiCardGrid'
 import { DashboardFilters } from './DashboardFilters'
@@ -13,12 +13,14 @@ import { InvoiceActivityChart } from './InvoiceActivityChart'
 import { RecentInvoicesTable } from './RecentInvoicesTable'
 import { TopCustomersTable } from './TopCustomersTable'
 
+const BASE_CURRENCIES = ['TRY', 'USD', 'EUR', 'GBP']
+
 export function DemoDashboard() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
 
-  const [dateFrom, setDateFrom] = useState<Date | null>(() => startOfDay(addDays(new Date(), -30)))
-  const [dateTo, setDateTo] = useState<Date | null>(() => startOfDay(new Date()))
+  const [dateFrom, setDateFrom] = useState<Date | null>(null)
+  const [dateTo, setDateTo] = useState<Date | null>(null)
   const [currency, setCurrency] = useState(user?.default_currency ?? 'TRY')
 
   const overview = useDashboardOverview()
@@ -29,7 +31,8 @@ export function DemoDashboard() {
   })
 
   const availableCurrencies = useMemo(() => {
-    const codes = new Set<string>((overview.data?.total.currency_breakdown ?? []).map((item) => item.currency))
+    const codes = new Set<string>(BASE_CURRENCIES)
+    for (const item of overview.data?.total.currency_breakdown ?? []) codes.add(item.currency)
     codes.add(currency)
     return Array.from(codes).sort()
   }, [overview.data, currency])

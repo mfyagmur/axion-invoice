@@ -26,9 +26,9 @@ def get_charts(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
     currency: str = Query(min_length=3, max_length=3),
-    from_: date = Query(alias="from"),
-    to: date = Query(),
+    from_: date | None = Query(None, alias="from"),
+    to: date | None = Query(None),
 ) -> DashboardChartsResponse:
-    if from_ > to:
+    if from_ is not None and to is not None and from_ > to:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="'from' tarihi 'to' tarihinden sonra olamaz")
     return dashboard_service.get_charts(db, current_user, currency.upper(), from_, to)

@@ -10,7 +10,7 @@ interface UseDashboardChartsParams {
 export function useDashboardCharts({ currency, from, to }: UseDashboardChartsParams) {
   return useQuery({
     queryKey: ['dashboard', 'charts', currency, from, to],
-    queryFn: () => dashboardApi.getCharts({ currency, from: from as string, to: to as string }),
-    enabled: Boolean(currency && from && to),
+    queryFn: () => dashboardApi.getCharts({ currency, from, to }),
+    enabled: Boolean(currency),
   })
 }

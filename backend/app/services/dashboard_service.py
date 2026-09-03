@@ -175,13 +175,17 @@ def _activity_bucket_key(eff_date: date, from_date: date, to_date: date) -> date
     return eff_date.replace(day=1)
 
 
-def get_charts(db: Session, user: User, currency: str, from_date: date, to_date: date) -> DashboardChartsResponse:
+def get_charts(db: Session, user: User, currency: str, from_date: date | None, to_date: date | None) -> DashboardChartsResponse:
     invoices = (
         db.query(Invoice)
         .filter(Invoice.user_id == user.id, Invoice.currency == currency)
         .all()
     )
-    in_range = [inv for inv in invoices if from_date <= _effective_date(inv) <= to_date]
+    in_range = [
+        inv
+        for inv in invoices
+        if (from_date is None or from_date <= _effective_date(inv)) and (to_date is None or _effective_date(inv) <= to_date)
+    ]
 
     status_counts: dict[str, int] = defaultdict(int)
     for inv in in_range:
@@ -190,9 +194,13 @@ def get_charts(db: Session, user: User, currency: str, from_date: date, to_date:
         StatusDistributionSlice(status=status, count=count) for status, count in status_counts.items()
     ]
 
+    effective_dates = [_effective_date(inv) for inv in in_range]
+    bucket_from = from_date or (min(effective_dates) if effective_dates else date.today())
+    bucket_to = to_date or (max(effective_dates) if effective_dates else date.today())
+
     activity_totals: dict[date, Decimal] = defaultdict(lambda: Decimal("0"))
     for inv in in_range:
-        bucket_date = _activity_bucket_key(_effective_date(inv), from_date, to_date)
+        bucket_date = _activity_bucket_key(_effective_date(inv), bucket_from, bucket_to)
         activity_totals[bucket_date] += inv.grand_total
     activity = [
         ActivityPoint(date=bucket_date, amount=amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))

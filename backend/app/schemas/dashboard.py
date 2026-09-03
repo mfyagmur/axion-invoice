@@ -50,7 +50,7 @@ class ActivityPoint(BaseModel):
 
 class DashboardChartsResponse(BaseModel):
     currency: str
-    from_date: date
-    to_date: date
+    from_date: date | None
+    to_date: date | None
     status_distribution: list[StatusDistributionSlice]
     activity: list[ActivityPoint]

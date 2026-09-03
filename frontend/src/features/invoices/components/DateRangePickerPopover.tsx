@@ -58,10 +58,15 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
     onClose()
   }
 
+  const handleClear = () => {
+    onApply(null, null)
+    onClose()
+  }
+
   return (
     <div
-      className="absolute right-0 top-full mt-2 z-50 rounded-lg border border-slate-200 bg-white shadow-lg"
-      style={{ width: 'clamp(20rem, 90vw, 56rem)', maxHeight: 'clamp(24rem, 80vh, 32rem)' }}
+      className="absolute left-0 top-full mt-2 z-50 rounded-lg border border-slate-200 bg-white shadow-lg"
+      style={{ width: 'clamp(20rem, 85vw, 42rem)', maxHeight: 'clamp(24rem, 80vh, 32rem)' }}
     >
       <div className="flex overflow-hidden">
         {/* Left Sidebar - Presets */}
@@ -160,16 +165,24 @@ export function DateRangePickerPopover({ startDate, endDate, onApply, onClose }:
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex justify-end gap-2 pt-2 sm:pt-3 border-t border-slate-200 mt-2 sm:mt-3 shrink-0">
+          <div className="flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-200 mt-2 sm:mt-3 shrink-0">
             <button
-              onClick={handleCancel}
-              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+              onClick={handleClear}
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
             >
-              {t('common.cancel')}
+              {t('common.clear')}
             </button>
-            <Button onClick={handleApply} variant="primary" className="px-3 py-1.5 text-xs sm:text-sm">
-              {t('common.save')}
-            </Button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancel}
+                className="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <Button onClick={handleApply} variant="primary" className="px-3 py-1.5 text-xs sm:text-sm">
+                {t('common.save')}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

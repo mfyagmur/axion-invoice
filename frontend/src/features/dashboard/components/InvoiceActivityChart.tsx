@@ -21,7 +21,11 @@ export function InvoiceActivityChart({ data, isLoading, isError, onRetry }: Invo
     date: formatDate(point.date, { includeYear: false }),
     amount: Number(point.amount),
   }))
-  const periodLabel = data ? `${formatDate(data.from_date)} – ${formatDate(data.to_date)}` : null
+  const periodLabel = !data
+    ? null
+    : data.from_date && data.to_date
+      ? `${formatDate(data.from_date)} – ${formatDate(data.to_date)}`
+      : t('dashboard.demo.charts.allTime')
 
   return (
     <Card

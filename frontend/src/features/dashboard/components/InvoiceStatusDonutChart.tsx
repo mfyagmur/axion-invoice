@@ -32,7 +32,11 @@ export function InvoiceStatusDonutChart({ data, isLoading, isError, onRetry }: I
     color: STATUS_HEX[INVOICE_STATUS_BADGE_COLOR[slice.status as InvoiceDisplayStatus] ?? 'slate'],
   }))
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
-  const periodLabel = data ? `${formatDate(data.from_date)} – ${formatDate(data.to_date)}` : null
+  const periodLabel = !data
+    ? null
+    : data.from_date && data.to_date
+      ? `${formatDate(data.from_date)} – ${formatDate(data.to_date)}`
+      : t('dashboard.demo.charts.allTime')
 
   return (
     <Card

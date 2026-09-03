@@ -3,6 +3,7 @@
     "appName": "Axion Invoice",
     "save": "Save",
     "cancel": "Cancel",
+    "clear": "Clear",
     "confirm": "Confirm",
     "loading": "Loading...",
     "comingSoon": "This section will be added in a later phase.",
@@ -180,6 +181,7 @@
         "distributionTitle": "Invoices",
         "activityTitle": "Invoice Activity",
         "selectRange": "Select date range",
+        "allTime": "All Time",
         "empty": "No data in this range"
       },
       "tables": {

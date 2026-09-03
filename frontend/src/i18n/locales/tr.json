@@ -3,6 +3,7 @@
     "appName": "Axion Invoice",
     "save": "Kaydet",
     "cancel": "İptal",
+    "clear": "Temizle",
     "confirm": "Onayla",
     "loading": "Yükleniyor...",
     "comingSoon": "Bu bölüm ileriki bir fazda eklenecek.",
@@ -180,6 +181,7 @@
         "distributionTitle": "Faturalar",
         "activityTitle": "Fatura Aktivitesi",
         "selectRange": "Tarih aralığı seç",
+        "allTime": "Tüm Zamanlar",
         "empty": "Bu aralıkta veri yok"
       },
       "tables": {

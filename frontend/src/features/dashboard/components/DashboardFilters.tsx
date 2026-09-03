@@ -4,7 +4,7 @@ import { Calendar } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Select } from '@/components/Select'
 import { DateRangePickerPopover } from '@/features/invoices/components/DateRangePickerPopover'
-import { formatDateForInput } from '@/features/invoices/utils/dateHelpers'
+import { useDateFormat } from '@/hooks/useDateFormat'
 
 interface DashboardFiltersProps {
   dateFrom: Date | null
@@ -24,6 +24,7 @@ export function DashboardFilters({
   availableCurrencies,
 }: DashboardFiltersProps) {
   const { t } = useTranslation()
+  const { formatDate } = useDateFormat()
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -47,8 +48,8 @@ export function DashboardFilters({
         <Button variant="secondary" className="px-3" onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}>
           <Calendar size={16} className="mr-2" />
           {dateFrom && dateTo
-            ? `${formatDateForInput(dateFrom)} — ${formatDateForInput(dateTo)}`
-            : t('dashboard.demo.charts.selectRange')}
+            ? `${formatDate(dateFrom)} — ${formatDate(dateTo)}`
+            : t('dashboard.demo.charts.allTime')}
         </Button>
 
         {isDatePickerOpen && (
