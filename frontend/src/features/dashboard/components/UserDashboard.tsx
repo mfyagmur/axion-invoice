@@ -14,6 +14,8 @@ import { CustomerInvoiceActivityChart } from './CustomerInvoiceActivityChart'
 import { InvoiceActivityChart } from './InvoiceActivityChart'
 import { PerformanceTrendChart } from './PerformanceTrendChart'
 import { CustomerSalesTable } from './CustomerSalesTable'
+import { RecentInvoicesTable } from './RecentInvoicesTable'
+import { TopCustomersTable } from './TopCustomersTable'
 
 const BASE_CURRENCIES = ['TRY', 'USD', 'EUR', 'GBP']
 
@@ -118,6 +120,17 @@ export function UserDashboard() {
           onRetry={() => charts.refetch()}
         />
       </div>
+
+      {overview.data && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <RecentInvoicesTable invoices={overview.data.recent_invoices} />
+          </div>
+          <div className="lg:col-span-1">
+            <TopCustomersTable customers={overview.data.top_customers} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

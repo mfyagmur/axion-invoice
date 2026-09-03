@@ -136,8 +136,6 @@ def get_overview(db: Session, user: User) -> DashboardOverviewResponse:
             inv for inv in customer_invoices if not inv.archived and compute_display_status(inv) != "cancelled"
         ]
         pending_invoices = [inv for inv in invoiced_invoices if compute_display_status(inv) in ("sent", "overdue")]
-        if not invoiced_invoices:
-            continue
         sort_key = sum(
             (amount for inv in invoiced_invoices if (amount := _local_try_amount(inv)) is not None),
             Decimal("0"),
