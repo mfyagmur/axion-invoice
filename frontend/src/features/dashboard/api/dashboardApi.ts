@@ -4,10 +4,20 @@ import type { DashboardCharts, DashboardOverview } from '@/features/dashboard/ty
 export const dashboardApi = {
   getOverview: () => apiClient.get<DashboardOverview>('/dashboard/overview').then((res) => res.data),
 
-  getCharts: (params: { currency: string; from: string | null; to: string | null }) =>
+  getCharts: (params: {
+    currency: string
+    from: string | null
+    to: string | null
+    granularity: 'daily' | 'monthly'
+  }) =>
     apiClient
       .get<DashboardCharts>('/dashboard/charts', {
-        params: { currency: params.currency, from: params.from ?? undefined, to: params.to ?? undefined },
+        params: {
+          currency: params.currency,
+          from: params.from ?? undefined,
+          to: params.to ?? undefined,
+          granularity: params.granularity,
+        },
       })
       .then((res) => res.data),
 }

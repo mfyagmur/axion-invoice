@@ -28,6 +28,7 @@ export function DemoDashboard() {
     currency,
     from: formatDateForInput(dateFrom) || null,
     to: formatDateForInput(dateTo) || null,
+    granularity: 'monthly',
   })
 
   const availableCurrencies = useMemo(() => {

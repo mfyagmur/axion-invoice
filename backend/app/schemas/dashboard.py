@@ -49,6 +49,23 @@ class ActivityPoint(BaseModel):
     currency_amounts: dict[str, Decimal] = {}
 
 
+class TrendPoint(BaseModel):
+    date: date
+    paid_amounts: dict[str, Decimal] = {}
+    total_amounts: dict[str, Decimal] = {}
+
+
+class CustomerSalesRow(BaseModel):
+    id: uuid.UUID
+    name: str
+    invoice_count: int
+    sales_try: Decimal
+    paid_try: Decimal
+    pending_try: Decimal
+    collection_rate_pct: float | None
+    sales_share_pct: float | None
+
+
 class DashboardChartsResponse(BaseModel):
     currency: str
     from_date: date | None
@@ -56,3 +73,5 @@ class DashboardChartsResponse(BaseModel):
     status_distribution: list[StatusDistributionSlice]
     activity: list[ActivityPoint]
     customer_count: int
+    trend: list[TrendPoint]
+    customer_sales: list[CustomerSalesRow]

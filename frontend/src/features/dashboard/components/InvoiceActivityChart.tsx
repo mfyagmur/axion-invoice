@@ -5,6 +5,7 @@ import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { useDateFormat } from '@/hooks/useDateFormat'
+import { SERIES_COLORS } from '@/features/dashboard/utils/chartColors'
 import type { DashboardCharts } from '@/features/dashboard/types/dashboard'
 
 interface InvoiceActivityChartProps {
@@ -13,8 +14,6 @@ interface InvoiceActivityChartProps {
   isError: boolean
   onRetry: () => void
 }
-
-const SERIES_COLORS = ['#4f46e5', '#16a34a', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7', '#ec4899', '#84cc16']
 
 export function InvoiceActivityChart({ data, isLoading, isError, onRetry }: InvoiceActivityChartProps) {
   const { t } = useTranslation()

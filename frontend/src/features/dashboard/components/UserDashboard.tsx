@@ -12,6 +12,8 @@ import { DashboardFilters } from './DashboardFilters'
 import { InvoiceStatusPieChart } from './InvoiceStatusPieChart'
 import { CustomerInvoiceActivityChart } from './CustomerInvoiceActivityChart'
 import { InvoiceActivityChart } from './InvoiceActivityChart'
+import { PerformanceTrendChart } from './PerformanceTrendChart'
+import { CustomerSalesTable } from './CustomerSalesTable'
 
 const BASE_CURRENCIES = ['TRY', 'USD', 'EUR', 'GBP']
 
@@ -22,11 +24,13 @@ export function UserDashboard() {
   const [dateFrom, setDateFrom] = useState<Date | null>(null)
   const [dateTo, setDateTo] = useState<Date | null>(null)
   const [currency, setCurrency] = useState('ALL')
+  const [granularity, setGranularity] = useState<'daily' | 'monthly'>('monthly')
 
   const charts = useDashboardCharts({
     currency,
     from: formatDateForInput(dateFrom) || null,
     to: formatDateForInput(dateTo) || null,
+    granularity,
   })
 
   const availableCurrencies = useMemo(() => {
@@ -96,6 +100,23 @@ export function UserDashboard() {
             onRetry={() => charts.refetch()}
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <PerformanceTrendChart
+          data={charts.data}
+          isLoading={charts.isLoading}
+          isError={charts.isError}
+          onRetry={() => charts.refetch()}
+          granularity={granularity}
+          onGranularityChange={setGranularity}
+        />
+        <CustomerSalesTable
+          data={charts.data}
+          isLoading={charts.isLoading}
+          isError={charts.isError}
+          onRetry={() => charts.refetch()}
+        />
       </div>
     </div>
   )

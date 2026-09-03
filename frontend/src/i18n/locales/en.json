@@ -200,7 +200,11 @@
         "selectRange": "Select date range",
         "allTime": "All Time",
         "allCurrencies": "All",
-        "empty": "No data in this range"
+        "empty": "No data in this range",
+        "trendTitle": "Performance Trend",
+        "trendDaily": "Daily",
+        "trendMonthly": "Monthly",
+        "trendPaidSuffix": " (Paid)"
       },
       "tables": {
         "recentInvoices": "Recent Invoices",
@@ -215,7 +219,15 @@
         "typeIndividual": "Individual",
         "typeCorporate": "Corporate",
         "invoicedTotal": "Invoiced Total",
-        "pendingTotal": "Pending Total"
+        "pendingTotal": "Pending Total",
+        "customerSalesTable": "Customer-Based Invoice Table",
+        "salesTotal": "Total Sales",
+        "invoiceCount": "Invoice Count",
+        "paidAmount": "Paid",
+        "pendingAmount": "Pending",
+        "collectionRate": "Collection Rate",
+        "salesShare": "Sales Share",
+        "grandTotal": "Total"
       }
     }
   },

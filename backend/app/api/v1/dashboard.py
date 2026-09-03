@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -28,9 +28,10 @@ def get_charts(
     currency: str = Query(min_length=3, max_length=3),
     from_: date | None = Query(None, alias="from"),
     to: date | None = Query(None),
+    granularity: Literal["daily", "monthly"] = Query("monthly"),
 ) -> DashboardChartsResponse:
     if from_ is not None and to is not None and from_ > to:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="'from' tarihi 'to' tarihinden sonra olamaz")
     normalized_currency = currency.upper()
     filter_currency = None if normalized_currency == "ALL" else normalized_currency
-    return dashboard_service.get_charts(db, current_user, filter_currency, from_, to)
+    return dashboard_service.get_charts(db, current_user, filter_currency, from_, to, granularity)

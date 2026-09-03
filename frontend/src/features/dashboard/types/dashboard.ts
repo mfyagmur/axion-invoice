@@ -42,6 +42,23 @@ export interface ActivityPoint {
   currency_amounts: Record<string, string>
 }
 
+export interface TrendPoint {
+  date: string
+  paid_amounts: Record<string, string>
+  total_amounts: Record<string, string>
+}
+
+export interface CustomerSalesRow {
+  id: string
+  name: string
+  invoice_count: number
+  sales_try: string
+  paid_try: string
+  pending_try: string
+  collection_rate_pct: number | null
+  sales_share_pct: number | null
+}
+
 export interface DashboardCharts {
   currency: string
   from_date: string | null
@@ -49,4 +66,6 @@ export interface DashboardCharts {
   status_distribution: StatusDistributionSlice[]
   activity: ActivityPoint[]
   customer_count: number
+  trend: TrendPoint[]
+  customer_sales: CustomerSalesRow[]
 }

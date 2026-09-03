@@ -200,7 +200,11 @@
         "selectRange": "Tarih aralığı seç",
         "allTime": "Tüm Zamanlar",
         "allCurrencies": "Tümü",
-        "empty": "Bu aralıkta veri yok"
+        "empty": "Bu aralıkta veri yok",
+        "trendTitle": "Performans Trendi",
+        "trendDaily": "Günlük",
+        "trendMonthly": "Aylık",
+        "trendPaidSuffix": " (Ödenen)"
       },
       "tables": {
         "recentInvoices": "Son Faturalar",
@@ -215,7 +219,15 @@
         "typeIndividual": "Bireysel",
         "typeCorporate": "Kurumsal",
         "invoicedTotal": "Fatura Tutarları",
-        "pendingTotal": "Bekleyen Tutarlar"
+        "pendingTotal": "Bekleyen Tutarlar",
+        "customerSalesTable": "Müşteri Bazlı Fatura Tablosu",
+        "salesTotal": "Toplam Satış",
+        "invoiceCount": "Fatura Sayısı",
+        "paidAmount": "Ödenen",
+        "pendingAmount": "Bekleyen",
+        "collectionRate": "Tahsilat Oranı",
+        "salesShare": "Satış Payı",
+        "grandTotal": "Toplam"
       }
     }
   },

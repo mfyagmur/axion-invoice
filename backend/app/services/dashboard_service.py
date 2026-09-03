@@ -2,6 +2,7 @@ import uuid
 from collections import defaultdict
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Literal
 
 from sqlalchemy.orm import Session
 
@@ -10,11 +11,13 @@ from app.models.user import User
 from app.schemas.dashboard import (
     ActivityPoint,
     CurrencyAmount,
+    CustomerSalesRow,
     DashboardChartsResponse,
     DashboardCustomerRow,
     DashboardOverviewResponse,
     KpiCard,
     StatusDistributionSlice,
+    TrendPoint,
 )
 from app.schemas.invoice import InvoiceSummaryResponse
 
@@ -175,8 +178,122 @@ def _activity_bucket_key(eff_date: date, from_date: date, to_date: date) -> date
     return eff_date.replace(day=1)
 
 
+def _trend_bucket_key(eff_date: date, granularity: Literal["daily", "monthly"]) -> date:
+    if granularity == "daily":
+        return eff_date
+    return eff_date.replace(day=1)
+
+
+def _last_six_months(anchor: date) -> list[date]:
+    months: list[date] = []
+    year, month = anchor.year, anchor.month
+    for _ in range(6):
+        months.append(date(year, month, 1))
+        month -= 1
+        if month == 0:
+            month = 12
+            year -= 1
+    months.reverse()
+    return months
+
+
+def _build_trend(
+    in_range: list[Invoice], granularity: Literal["daily", "monthly"], to_date: date | None
+) -> list[TrendPoint]:
+    totals: dict[date, dict[str, Decimal]] = defaultdict(lambda: defaultdict(lambda: Decimal("0")))
+    paid_totals: dict[date, dict[str, Decimal]] = defaultdict(lambda: defaultdict(lambda: Decimal("0")))
+    for inv in in_range:
+        bucket_date = _trend_bucket_key(_effective_date(inv), granularity)
+        totals[bucket_date][inv.currency] += inv.grand_total
+        if compute_display_status(inv) == "paid":
+            paid_totals[bucket_date][inv.currency] += inv.grand_total
+
+    if granularity == "monthly":
+        bucket_dates = _last_six_months(to_date or date.today())
+    else:
+        bucket_dates = sorted(totals.keys())
+
+    return [
+        TrendPoint(
+            date=bucket_date,
+            total_amounts={
+                cur: amt.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                for cur, amt in totals.get(bucket_date, {}).items()
+            },
+            paid_amounts={
+                cur: amt.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                for cur, amt in paid_totals.get(bucket_date, {}).items()
+            },
+        )
+        for bucket_date in bucket_dates
+    ]
+
+
+def _build_customer_sales(db: Session, user: User, in_range: list[Invoice]) -> list[CustomerSalesRow]:
+    invoices_by_customer: dict[uuid.UUID, list[Invoice]] = defaultdict(list)
+    for inv in in_range:
+        invoices_by_customer[inv.customer_id].append(inv)
+    if not invoices_by_customer:
+        return []
+
+    customers = (
+        db.query(InvoiceCustomer)
+        .filter(InvoiceCustomer.user_id == user.id, InvoiceCustomer.id.in_(invoices_by_customer.keys()))
+        .all()
+    )
+
+    rows: list[CustomerSalesRow] = []
+    for customer in customers:
+        customer_invoices = invoices_by_customer[customer.id]
+        sales_try = sum(
+            (amount for inv in customer_invoices if (amount := _local_try_amount(inv)) is not None),
+            Decimal("0"),
+        )
+        paid_try = sum(
+            (
+                amount
+                for inv in customer_invoices
+                if compute_display_status(inv) == "paid" and (amount := _local_try_amount(inv)) is not None
+            ),
+            Decimal("0"),
+        )
+        pending_try = sum(
+            (
+                amount
+                for inv in customer_invoices
+                if compute_display_status(inv) in ("sent", "overdue") and (amount := _local_try_amount(inv)) is not None
+            ),
+            Decimal("0"),
+        )
+        rows.append(
+            CustomerSalesRow(
+                id=customer.id,
+                name=customer.name,
+                invoice_count=len(customer_invoices),
+                sales_try=sales_try.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+                paid_try=paid_try.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+                pending_try=pending_try.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+                collection_rate_pct=float(paid_try / sales_try * 100) if sales_try > 0 else None,
+                sales_share_pct=None,
+            )
+        )
+
+    grand_total = sum((row.sales_try for row in rows), Decimal("0"))
+    if grand_total > 0:
+        for row in rows:
+            row.sales_share_pct = float(row.sales_try / grand_total * 100)
+
+    rows.sort(key=lambda row: row.sales_try, reverse=True)
+    return rows
+
+
 def get_charts(
-    db: Session, user: User, currency: str | None, from_date: date | None, to_date: date | None
+    db: Session,
+    user: User,
+    currency: str | None,
+    from_date: date | None,
+    to_date: date | None,
+    granularity: Literal["daily", "monthly"] = "monthly",
 ) -> DashboardChartsResponse:
     query = db.query(Invoice).filter(Invoice.user_id == user.id)
     if currency is not None:
@@ -215,6 +332,8 @@ def get_charts(
     ]
 
     customer_count = len({inv.customer_id for inv in in_range})
+    trend = _build_trend(in_range, granularity, to_date)
+    customer_sales = _build_customer_sales(db, user, in_range)
 
     return DashboardChartsResponse(
         currency=currency or "ALL",
@@ -223,4 +342,6 @@ def get_charts(
         status_distribution=status_distribution,
         activity=activity,
         customer_count=customer_count,
+        trend=trend,
+        customer_sales=customer_sales,
     )
