@@ -168,7 +168,37 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "comingSoon": "Coming Soon"
+      "comingSoon": "Coming Soon",
+      "financial": {
+        "title": "Financial Dashboard",
+        "revenueTrends": "Revenue Trends",
+        "graphView": "Graph",
+        "tableView": "Table",
+        "month": "Month",
+        "totalInvoiced": "Total Invoiced (MTD)",
+        "paymentSuccessRate": "Payment Gateway Success Rate",
+        "success": "Success",
+        "pending": "Pending",
+        "failed": "Failed",
+        "paidInvoices": "Paid Invoices (MTD)",
+        "overdueInvoices": "Overdue Invoices",
+        "paidInvoicesCaption": "Paid Invoices",
+        "overdueInvoicesCaption": "Overdue Invoices"
+      },
+      "system": {
+        "title": "System Health",
+        "apiLatency": "API Latency & Error Rates",
+        "avgLatency": "Avg Latency",
+        "activeInstances": "Active Server Instances",
+        "avgCpuLoad": "Average CPU Load",
+        "avgMemoryUsage": "Average Memory Usage",
+        "databaseHealthy": "Database Healthy",
+        "slowQueryAlerts": "Slow Queries Alerts",
+        "slowQueryKeys": {
+          "slow_requests": "Slow Requests",
+          "server_errors": "Server Errors"
+        }
+      }
     },
     "panel": {
       "title": "Admin Panel",

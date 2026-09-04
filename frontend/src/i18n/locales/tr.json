@@ -168,7 +168,37 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "comingSoon": "Yakında"
+      "comingSoon": "Yakında",
+      "financial": {
+        "title": "Finansal Genel Bakış",
+        "revenueTrends": "Gelir Trendi",
+        "graphView": "Grafik",
+        "tableView": "Tablo",
+        "month": "Ay",
+        "totalInvoiced": "Toplam Fatura (Bu Ay)",
+        "paymentSuccessRate": "Ödeme Başarı Oranı",
+        "success": "Ödendi",
+        "pending": "Bekliyor",
+        "failed": "Başarısız",
+        "paidInvoices": "Ödenen Faturalar (Bu Ay)",
+        "overdueInvoices": "Gecikmiş Faturalar",
+        "paidInvoicesCaption": "Ödenen Faturalar",
+        "overdueInvoicesCaption": "Gecikmiş Faturalar"
+      },
+      "system": {
+        "title": "Sistem Sağlığı",
+        "apiLatency": "API Gecikme ve Hata Oranları",
+        "avgLatency": "Ort. Gecikme",
+        "activeInstances": "Aktif Sunucu Örnekleri",
+        "avgCpuLoad": "Ort. CPU Yükü",
+        "avgMemoryUsage": "Ort. Bellek Kullanımı",
+        "databaseHealthy": "Veritabanı Durumu",
+        "slowQueryAlerts": "Yavaş Sorgu Uyarıları",
+        "slowQueryKeys": {
+          "slow_requests": "Yavaş İstekler",
+          "server_errors": "Sunucu Hataları"
+        }
+      }
     },
     "panel": {
       "title": "Admin Panel",

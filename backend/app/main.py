@@ -1,9 +1,11 @@
+import time
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.api.v1.admin_dashboard import router as admin_dashboard_router
 from app.api.v1.admin_templates import router as admin_templates_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.customers import router as customers_router
@@ -20,6 +22,7 @@ from app.api.v1.templates import router as templates_router
 from app.api.v1.two_factor import router as two_factor_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.core.config import settings
+from app.core.request_metrics import record_request
 
 app = FastAPI(title="Axion Invoice API")
 
@@ -31,6 +34,15 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["Retry-After"],
 )
+
+
+@app.middleware("http")
+async def request_timing_middleware(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    record_request(duration_ms, response.status_code, request.url.path)
+    return response
 
 Path(settings.logo_storage_dir).mkdir(parents=True, exist_ok=True)
 app.mount("/static/logos", StaticFiles(directory=settings.logo_storage_dir), name="logos")
@@ -50,6 +62,7 @@ app.include_router(definitions_router, prefix="/api/v1")
 app.include_router(templates_router, prefix="/api/v1")
 app.include_router(template_assets_router, prefix="/api/v1")
 app.include_router(admin_templates_router, prefix="/api/v1")
+app.include_router(admin_dashboard_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
 app.include_router(fx_router, prefix="/api/v1")
 app.include_router(invoices_router, prefix="/api/v1")
