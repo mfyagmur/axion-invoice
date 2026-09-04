@@ -16,18 +16,11 @@ import type { TemplateFormat } from '@/types/template'
 const TARGET_FORMATS: TemplateFormat[] = ['generic', 'e_fatura', 'international', 'e_irsaliye_arsiv']
 const MIN_PLAN_OPTIONS = ['', 'free', 'pro', 'business'] as const
 
-const FORMAT_LABELS: Record<TemplateFormat, string> = {
-  generic: 'Genel',
-  e_fatura: 'Türk e-Fatura',
-  international: 'Uluslararası',
-  e_irsaliye_arsiv: 'e-İrsaliye / e-Arşiv',
-}
-
-const MIN_PLAN_LABELS: Record<(typeof MIN_PLAN_OPTIONS)[number], string> = {
-  '': 'Tüm planlar',
-  'free': 'Free ve üzeri',
-  'pro': 'Pro ve üzeri',
-  'business': 'Sadece Business',
+const MIN_PLAN_KEYS: Record<(typeof MIN_PLAN_OPTIONS)[number], string> = {
+  '': 'all',
+  'free': 'free',
+  'pro': 'pro',
+  'business': 'business',
 }
 
 export function AdminTemplatesPage() {
@@ -59,7 +52,7 @@ export function AdminTemplatesPage() {
       },
       {
         onSuccess: () => {
-          pushToast('Şablon oluşturuldu', 'success')
+          pushToast(t('admin.templatesPage.createSuccess'), 'success')
           setName('')
           setXsltContent('')
           setMinPlanKey('')
@@ -67,8 +60,8 @@ export function AdminTemplatesPage() {
         },
         onError: (error: unknown) => {
           const message = axios.isAxiosError(error)
-            ? ((error.response?.data as { detail?: string } | undefined)?.detail ?? 'Şablon oluşturulamadı')
-            : 'Şablon oluşturulamadı'
+            ? ((error.response?.data as { detail?: string } | undefined)?.detail ?? t('admin.templatesPage.createError'))
+            : t('admin.templatesPage.createError')
           pushToast(message)
         },
       },
@@ -77,15 +70,15 @@ export function AdminTemplatesPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Admin — XSLT Şablonları</h1>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('admin.templatesPage.pageTitle')}</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md border border-slate-200 p-4 dark:border-slate-700">
-        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Yeni Sistem Şablonu</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('admin.templatesPage.newTemplateTitle')}</h2>
 
-        <Input label="Şablon Adı" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input label={t('admin.templatesPage.templateNameLabel')} value={name} onChange={(e) => setName(e.target.value)} required />
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Hedef Format</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('admin.templatesPage.targetFormatLabel')}</label>
           <select
             value={targetFormat}
             onChange={(e) => setTargetFormat(e.target.value as TemplateFormat)}
@@ -93,14 +86,14 @@ export function AdminTemplatesPage() {
           >
             {TARGET_FORMATS.map((format) => (
               <option key={format} value={format}>
-                {FORMAT_LABELS[format]}
+                {t(`admin.templatesPage.formats.${format}`)}
               </option>
             ))}
           </select>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Minimum Plan</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('admin.templatesPage.minPlanLabel')}</label>
           <select
             value={minPlanKey}
             onChange={(e) => setMinPlanKey(e.target.value as (typeof MIN_PLAN_OPTIONS)[number])}
@@ -108,14 +101,14 @@ export function AdminTemplatesPage() {
           >
             {MIN_PLAN_OPTIONS.map((plan) => (
               <option key={plan} value={plan}>
-                {MIN_PLAN_LABELS[plan]}
+                {t(`admin.templatesPage.minPlan.${MIN_PLAN_KEYS[plan]}`)}
               </option>
             ))}
           </select>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">XSLT İçeriği</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('admin.templatesPage.xsltContentLabel')}</label>
           <textarea
             value={xsltContent}
             onChange={(e) => setXsltContent(e.target.value)}
@@ -132,7 +125,7 @@ export function AdminTemplatesPage() {
       </form>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mevcut Sistem Şablonları</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('admin.templatesPage.existingTemplatesTitle')}</h2>
 
         {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
         {isError && <ErrorState onRetry={() => refetch()} />}
@@ -151,19 +144,19 @@ export function AdminTemplatesPage() {
                   </span>
                   {template.target_format !== 'generic' && (
                     <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                      {FORMAT_LABELS[template.target_format]}
+                      {t(`admin.templatesPage.formats.${template.target_format}`)}
                     </span>
                   )}
                   {template.min_plan_key && (
                     <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                      min: {template.min_plan_key}
+                      {t('admin.templatesPage.minPrefix')}: {template.min_plan_key}
                     </span>
                   )}
                 </div>
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    if (window.confirm('Bu şablonu silmek istediğinize emin misiniz?')) {
+                    if (window.confirm(t('admin.templatesPage.deleteConfirm'))) {
                       deleteTemplate.mutate(template.id)
                     }
                   }}

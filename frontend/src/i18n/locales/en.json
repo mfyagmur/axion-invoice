@@ -159,6 +159,47 @@
     "logout": "Log Out",
     "support": "Support"
   },
+  "admin": {
+    "brandSuffix": "Admin",
+    "nav": {
+      "dashboard": "Dashboard",
+      "panel": "Admin Panel",
+      "templates": "Template Management"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "comingSoon": "Coming Soon"
+    },
+    "panel": {
+      "title": "Admin Panel",
+      "comingSoon": "Coming Soon"
+    },
+    "templatesPage": {
+      "pageTitle": "Admin — XSLT Templates",
+      "newTemplateTitle": "New System Template",
+      "templateNameLabel": "Template Name",
+      "targetFormatLabel": "Target Format",
+      "minPlanLabel": "Minimum Plan",
+      "xsltContentLabel": "XSLT Content",
+      "existingTemplatesTitle": "Existing System Templates",
+      "deleteConfirm": "Are you sure you want to delete this template?",
+      "createSuccess": "Template created",
+      "createError": "Failed to create template",
+      "minPrefix": "min",
+      "formats": {
+        "generic": "Generic",
+        "e_fatura": "Turkish e-Invoice",
+        "international": "International",
+        "e_irsaliye_arsiv": "e-Waybill / e-Archive"
+      },
+      "minPlan": {
+        "all": "All plans",
+        "free": "Free and up",
+        "pro": "Pro and up",
+        "business": "Business only"
+      }
+    }
+  },
   "dashboard": {
     "home": {
       "welcome": "Welcome, {{name}}",

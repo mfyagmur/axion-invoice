@@ -159,6 +159,47 @@
     "logout": "Çıkış Yap",
     "support": "Destek"
   },
+  "admin": {
+    "brandSuffix": "Admin",
+    "nav": {
+      "dashboard": "Dashboard",
+      "panel": "Admin Panel",
+      "templates": "Şablon Yönetimi"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "comingSoon": "Yakında"
+    },
+    "panel": {
+      "title": "Admin Panel",
+      "comingSoon": "Yakında"
+    },
+    "templatesPage": {
+      "pageTitle": "Admin — XSLT Şablonları",
+      "newTemplateTitle": "Yeni Sistem Şablonu",
+      "templateNameLabel": "Şablon Adı",
+      "targetFormatLabel": "Hedef Format",
+      "minPlanLabel": "Minimum Plan",
+      "xsltContentLabel": "XSLT İçeriği",
+      "existingTemplatesTitle": "Mevcut Sistem Şablonları",
+      "deleteConfirm": "Bu şablonu silmek istediğinize emin misiniz?",
+      "createSuccess": "Şablon oluşturuldu",
+      "createError": "Şablon oluşturulamadı",
+      "minPrefix": "min",
+      "formats": {
+        "generic": "Genel",
+        "e_fatura": "Türk e-Fatura",
+        "international": "Uluslararası",
+        "e_irsaliye_arsiv": "e-İrsaliye / e-Arşiv"
+      },
+      "minPlan": {
+        "all": "Tüm planlar",
+        "free": "Free ve üzeri",
+        "pro": "Pro ve üzeri",
+        "business": "Sadece Business"
+      }
+    }
+  },
   "dashboard": {
     "home": {
       "welcome": "Hoş geldiniz, {{name}}",
