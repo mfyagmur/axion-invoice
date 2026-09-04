@@ -15,7 +15,7 @@ export function AdminDashboardHomePage() {
   const systemHealth = useAdminSystemHealth()
 
   return (
-    <div className="grid grid-cols-1 gap-8 xl:grid-cols-[3fr_2fr]">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr]">
       <section className="flex flex-col gap-4">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('admin.dashboard.financial.title')}</h1>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -50,15 +50,21 @@ export function AdminDashboardHomePage() {
 
       <section className="flex flex-col gap-4">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('admin.dashboard.system.title')}</h1>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid flex-1 grid-cols-1 items-stretch gap-4 lg:grid-cols-[2fr_1fr]">
           <ApiLatencyChart
             series={systemHealth.data?.api_latency_series}
             isLoading={systemHealth.isLoading}
             isError={systemHealth.isError}
             onRetry={() => systemHealth.refetch()}
           />
-          <SystemMetricsColumn data={systemHealth.data} isLoading={systemHealth.isLoading} />
-          <SlowQueriesCard alerts={systemHealth.data?.slow_query_alerts} isLoading={systemHealth.isLoading} />
+          <div className="flex h-full flex-col gap-4">
+            <SystemMetricsColumn data={systemHealth.data} isLoading={systemHealth.isLoading} />
+            <SlowQueriesCard
+              alerts={systemHealth.data?.slow_query_alerts}
+              isLoading={systemHealth.isLoading}
+              className="flex-1"
+            />
+          </div>
         </div>
       </section>
     </div>

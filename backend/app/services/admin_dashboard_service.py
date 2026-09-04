@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
+from zoneinfo import ZoneInfo
 
 import psutil
 from sqlalchemy import text
@@ -21,6 +22,7 @@ from app.schemas.admin_dashboard import (
 from app.services.dashboard_service import _build_trend, _effective_date, compute_display_status
 
 SPARKLINE_DAYS = 14
+LOCAL_TZ = ZoneInfo("Europe/Istanbul")
 
 
 def _date_range(start: date, end: date) -> list[date]:
@@ -131,13 +133,12 @@ def get_admin_system_health(db: Session) -> AdminSystemHealthResponse:
 
     grouped: dict[datetime, list[RequestRecord]] = defaultdict(list)
     for record in records:
-        minute = record.timestamp.replace(second=0, microsecond=0)
+        local_ts = record.timestamp.astimezone(LOCAL_TZ)
+        minute = local_ts.replace(second=0, microsecond=0)
         grouped[minute].append(record)
 
-    minutes = sorted(grouped.keys())[-10:]
-    if not minutes:
-        minutes = [datetime.now(timezone.utc).replace(second=0, microsecond=0)]
-        grouped[minutes[0]] = []
+    now_minute = datetime.now(LOCAL_TZ).replace(second=0, microsecond=0)
+    minutes = [now_minute - timedelta(minutes=i) for i in range(9, -1, -1)]
 
     series = []
     for minute in minutes:

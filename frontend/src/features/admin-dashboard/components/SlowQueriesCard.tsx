@@ -5,6 +5,7 @@ import type { SlowQueryAlert } from '@/features/admin-dashboard/types/adminDashb
 interface SlowQueriesCardProps {
   alerts: SlowQueryAlert[] | undefined
   isLoading: boolean
+  className?: string
 }
 
 const DOT_COLOR: Record<SlowQueryAlert['severity'], string> = {
@@ -13,12 +14,12 @@ const DOT_COLOR: Record<SlowQueryAlert['severity'], string> = {
   error: 'bg-red-500',
 }
 
-export function SlowQueriesCard({ alerts, isLoading }: SlowQueriesCardProps) {
+export function SlowQueriesCard({ alerts, isLoading, className = '' }: SlowQueriesCardProps) {
   const { t } = useTranslation()
   const rows = alerts ?? []
 
   return (
-    <Card title={t('admin.dashboard.system.slowQueryAlerts')} className="flex flex-col gap-3">
+    <Card title={t('admin.dashboard.system.slowQueryAlerts')} className={`flex flex-col gap-3 ${className}`}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading &&
         rows.map((alert) => (
