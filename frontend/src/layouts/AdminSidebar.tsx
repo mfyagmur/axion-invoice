@@ -5,6 +5,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -170,6 +171,14 @@ export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
               </div>
 
               <div className="border-t border-slate-200 dark:border-slate-700">
+                <NavLink
+                  to="/dashboard/settings"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  <Settings size={16} />
+                  {t('nav.settings')}
+                </NavLink>
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
