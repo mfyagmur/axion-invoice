@@ -5,7 +5,6 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -13,16 +12,17 @@ import { NavLink } from 'react-router-dom'
 import { twMerge } from 'tailwind-merge'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { adminNavItems } from '@/config/adminNavigation'
 import { dashboardNavItems } from '@/config/navigation'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { useAuthStore } from '@/store/authStore'
 import { useSidebarStore } from '@/store/sidebarStore'
 
-interface SidebarProps {
+interface AdminSidebarProps {
   onNavigate?: () => void
 }
 
-export function Sidebar({ onNavigate }: SidebarProps) {
+export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const logout = useLogout()
@@ -69,16 +69,39 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
       <div className="mb-4 flex items-center">
         {!collapsed && (
-          <span className="px-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{t('common.appName')}</span>
+          <span className="px-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {t('common.appName')} <span className="text-slate-400 dark:text-slate-500">Admin</span>
+          </span>
         )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
-        {dashboardNavItems.map(({ labelKey, path, icon: Icon }) => (
+        {adminNavItems.map(({ label, path, icon: Icon, end }) => (
           <NavLink
             key={path}
             to={path}
-            end={path === '/dashboard'}
+            end={end}
+            onClick={onNavigate}
+            title={collapsed ? label : undefined}
+            className={({ isActive }) =>
+              twMerge(
+                'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                collapsed && 'justify-center px-0',
+                isActive && 'bg-slate-900 text-white hover:bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-100',
+              )
+            }
+          >
+            <Icon size={18} />
+            {!collapsed && label}
+          </NavLink>
+        ))}
+
+        <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
+
+        {dashboardNavItems.slice(1).map(({ labelKey, path, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
             onClick={onNavigate}
             title={collapsed ? t(labelKey) : undefined}
             className={({ isActive }) =>
@@ -147,14 +170,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               </div>
 
               <div className="border-t border-slate-200 dark:border-slate-700">
-                <NavLink
-                  to="/dashboard/settings"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <Settings size={16} />
-                  {t('nav.settings')}
-                </NavLink>
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"

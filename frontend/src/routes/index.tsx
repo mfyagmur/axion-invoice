@@ -1,9 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute'
+import { RequireAdmin } from '@/components/RequireAdmin'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
+import { AdminDashboardHomePage } from '@/pages/admin/AdminDashboardHomePage'
+import { AdminPanelPage } from '@/pages/admin/AdminPanelPage'
 import { AdminTemplatesPage } from '@/pages/admin/AdminTemplatesPage'
 import { AuthShell } from '@/features/auth/components/AuthShell'
 import { DemoLoginForm } from '@/features/auth/components/DemoLoginForm'
@@ -54,6 +57,13 @@ export const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          {
+            element: <RequireAdmin />,
+            children: [
+              { path: '/admin', element: <AdminDashboardHomePage /> },
+              { path: '/admin/panel', element: <AdminPanelPage /> },
+            ],
+          },
           { path: '/dashboard', element: <DashboardHomePage /> },
           {
             path: '/dashboard/nasil-calisir',

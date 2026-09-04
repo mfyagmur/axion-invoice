@@ -10,8 +10,8 @@ export function useSignup() {
   return useMutation({
     mutationFn: (payload: SignupPayload) => authApi.signup(payload),
     onSuccess: async ({ access_token }) => {
-      await applyAuthSuccess(access_token)
-      navigate('/dashboard')
+      const user = await applyAuthSuccess(access_token)
+      navigate(user.is_admin ? '/admin' : '/dashboard')
     },
   })
 }

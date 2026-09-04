@@ -1,8 +1,9 @@
 import { Menu, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useIdleLogout } from '@/features/auth/hooks/useIdleLogout'
+import { AdminSidebar } from '@/layouts/AdminSidebar'
 import { Sidebar } from '@/layouts/Sidebar'
 import { useAuthStore } from '@/store/authStore'
 
@@ -37,17 +38,23 @@ export function DashboardLayout() {
 
   useIdleLogout()
 
+  if (user?.is_admin && location.pathname === '/dashboard') {
+    return <Navigate to="/admin" replace />
+  }
+
+  const SidebarComponent = user?.is_admin ? AdminSidebar : Sidebar
+
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="hidden lg:block">
-        <Sidebar />
+        <SidebarComponent />
       </div>
 
       {mobileNavOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="absolute inset-0 bg-black/30" onClick={() => setMobileNavOpen(false)} />
           <div className="relative z-50">
-            <Sidebar onNavigate={() => setMobileNavOpen(false)} />
+            <SidebarComponent onNavigate={() => setMobileNavOpen(false)} />
           </div>
         </div>
       )}

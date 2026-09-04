@@ -11,8 +11,8 @@ export function useLogin() {
     mutationFn: (payload: LoginPayload) => authApi.login(payload),
     onSuccess: async (data) => {
       if (data.requires_2fa || !data.access_token) return
-      await applyAuthSuccess(data.access_token)
-      navigate('/dashboard')
+      const user = await applyAuthSuccess(data.access_token)
+      navigate(user.is_admin ? '/admin' : '/dashboard')
     },
   })
 }
