@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -61,3 +61,19 @@ class AdminSystemHealthResponse(BaseModel):
     avg_memory_usage_pct: float
     database_healthy: bool
     slow_query_alerts: list[SlowQueryAlert]
+
+
+class RequestIssueDetail(BaseModel):
+    timestamp: datetime
+    method: str
+    path: str
+    status_code: int
+    duration_ms: float
+    is_slow: bool
+    is_error: bool
+    error_detail: str | None
+
+
+class SlowQueryDetailResponse(BaseModel):
+    slow_requests: list[RequestIssueDetail]
+    server_errors: list[RequestIssueDetail]

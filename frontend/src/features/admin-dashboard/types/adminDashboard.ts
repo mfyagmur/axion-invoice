@@ -58,3 +58,19 @@ export interface AdminSystemHealth {
   database_healthy: boolean
   slow_query_alerts: SlowQueryAlert[]
 }
+
+export interface RequestIssueDetail {
+  timestamp: string
+  method: string
+  path: string
+  status_code: number
+  duration_ms: number
+  is_slow: boolean
+  is_error: boolean
+  error_detail: string | null
+}
+
+export interface SlowQueryDetailResponse {
+  slow_requests: RequestIssueDetail[]
+  server_errors: RequestIssueDetail[]
+}

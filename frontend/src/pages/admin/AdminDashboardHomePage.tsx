@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAdminFinancialOverview } from '@/features/admin-dashboard/hooks/useAdminFinancialOverview'
 import { useAdminSystemHealth } from '@/features/admin-dashboard/hooks/useAdminSystemHealth'
@@ -8,11 +9,14 @@ import { SparklineCountCard } from '@/features/admin-dashboard/components/Sparkl
 import { ApiLatencyChart } from '@/features/admin-dashboard/components/ApiLatencyChart'
 import { SystemMetricsColumn } from '@/features/admin-dashboard/components/SystemMetricsColumn'
 import { SlowQueriesCard } from '@/features/admin-dashboard/components/SlowQueriesCard'
+import { SlowQueryDetailModal } from '@/features/admin-dashboard/components/SlowQueryDetailModal'
+import type { SlowQueryAlertKey } from '@/features/admin-dashboard/types/adminDashboard'
 
 export function AdminDashboardHomePage() {
   const { t } = useTranslation()
   const financial = useAdminFinancialOverview()
   const systemHealth = useAdminSystemHealth()
+  const [slowQueryModalTab, setSlowQueryModalTab] = useState<SlowQueryAlertKey | null>(null)
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr]">
@@ -63,10 +67,17 @@ export function AdminDashboardHomePage() {
               alerts={systemHealth.data?.slow_query_alerts}
               isLoading={systemHealth.isLoading}
               className="flex-1"
+              onSelectAlert={setSlowQueryModalTab}
             />
           </div>
         </div>
       </section>
+
+      <SlowQueryDetailModal
+        isOpen={slowQueryModalTab !== null}
+        onClose={() => setSlowQueryModalTab(null)}
+        initialTab={slowQueryModalTab ?? 'slow_requests'}
+      />
     </div>
   )
 }

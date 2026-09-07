@@ -197,6 +197,17 @@
         "slowQueryKeys": {
           "slow_requests": "Yavaş İstekler",
           "server_errors": "Sunucu Hataları"
+        },
+        "slowQueryModal": {
+          "title": "Yavaş Sorgu Uyarıları",
+          "tabRequests": "İstekler",
+          "tabErrors": "Hatalar",
+          "empty": "Kayıt bulunamadı",
+          "errorCodeLabel": "Hata Kodu",
+          "slowReasonLabel": "Neden Yavaş",
+          "slowReasonText": "Bu istek {{duration}}ms sürdü, eşik değeri olan {{threshold}}ms üzerinde.",
+          "genericErrorText": "{{method}} {{path}} isteği {{status}} durum koduyla sonuçlandı.",
+          "selectRowHint": "Detay için bir satıra tıklayın"
         }
       }
     },

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.request_metrics import SLOW_REQUEST_THRESHOLD_MS, RequestRecord, get_records
 from app.models.invoice import Invoice
+from app.models.user import User
 from app.schemas.admin_dashboard import (
     AdminFinancialOverviewResponse,
     AdminSystemHealthResponse,
@@ -16,13 +17,16 @@ from app.schemas.admin_dashboard import (
     CurrencyMtdAmount,
     LatencyPoint,
     PaymentSuccessRate,
+    RequestIssueDetail,
     SlowQueryAlert,
+    SlowQueryDetailResponse,
     SparklinePoint,
 )
 from app.services.dashboard_service import _build_trend, _effective_date, compute_display_status
 
 SPARKLINE_DAYS = 14
 LOCAL_TZ = ZoneInfo("Europe/Istanbul")
+MAX_ISSUE_RECORDS = 50
 
 
 def _date_range(start: date, end: date) -> list[date]:
@@ -37,7 +41,13 @@ def _month_bounds(anchor: date) -> tuple[date, date, date, date]:
 
 
 def get_admin_financial_overview(db: Session) -> AdminFinancialOverviewResponse:
-    invoices = db.query(Invoice).order_by(Invoice.created_at.desc()).all()
+    invoices = (
+        db.query(Invoice)
+        .join(User, Invoice.user_id == User.id)
+        .filter(User.is_demo.is_(False))
+        .order_by(Invoice.created_at.desc())
+        .all()
+    )
     non_cancelled = [inv for inv in invoices if not inv.archived and compute_display_status(inv) != "cancelled"]
 
     today = date.today()
@@ -176,3 +186,32 @@ def get_admin_system_health(db: Session) -> AdminSystemHealthResponse:
         database_healthy=database_healthy,
         slow_query_alerts=slow_query_alerts,
     )
+
+
+def get_admin_slow_query_details() -> SlowQueryDetailResponse:
+    records = get_records()
+
+    def _to_detail(record: RequestRecord) -> RequestIssueDetail:
+        return RequestIssueDetail(
+            timestamp=record.timestamp,
+            method=record.method,
+            path=record.path,
+            status_code=record.status_code,
+            duration_ms=round(record.duration_ms, 1),
+            is_slow=record.duration_ms > SLOW_REQUEST_THRESHOLD_MS,
+            is_error=record.status_code >= 500,
+            error_detail=record.error_detail,
+        )
+
+    slow_requests = sorted(
+        (_to_detail(r) for r in records if r.duration_ms > SLOW_REQUEST_THRESHOLD_MS),
+        key=lambda item: item.timestamp,
+        reverse=True,
+    )[:MAX_ISSUE_RECORDS]
+    server_errors = sorted(
+        (_to_detail(r) for r in records if r.status_code >= 500),
+        key=lambda item: item.timestamp,
+        reverse=True,
+    )[:MAX_ISSUE_RECORDS]
+
+    return SlowQueryDetailResponse(slow_requests=slow_requests, server_errors=server_errors)

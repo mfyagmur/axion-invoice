@@ -1553,3 +1553,112 @@ Frontend:
 - `npx tsc -b` → değiştirilen dosyada yeni hata yok; önceden var olan, ilgisiz 4 hata kaldı.
 - `npx eslint src/lib/apiClient.ts src/features/auth/components/LoginForm.tsx` → temiz.
 - **Tarayıcıda henüz test edilmedi** — bkz. `docs/todo.md`.
+
+---
+
+## 2026-09-07 — Admin Dashboard: Finansal Genel Bakışta Demo Hesap Verisi Hariç Tutuldu
+
+**Durum:** Değiştirme.
+
+**Özet:** `AdminDashboardHomePage`'deki "Finansal Genel Bakış" kartları (Revenue Trend, Total
+Invoiced MTD, Payment Success Rate, Paid Invoices MTD, Overdue Invoices) backend'de
+`get_admin_financial_overview` fonksiyonundaki tek bir kaynak sorgudan (`db.query(Invoice)...`)
+besleniyordu ve bu sorgu `User` ile hiç join edilmediği, `is_demo` filtresi olmadığı için sabit
+demo hesabın (`demo@axioninvoice.app`) oluşturduğu faturalar da admin panelin rakamlarına
+(gelir, MTD toplamları, ödeme başarı oranı, gecikmiş fatura sayısı, sparkline'lar) karışıyordu.
+Admin panelin amacı sadece gerçek kullanıcı verisini göstermek olduğundan kaynak sorguya
+`User` join'i + `User.is_demo.is_(False)` filtresi eklendi; fonksiyonun geri kalanı zaten bu
+listeden türetildiği için başka bir değişiklik gerekmedi.
+
+`get_admin_system_health` (API latency, DB health, CPU/RAM) incelendi ve bilinçli olarak
+dokunulmadı — bu fonksiyon kullanıcı/tenant bazlı veri değil, in-memory HTTP request log'u ve
+process/host seviyesi metrikler kullanıyor, "demo hesap" kavramı burada uygulanamaz.
+
+**Yapılan dosyalar:**
+- `backend/app/services/admin_dashboard_service.py` — Değiştirme: `from app.models.user import
+  User` import'u eklendi; `get_admin_financial_overview` içindeki `invoices = db.query(Invoice)
+  .order_by(...).all()` satırı `.join(User, Invoice.user_id == User.id).filter(User.is_demo.is_
+  (False))` eklenerek güncellendi.
+
+**Neden bu convention:** Codebase'de `backend/app/api/v1/auth.py:330`'daki `db.query(User)
+.filter(User.is_demo.is_(True))` (demo-login için demo kullanıcıyı bulma) dışında `is_demo`
+üzerinden filtreleme örneği yoktu; bunun tersi (`is_demo.is_(False)`) burada ilk kez bir
+aggregate/liste sorgusundan demo hesabı hariç tutmak için kullanıldı.
+
+**Doğrulama:** Kod incelemesiyle doğrulandı — filtre kaynak sorguya uygulanınca MTD toplamları,
+trend, payment success rate ve sparkline'ların tümü otomatik olarak demo hariç hesaplanıyor.
+Gerçek ortamda demo hesaplı bir test faturasıyla `GET /admin/dashboard/financial` çağrılıp
+sonucun demo faturasını içermediğinin manuel teyidi öneriliyor (bu oturumda çalışan backend/DB
+erişimi yoktu).
+
+---
+
+## 2026-09-07 — Admin Dashboard: Yavaş Sorgu Uyarıları Kartına Tıklanabilir Detay Modalı
+
+**Durum:** Ekleme + Değiştirme.
+
+**Özet:** `SlowQueriesCard` ("Yavaş Sorgu Uyarıları") mevcut halinde gerçek veri gösteriyordu
+(mock değildi) ama sadece iki toplam sayaç (`slow_requests`, `server_errors`) sunuyordu; satır
+bazlı detay (hangi istek, ne zaman, hangi path, hangi durum kodu, neden yavaş/hatalı) yoktu ve
+satırlara tıklama desteklenmiyordu. Backend'deki in-memory `RequestRecord` de HTTP method ve
+hata mesajı taşımıyordu; ayrıca middleware `call_next` sırasında oluşan unhandled exception'ları
+hiç loglamıyordu (response dönmediği için `record_request` çağrısına hiç ulaşmıyordu).
+
+Bu değişiklikle:
+1. `RequestRecord`'a `method` ve `error_detail` alanları eklendi; `request_timing_middleware`
+   artık `call_next`'i `try/except` ile sarıyor, unhandled exception'ları `status_code=500` ve
+   exception mesajıyla kaydedip aynı exception'ı yeniden fırlatıyor (davranış değişmedi, sadece
+   ek loglama eklendi).
+2. Yeni `GET /admin/dashboard/slow-query-details` endpoint'i eklendi — son 500 istek arasından
+   `duration_ms > 500` olanları (`slow_requests`) ve `status_code >= 500` olanları
+   (`server_errors`) ayrı listeler halinde, en yeni 50'şer kayıt, `timestamp` desc sırayla
+   döndürüyor (`RequestIssueDetail`: timestamp, method, path, status_code, duration_ms, is_slow,
+   is_error, error_detail).
+3. Frontend'de `SlowQueriesCard` satırları artık tıklanabilir (`onSelectAlert` prop'u ile
+   `AdminDashboardHomePage`'e state taşınıyor). Tıklanan satıra göre yeni
+   `SlowQueryDetailModal` bileşeni açılıyor (mevcut `Modal` + `Tabs` bileşenleri reuse edildi,
+   `size="xl"`), "İstekler" / "Hatalar" adında iki tab sunuyor. Modal sadece açıkken
+   (`enabled: isOpen`) yeni `useAdminSlowQueryDetails` hook'u ile veriyi çekiyor (gereksiz sürekli
+   polling yok). Listede bir satıra tıklanınca: `status_code >= 400` ise hata kodu (+ varsa
+   `error_detail`) gösteriliyor; değilse "neden yavaş" açıklaması (`duration_ms` vs 500ms eşiği)
+   gösteriliyor; hata sekmesinde `error_detail` yoksa genel "{method} {path} isteği {status}
+   durum koduyla sonuçlandı" açıklaması gösteriliyor.
+
+**Yapılan dosyalar:**
+- `backend/app/core/request_metrics.py` — Değiştirme: `RequestRecord`'a `method: str` ve
+  `error_detail: str | None = None` eklendi; `record_request()` imzasına `method` parametresi
+  ve opsiyonel `error_detail` eklendi.
+- `backend/app/main.py` — Değiştirme: `request_timing_middleware` içinde `call_next` çağrısı
+  `try/except Exception` ile sarıldı (unhandled exception'lar `status_code=500` + mesajla
+  kaydedilip yeniden fırlatılıyor); tüm `record_request` çağrılarına `request.method` eklendi.
+- `backend/app/schemas/admin_dashboard.py` — Ekleme: `RequestIssueDetail` ve
+  `SlowQueryDetailResponse` şemaları eklendi.
+- `backend/app/services/admin_dashboard_service.py` — Ekleme: `MAX_ISSUE_RECORDS = 50` sabiti
+  ve `get_admin_slow_query_details()` fonksiyonu eklendi (mevcut `get_admin_financial_overview`
+  / `get_admin_system_health` fonksiyonlarına dokunulmadı).
+- `backend/app/api/v1/admin_dashboard.py` — Ekleme: `GET /admin/dashboard/slow-query-details`
+  endpoint'i eklendi (`require_admin` korumalı, mevcut iki endpoint ile aynı pattern).
+- `frontend/src/features/admin-dashboard/types/adminDashboard.ts` — Ekleme:
+  `RequestIssueDetail` ve `SlowQueryDetailResponse` tipleri eklendi.
+- `frontend/src/features/admin-dashboard/api/adminDashboardApi.ts` — Ekleme:
+  `getSlowQueryDetails()` fonksiyonu eklendi.
+- `frontend/src/features/admin-dashboard/hooks/useAdminSlowQueryDetails.ts` — Ekleme (yeni
+  dosya): `enabled` parametreli React Query hook'u.
+- `frontend/src/features/admin-dashboard/components/SlowQueryDetailModal.tsx` — Ekleme (yeni
+  dosya): `Modal` + `Tabs` ile İstekler/Hatalar tab'lı detay modalı.
+- `frontend/src/features/admin-dashboard/components/SlowQueriesCard.tsx` — Değiştirme: satırlar
+  `button`'a çevrildi, `onSelectAlert` prop'u eklendi, hover stili eklendi.
+- `frontend/src/pages/admin/AdminDashboardHomePage.tsx` — Değiştirme:
+  `slowQueryModalTab` state'i ve `SlowQueryDetailModal` render'ı eklendi.
+- `frontend/src/i18n/locales/tr.json`, `frontend/src/i18n/locales/en.json` — Ekleme:
+  `admin.dashboard.system.slowQueryModal.*` altında modal başlığı, tab etiketleri, boş liste
+  mesajı, hata kodu/neden yavaş metinleri eklendi.
+
+**Doğrulama:** Backend dosyaları `ast.parse` ile syntax kontrolünden geçirildi; frontend
+`tsc --noEmit` ile tip kontrolü yapıldı, değiştirilen/eklenen dosyalarda hata çıkmadı (projede
+önceden var olan, bu değişiklikle ilgisiz 4 tip hatası — `Checkbox.tsx`, `navigation.ts`,
+`InvoiceSendEmailModal.tsx`, `ProfileTab.tsx` — dokunulmadı). Bu oturumda çalışan backend/DB
+olmadığından uçtan uca manuel doğrulama yapılamadı; gerçek ortamda admin dashboard açılıp
+"Yavaş Sorgu Uyarıları" kartındaki bir satıra tıklanarak modalın doğru tab ile açıldığı, liste
+ve satır detaylarının (hata kodu / neden yavaş açıklaması) doğru göründüğü manuel teyit
+edilmeli.

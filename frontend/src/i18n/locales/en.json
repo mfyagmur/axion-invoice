@@ -197,6 +197,17 @@
         "slowQueryKeys": {
           "slow_requests": "Slow Requests",
           "server_errors": "Server Errors"
+        },
+        "slowQueryModal": {
+          "title": "Slow Query Alerts",
+          "tabRequests": "Requests",
+          "tabErrors": "Errors",
+          "empty": "No records found",
+          "errorCodeLabel": "Error Code",
+          "slowReasonLabel": "Why It Was Slow",
+          "slowReasonText": "This request took {{duration}}ms, above the {{threshold}}ms threshold.",
+          "genericErrorText": "{{method}} {{path}} returned status {{status}}.",
+          "selectRowHint": "Click a row for details"
         }
       }
     },

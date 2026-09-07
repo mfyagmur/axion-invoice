@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import require_admin
 from app.models.user import User
-from app.schemas.admin_dashboard import AdminFinancialOverviewResponse, AdminSystemHealthResponse
+from app.schemas.admin_dashboard import (
+    AdminFinancialOverviewResponse,
+    AdminSystemHealthResponse,
+    SlowQueryDetailResponse,
+)
 from app.services import admin_dashboard_service
 
 router = APIRouter(prefix="/admin/dashboard", tags=["admin-dashboard"])
@@ -26,3 +30,10 @@ def get_admin_system_health(
     db: Annotated[Session, Depends(get_db)],
 ) -> AdminSystemHealthResponse:
     return admin_dashboard_service.get_admin_system_health(db)
+
+
+@router.get("/slow-query-details", response_model=SlowQueryDetailResponse)
+def get_admin_slow_query_details(
+    current_user: Annotated[User, Depends(require_admin)],
+) -> SlowQueryDetailResponse:
+    return admin_dashboard_service.get_admin_slow_query_details()

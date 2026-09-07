@@ -39,9 +39,14 @@ app.add_middleware(
 @app.middleware("http")
 async def request_timing_middleware(request: Request, call_next):
     start = time.perf_counter()
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        duration_ms = (time.perf_counter() - start) * 1000
+        record_request(duration_ms, 500, request.url.path, request.method, error_detail=f"{type(exc).__name__}: {exc}")
+        raise
     duration_ms = (time.perf_counter() - start) * 1000
-    record_request(duration_ms, response.status_code, request.url.path)
+    record_request(duration_ms, response.status_code, request.url.path, request.method)
     return response
 
 Path(settings.logo_storage_dir).mkdir(parents=True, exist_ok=True)
