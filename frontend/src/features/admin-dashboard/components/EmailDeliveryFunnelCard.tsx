@@ -37,7 +37,7 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
   const maxValue = data ? Math.max(data.sent, 1) : 1
 
   return (
-    <Card title={t('admin.dashboard.delivery.emailFunnel.title')} className={className}>
+    <Card title={t('admin.dashboard.delivery.emailFunnel.title')} className={`${className}`}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
         <div className="flex flex-1 items-center justify-center gap-4">

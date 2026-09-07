@@ -26,19 +26,19 @@ export function SmsGaugeCard({ data, isLoading }: SmsGaugeCardProps) {
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
         <div className="flex flex-1 flex-col items-center justify-center">
-          <div className="relative h-[84px] w-[164px] overflow-hidden">
-            <ResponsiveContainer width={164} height={164}>
+          <div className="relative h-17.5 w-35 overflow-hidden">
+            <ResponsiveContainer width={140} height={140}>
               <PieChart>
                 <Pie
                   data={chartSlices}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
-                  cy={164 / 2}
+                  cy={140 / 2}
                   startAngle={180}
                   endAngle={0}
-                  innerRadius={56}
-                  outerRadius={78}
+                  innerRadius={48}
+                  outerRadius={67}
                   paddingAngle={2}
                   isAnimationActive
                   animationDuration={900}

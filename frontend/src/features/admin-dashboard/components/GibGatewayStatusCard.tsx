@@ -14,7 +14,7 @@ export function GibGatewayStatusCard({ data, isLoading }: GibGatewayStatusCardPr
     <Card
       title={t('admin.dashboard.delivery.gib.title')}
       subtitle={t('admin.dashboard.delivery.gib.subtitle')}
-      className="flex flex-1 flex-col justify-center gap-3"
+      className="flex flex-1 flex-col justify-center gap-4 px-6!"
     >
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
