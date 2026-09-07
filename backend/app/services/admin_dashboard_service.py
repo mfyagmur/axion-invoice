@@ -259,7 +259,7 @@ def get_admin_delivery_integrations(db: Session) -> AdminDeliveryIntegrationsRes
         .count()
     )
 
-    email_funnel = EmailDeliveryFunnel(draft=draft, sent=sent, delivered=sent, opened=0, clicked=0, bounced=0)
+    email_funnel = EmailDeliveryFunnel(draft=draft, sent=sent, delivered=sent)
 
     # SMS gönderimi ve GİB entegrasyonu sistemde henüz kurulmadı - gerçek altyapı gelene kadar sabit placeholder (bkz. docs/todo.md).
     sms_status = SmsNotificationStatus(delivered=0, pending=0, failed=0)

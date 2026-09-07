@@ -83,9 +83,6 @@ class EmailDeliveryFunnel(BaseModel):
     draft: int
     sent: int
     delivered: int
-    opened: int
-    clicked: int
-    bounced: int
 
 
 class SmsNotificationStatus(BaseModel):

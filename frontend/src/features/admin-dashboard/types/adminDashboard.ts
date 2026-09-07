@@ -79,9 +79,6 @@ export interface EmailDeliveryFunnel {
   draft: number
   sent: number
   delivered: number
-  opened: number
-  clicked: number
-  bounced: number
 }
 
 export interface SmsNotificationStatus {

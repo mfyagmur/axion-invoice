@@ -216,10 +216,7 @@
           "title": "E-mail Delivery Tunnel",
           "draft": "Draft",
           "sent": "Sent",
-          "delivered": "Delivered",
-          "opened": "Opened",
-          "clicked": "Clicked",
-          "bounced": "Bounced"
+          "delivered": "Delivered"
         },
         "sms": {
           "title": "SMS Notification Status",

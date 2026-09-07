@@ -216,10 +216,7 @@
           "title": "E-posta Teslimat Hunisi",
           "draft": "Taslak",
           "sent": "Gönderildi",
-          "delivered": "İletildi",
-          "opened": "Açıldı",
-          "clicked": "Tıklandı",
-          "bounced": "Geri Döndü"
+          "delivered": "İletildi"
         },
         "sms": {
           "title": "SMS Bildirim Durumu",
