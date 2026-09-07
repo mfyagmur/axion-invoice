@@ -1662,3 +1662,83 @@ olmadığından uçtan uca manuel doğrulama yapılamadı; gerçek ortamda admin
 "Yavaş Sorgu Uyarıları" kartındaki bir satıra tıklanarak modalın doğru tab ile açıldığı, liste
 ve satır detaylarının (hata kodu / neden yavaş açıklaması) doğru göründüğü manuel teyit
 edilmeli.
+
+---
+
+## 2026-09-07 — Admin Dashboard: "Delivery & Integrations" ve "Operational Metrics" Bölümleri
+
+**Durum:** Ekleme.
+
+**Özet:** AdminDashboardHomePage'e, mevcut "Financial Overview" ve "System Health" bölümlerinin
+altına iki yeni bölüm eklendi. Kullanıcı ile netleşen kapsam kararları: (1) **E-mail Delivery
+Funnel** gerçek veriden besleniyor — `Sent` = `Invoice.email_sent_at` + `InvoicePaymentReminder.
+sent_at` + `InvoiceDueReminder.sent_at` toplamı (demo hariç), `Delivered` = SMTP başarılı gönderim
+= iletildi varsayımıyla `Sent` ile aynı, `Opened`/`Clicked`/`Bounced` izleme altyapısı olmadığı
+için dürüstçe 0 gösteriliyor. (2) **SMS Notification Status** ve **E-Invoicing (GİB) Gateway
+Status** kartları — sistemde SMS gönderimi ve GİB entegrasyonu hiç yok, kullanıcı kararıyla sabit
+placeholder değerlerle (SMS: hepsi 0, GİB: `connected=false`) dürüst "veri yok" durumu gösteriliyor.
+(3) **Total Active Users** gerçek veri — toplam kayıtlı (demo hariç) kullanıcı sayısı / son 30 gün
+içinde `UserSession.last_used_at` ile aktif olan distinct kullanıcı sayısı, yanında bu ayki yeni
+kayıt oranının geçen aya göre değişimi (yeşil/kırmızı trend badge). (4) **Total Invoices Created
+(Today)** gerçek veri — bugün (Europe/Istanbul) oluşturulan fatura sayısı (demo hariç). (5)
+**Packet Usage** gerçek veri — `Subscription.plan_id → Plan.key` (free/pro/business) dağılımı,
+yatay bar chart, kullanıcı kararıyla ekran görüntüsündeki Basic/Pro/Enterprise yerine sistemdeki
+gerçek plan adları kullanıldı. (6) **Recent Support Tickets** — sistemde ticket sistemi hiç yok,
+kullanıcı kararıyla sabit mock 2 satırla tablo dolduruldu (User/Issue/Status/Priority). Tüm gerçek
+veri sorguları mevcut demo-filtreleme deseni (`Invoice`/`User` join + `User.is_demo.is_(False)`)
+ile tutarlı yazıldı.
+
+**Yapılan dosyalar:**
+- `backend/app/schemas/admin_dashboard.py` — Ekleme: `EmailDeliveryFunnel`,
+  `SmsNotificationStatus`, `GibGatewayStatus`, `AdminDeliveryIntegrationsResponse`,
+  `ActiveUsersStat`, `PacketUsageSlice`, `SupportTicket`, `AdminOperationalMetricsResponse`
+  şemaları eklendi.
+- `backend/app/services/admin_dashboard_service.py` — Ekleme: `get_admin_delivery_integrations()`
+  ve `get_admin_operational_metrics()` fonksiyonları eklendi; `PLAN_ORDER` sabiti eklendi;
+  `InvoiceDueReminder`, `InvoicePaymentReminder`, `Plan`, `Subscription`, `UserSession` importları
+  eklendi. Mevcut fonksiyonlara dokunulmadı.
+- `backend/app/api/v1/admin_dashboard.py` — Ekleme: `GET /admin/dashboard/delivery-integrations`
+  ve `GET /admin/dashboard/operational-metrics` endpoint'leri eklendi (`require_admin` korumalı,
+  mevcut pattern).
+- `frontend/src/features/admin-dashboard/types/adminDashboard.ts` — Ekleme: yukarıdaki backend
+  şemalarına birebir karşılık gelen TS interface'leri eklendi.
+- `frontend/src/features/admin-dashboard/api/adminDashboardApi.ts` — Ekleme:
+  `getDeliveryIntegrations()`, `getOperationalMetrics()` fonksiyonları eklendi.
+- `frontend/src/features/admin-dashboard/hooks/useAdminDeliveryIntegrations.ts` — Ekleme (yeni
+  dosya): 60sn `refetchInterval`'lı React Query hook'u.
+- `frontend/src/features/admin-dashboard/hooks/useAdminOperationalMetrics.ts` — Ekleme (yeni
+  dosya): 60sn `refetchInterval`'lı React Query hook'u.
+- `frontend/src/features/admin-dashboard/components/EmailDeliveryFunnelCard.tsx` — Ekleme (yeni
+  dosya): nested donut chart (recharts, iç içe 4 halka) + sayılarla legend.
+- `frontend/src/features/admin-dashboard/components/SmsGaugeCard.tsx` — Ekleme (yeni dosya):
+  yarım daire (semi-circle) gauge chart + legend.
+- `frontend/src/features/admin-dashboard/components/GibGatewayStatusCard.tsx` — Ekleme (yeni
+  dosya): Connected/Disconnected rozeti + Uptime yüzdesi.
+- `frontend/src/features/admin-dashboard/components/ActiveUsersCard.tsx` — Ekleme (yeni dosya):
+  `TotalInvoicedCard`'daki trend badge deseni tekrar kullanılarak yazıldı.
+- `frontend/src/features/admin-dashboard/components/InvoicesTodayCard.tsx` — Ekleme (yeni dosya):
+  sade tek değerli kart.
+- `frontend/src/features/admin-dashboard/components/PacketUsageCard.tsx` — Ekleme (yeni dosya):
+  recharts `BarChart` `layout="vertical"` ile yatay çubuk grafik.
+- `frontend/src/features/admin-dashboard/components/SupportTicketsCard.tsx` — Ekleme (yeni dosya):
+  User/Issue/Status/Priority kolonlu tablo, renkli durum/öncelik rozetleri.
+- `frontend/src/pages/admin/AdminDashboardHomePage.tsx` — Değiştirme: yeni iki hook çağrısı ve
+  "Delivery & Integrations" + "Operational Metrics" `<section>`'ları eklendi (mevcut Financial/
+  System section'larıyla aynı grid mekaniği tekrar kullanıldı — `sm:grid-cols-3`,
+  `sm:col-span-2`/`sm:row-span-2` desenleri).
+- `frontend/src/i18n/locales/tr.json`, `frontend/src/i18n/locales/en.json` — Ekleme:
+  `admin.dashboard.delivery.*` ve `admin.dashboard.operational.*` altında bölüm/kart başlıkları,
+  legend etiketleri, tablo kolon başlıkları eklendi.
+
+**Doğrulama:** Backend dosyaları `py -c "import ast; ast.parse(...)"` ile syntax kontrolünden
+geçirildi; ayrıca `app.services.admin_dashboard_service` modülü gerçekten import edilerek
+(`from app.services import admin_dashboard_service`) model/şema alan adlarının doğru olduğu teyit
+edildi (ImportError/AttributeError çıkmadı). Frontend `tsc --noEmit -p tsconfig.app.json` ile tip
+kontrolü yapıldı, yeni/değiştirilen dosyalarda hata çıkmadı (projede önceden var olan, bu
+değişiklikle ilgisiz 4 tip hatası dokunulmadı). Backend dev sunucusu geçici olarak ayağa kaldırılıp
+yeni iki endpoint `curl` ile çağrıldı — ikisi de beklendiği gibi `401 Not authenticated` döndü
+(routing ve dependency zinciri doğru kurulmuş). Admin kullanıcıyla tam uçtan uca (gerçek veri
+dönen JSON body) test edilemedi çünkü bu oturumda bilinen admin şifresi (`create_admin.py`'deki
+varsayılan) güncel değildi ve kimlik bilgisi tahmin etmek riskli/verimsiz olurdu; gerçek ortamda
+admin girişiyle her iki endpoint'in ve dashboard sayfasının (özellikle Packet Usage ve Active
+Users kartlarının gerçek DB verisiyle) manuel teyidi öneriliyor.

@@ -8,25 +8,37 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.request_metrics import SLOW_REQUEST_THRESHOLD_MS, RequestRecord, get_records
-from app.models.invoice import Invoice
+from app.models.invoice import Invoice, InvoiceDueReminder, InvoicePaymentReminder
+from app.models.plan import Plan
+from app.models.subscription import Subscription
 from app.models.user import User
+from app.models.session import UserSession
 from app.schemas.admin_dashboard import (
+    ActiveUsersStat,
+    AdminDeliveryIntegrationsResponse,
     AdminFinancialOverviewResponse,
+    AdminOperationalMetricsResponse,
     AdminSystemHealthResponse,
     CountWithSparkline,
     CurrencyMtdAmount,
+    EmailDeliveryFunnel,
+    GibGatewayStatus,
     LatencyPoint,
+    PacketUsageSlice,
     PaymentSuccessRate,
     RequestIssueDetail,
     SlowQueryAlert,
     SlowQueryDetailResponse,
+    SmsNotificationStatus,
     SparklinePoint,
+    SupportTicket,
 )
 from app.services.dashboard_service import _build_trend, _effective_date, compute_display_status
 
 SPARKLINE_DAYS = 14
 LOCAL_TZ = ZoneInfo("Europe/Istanbul")
 MAX_ISSUE_RECORDS = 50
+PLAN_ORDER = ["free", "pro", "business"]
 
 
 def _date_range(start: date, end: date) -> list[date]:
@@ -215,3 +227,121 @@ def get_admin_slow_query_details() -> SlowQueryDetailResponse:
     )[:MAX_ISSUE_RECORDS]
 
     return SlowQueryDetailResponse(slow_requests=slow_requests, server_errors=server_errors)
+
+
+def get_admin_delivery_integrations(db: Session) -> AdminDeliveryIntegrationsResponse:
+    invoice_emails_sent = (
+        db.query(Invoice)
+        .join(User, Invoice.user_id == User.id)
+        .filter(User.is_demo.is_(False), Invoice.email_sent_at.isnot(None))
+        .count()
+    )
+    payment_reminders_sent = (
+        db.query(InvoicePaymentReminder)
+        .join(Invoice, InvoicePaymentReminder.invoice_id == Invoice.id)
+        .join(User, Invoice.user_id == User.id)
+        .filter(User.is_demo.is_(False), InvoicePaymentReminder.sent_at.isnot(None))
+        .count()
+    )
+    due_reminders_sent = (
+        db.query(InvoiceDueReminder)
+        .join(Invoice, InvoiceDueReminder.invoice_id == Invoice.id)
+        .join(User, Invoice.user_id == User.id)
+        .filter(User.is_demo.is_(False), InvoiceDueReminder.sent_at.isnot(None))
+        .count()
+    )
+    sent = invoice_emails_sent + payment_reminders_sent + due_reminders_sent
+
+    email_funnel = EmailDeliveryFunnel(sent=sent, delivered=sent, opened=0, clicked=0, bounced=0)
+
+    # SMS gönderimi ve GİB entegrasyonu sistemde henüz kurulmadı - gerçek altyapı gelene kadar sabit placeholder (bkz. docs/todo.md).
+    sms_status = SmsNotificationStatus(delivered=0, pending=0, failed=0)
+    gib_status = GibGatewayStatus(connected=False, uptime_pct=0.0)
+
+    return AdminDeliveryIntegrationsResponse(email_funnel=email_funnel, sms_status=sms_status, gib_status=gib_status)
+
+
+def get_admin_operational_metrics(db: Session) -> AdminOperationalMetricsResponse:
+    today = date.today()
+    this_month_start, _, last_month_start, last_month_end = _month_bounds(today)
+
+    total_registered = db.query(User).filter(User.is_demo.is_(False)).count()
+
+    active_30d_cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+    active_30d = (
+        db.query(UserSession.user_id)
+        .join(User, UserSession.user_id == User.id)
+        .filter(
+            User.is_demo.is_(False),
+            UserSession.revoked_at.is_(None),
+            UserSession.last_used_at >= active_30d_cutoff,
+        )
+        .distinct()
+        .count()
+    )
+
+    new_this_month = (
+        db.query(User)
+        .filter(User.is_demo.is_(False), User.created_at >= this_month_start, User.created_at <= today + timedelta(days=1))
+        .count()
+    )
+    new_last_month = (
+        db.query(User)
+        .filter(User.is_demo.is_(False), User.created_at >= last_month_start, User.created_at <= last_month_end + timedelta(days=1))
+        .count()
+    )
+    registration_trend_pct = (
+        (new_this_month - new_last_month) / new_last_month * 100 if new_last_month > 0 else None
+    )
+
+    active_users = ActiveUsersStat(
+        total_registered=total_registered,
+        active_30d=active_30d,
+        registration_trend_pct=registration_trend_pct,
+    )
+
+    day_start = datetime.combine(today, datetime.min.time(), tzinfo=LOCAL_TZ)
+    day_end = day_start + timedelta(days=1)
+    invoices_created_today = (
+        db.query(Invoice)
+        .join(User, Invoice.user_id == User.id)
+        .filter(User.is_demo.is_(False), Invoice.created_at >= day_start, Invoice.created_at < day_end)
+        .count()
+    )
+
+    plan_counts: dict[str, int] = {key: 0 for key in PLAN_ORDER}
+    plan_names: dict[str, str] = {}
+    rows = (
+        db.query(Plan.key, Plan.name, Subscription.id)
+        .join(Subscription, Subscription.plan_id == Plan.id)
+        .join(User, Subscription.user_id == User.id)
+        .filter(User.is_demo.is_(False))
+        .all()
+    )
+    for plan_key, plan_name, _sub_id in rows:
+        plan_counts[plan_key] = plan_counts.get(plan_key, 0) + 1
+        plan_names[plan_key] = plan_name
+
+    total_subscribed = sum(plan_counts.values()) or 1
+    packet_usage = [
+        PacketUsageSlice(
+            plan_key=key,
+            plan_name=plan_names.get(key, key.capitalize()),
+            user_count=plan_counts.get(key, 0),
+            pct=round(plan_counts.get(key, 0) / total_subscribed * 100, 1),
+        )
+        for key in PLAN_ORDER
+    ]
+
+    # Destek bilet sistemi henüz kurulmadı - gerçek altyapı gelene kadar örnek sabit veriler (bkz. docs/todo.md).
+    support_tickets = [
+        SupportTicket(user_name="John Doe", issue="Invoicing gateway sync delay", status="connected", priority="priority"),
+        SupportTicket(user_name="John Doe", issue="Recurring invoice generation issue", status="connected", priority="not_priority"),
+    ]
+
+    return AdminOperationalMetricsResponse(
+        active_users=active_users,
+        invoices_created_today=invoices_created_today,
+        packet_usage=packet_usage,
+        support_tickets=support_tickets,
+    )

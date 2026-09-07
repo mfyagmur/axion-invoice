@@ -7,7 +7,9 @@ from app.core.database import get_db
 from app.core.deps import require_admin
 from app.models.user import User
 from app.schemas.admin_dashboard import (
+    AdminDeliveryIntegrationsResponse,
     AdminFinancialOverviewResponse,
+    AdminOperationalMetricsResponse,
     AdminSystemHealthResponse,
     SlowQueryDetailResponse,
 )
@@ -37,3 +39,19 @@ def get_admin_slow_query_details(
     current_user: Annotated[User, Depends(require_admin)],
 ) -> SlowQueryDetailResponse:
     return admin_dashboard_service.get_admin_slow_query_details()
+
+
+@router.get("/delivery-integrations", response_model=AdminDeliveryIntegrationsResponse)
+def get_admin_delivery_integrations(
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> AdminDeliveryIntegrationsResponse:
+    return admin_dashboard_service.get_admin_delivery_integrations(db)
+
+
+@router.get("/operational-metrics", response_model=AdminOperationalMetricsResponse)
+def get_admin_operational_metrics(
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> AdminOperationalMetricsResponse:
+    return admin_dashboard_service.get_admin_operational_metrics(db)

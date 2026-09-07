@@ -74,3 +74,58 @@ export interface SlowQueryDetailResponse {
   slow_requests: RequestIssueDetail[]
   server_errors: RequestIssueDetail[]
 }
+
+export interface EmailDeliveryFunnel {
+  sent: number
+  delivered: number
+  opened: number
+  clicked: number
+  bounced: number
+}
+
+export interface SmsNotificationStatus {
+  delivered: number
+  pending: number
+  failed: number
+}
+
+export interface GibGatewayStatus {
+  connected: boolean
+  uptime_pct: number
+}
+
+export interface AdminDeliveryIntegrations {
+  email_funnel: EmailDeliveryFunnel
+  sms_status: SmsNotificationStatus
+  gib_status: GibGatewayStatus
+}
+
+export interface ActiveUsersStat {
+  total_registered: number
+  active_30d: number
+  registration_trend_pct: number | null
+}
+
+export interface PacketUsageSlice {
+  plan_key: string
+  plan_name: string
+  user_count: number
+  pct: number
+}
+
+export type SupportTicketStatus = 'connected' | 'not_connected'
+export type SupportTicketPriority = 'priority' | 'not_priority'
+
+export interface SupportTicket {
+  user_name: string
+  issue: string
+  status: SupportTicketStatus
+  priority: SupportTicketPriority
+}
+
+export interface AdminOperationalMetrics {
+  active_users: ActiveUsersStat
+  invoices_created_today: number
+  packet_usage: PacketUsageSlice[]
+  support_tickets: SupportTicket[]
+}

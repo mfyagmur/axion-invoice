@@ -279,3 +279,11 @@
 - [ ] 2026-09-02: Admin tarafında 2FA durumu görünürlüğü/denetimi eklenmedi (`require_admin` zaten var, bu iş kapsamına dahil edilmedi).
 - [ ] 2026-09-02: "Bu cihazda 30 gün hatırla" (güvenilir cihazlarda OTP atlama) istenmedi, eklenmedi.
 - [ ] 2026-09-02: Tarayıcıda uçtan uca teyit edilmedi — Settings → Security'de e-posta kurup onaylama, çıkış yapıp normal login'de OTP ekranının çıkması (SMTP yapılandırılı değilse backend log'undan kod okunarak), demo login ve Google login'in hiç OTP istemediğinin ve idle-logout/oturum-çerezi davranışının etkilenmediğinin görsel olarak doğrulanması gerekiyor.
+
+## 2026-09-07 — Admin Dashboard "Delivery & Integrations" / "Operational Metrics" sonrası
+
+- [ ] 2026-09-07: SMS bildirim gönderim altyapısı — sistemde hiç SMS gönderme özelliği yok (Twilio vb. sağlayıcı entegrasyonu, telefon numarası doğrulama, gönderim log'u/tablosu). `SmsGaugeCard` şu an sabit placeholder (`0/0/0`) gösteriyor; gerçek entegrasyon kurulduğunda `get_admin_delivery_integrations()` (backend/app/services/admin_dashboard_service.py) güncellenmeli.
+- [ ] 2026-09-07: GİB (e-Fatura) resmi entegrasyonu — PROJEPLAN kapsam dışı kararıyla tutarlı olarak hâlâ kurulmadı; `GibGatewayStatusCard` sabit `connected=false` gösteriyor. Gerçek entegrasyon kurulursa bağlantı durumu/uptime canlı GİB servisinden okunmalı.
+- [ ] 2026-09-07: Destek bilet (ticket) sistemi — sistemde ticket/helpdesk modeli yok. `SupportTicketsCard` şu an sabit 2 örnek satır gösteriyor (`get_admin_operational_metrics()` içinde hardcoded). Gerçek bir ticket tablosu/akışı kurulursa bu fonksiyon güncellenmeli.
+- [ ] 2026-09-07: Email Delivery Funnel'da `Opened`/`Clicked`/`Bounced` her zaman 0 — gerçek izleme (SendGrid/SES webhook, açılma pikseli, link tracking) olmadığı sürece bu üç metrik hiçbir zaman dolmayacak; gerçek e-posta sağlayıcı webhook entegrasyonu kurulursa `EmailDeliveryFunnel` şeması ve `get_admin_delivery_integrations()` güncellenmeli.
+- [ ] 2026-09-07: Yeni iki endpoint (`/admin/dashboard/delivery-integrations`, `/admin/dashboard/operational-metrics`) admin girişiyle uçtan uca (gerçek JSON body) test edilmedi — bu oturumda bilinen admin şifresi güncel değildi. Gerçek admin girişiyle her iki endpoint'in ve yeni 4 kartın (özellikle Packet Usage yatay bar chart ve Active Users trend badge) tarayıcıda görsel teyidi yapılmalı.

@@ -77,3 +77,55 @@ class RequestIssueDetail(BaseModel):
 class SlowQueryDetailResponse(BaseModel):
     slow_requests: list[RequestIssueDetail]
     server_errors: list[RequestIssueDetail]
+
+
+class EmailDeliveryFunnel(BaseModel):
+    sent: int
+    delivered: int
+    opened: int
+    clicked: int
+    bounced: int
+
+
+class SmsNotificationStatus(BaseModel):
+    delivered: int
+    pending: int
+    failed: int
+
+
+class GibGatewayStatus(BaseModel):
+    connected: bool
+    uptime_pct: float
+
+
+class AdminDeliveryIntegrationsResponse(BaseModel):
+    email_funnel: EmailDeliveryFunnel
+    sms_status: SmsNotificationStatus
+    gib_status: GibGatewayStatus
+
+
+class ActiveUsersStat(BaseModel):
+    total_registered: int
+    active_30d: int
+    registration_trend_pct: float | None
+
+
+class PacketUsageSlice(BaseModel):
+    plan_key: str
+    plan_name: str
+    user_count: int
+    pct: float
+
+
+class SupportTicket(BaseModel):
+    user_name: str
+    issue: str
+    status: Literal["connected", "not_connected"]
+    priority: Literal["priority", "not_priority"]
+
+
+class AdminOperationalMetricsResponse(BaseModel):
+    active_users: ActiveUsersStat
+    invoices_created_today: int
+    packet_usage: list[PacketUsageSlice]
+    support_tickets: list[SupportTicket]

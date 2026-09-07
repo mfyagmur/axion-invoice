@@ -209,6 +209,55 @@
           "genericErrorText": "{{method}} {{path}} returned status {{status}}.",
           "selectRowHint": "Click a row for details"
         }
+      },
+      "delivery": {
+        "title": "Delivery & Integrations",
+        "emailFunnel": {
+          "title": "E-mail Delivery Funnel",
+          "sent": "Sent",
+          "delivered": "Delivered",
+          "opened": "Opened",
+          "clicked": "Clicked",
+          "bounced": "Bounced"
+        },
+        "sms": {
+          "title": "SMS Notification Status",
+          "delivered": "Delivered",
+          "pending": "Pending",
+          "failed": "Failed"
+        },
+        "gib": {
+          "title": "E-Invoicing Gateway Status",
+          "subtitle": "GİB Integration",
+          "connected": "Connected",
+          "disconnected": "Disconnected",
+          "uptime": "Uptime"
+        }
+      },
+      "operational": {
+        "title": "Operational Metrics",
+        "activeUsers": {
+          "title": "Total Active Users (DAU/MAU)",
+          "caption": "Total Registered / Active in Last 30 Days"
+        },
+        "invoicesToday": {
+          "title": "Total Invoices Created (Today)",
+          "caption": "Invoices created today"
+        },
+        "packetUsage": {
+          "title": "Packet Usage"
+        },
+        "supportTickets": {
+          "title": "Recent Support Tickets",
+          "empty": "No support tickets found",
+          "user": "User",
+          "issue": "Issue",
+          "status": "Status",
+          "priority": "Priority",
+          "connected": "Connected",
+          "notConnected": "Disconnected",
+          "notPriority": "Normal"
+        }
       }
     },
     "panel": {
