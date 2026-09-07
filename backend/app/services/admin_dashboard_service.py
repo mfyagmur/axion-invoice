@@ -342,6 +342,9 @@ def get_admin_operational_metrics(db: Session) -> AdminOperationalMetricsRespons
     support_tickets = [
         SupportTicket(user_name="John Doe", issue="Invoicing gateway sync delay", status="connected", priority="priority"),
         SupportTicket(user_name="John Doe", issue="Recurring invoice generation issue", status="connected", priority="not_priority"),
+        SupportTicket(user_name="Ayşe Kaya", issue="PDF export template mismatch", status="connected", priority="priority"),
+        SupportTicket(user_name="Mehmet Demir", issue="Bank account not showing on invoice", status="not_connected", priority="not_priority"),
+        SupportTicket(user_name="Elif Şahin", issue="Email delivery not confirmed", status="connected", priority="not_priority"),
     ]
 
     return AdminOperationalMetricsResponse(

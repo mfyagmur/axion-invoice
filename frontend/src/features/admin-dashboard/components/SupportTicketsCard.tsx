@@ -25,7 +25,6 @@ export function SupportTicketsCard({ data, isLoading, className }: SupportTicket
               <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
                 <th className="pb-2 pr-3 font-medium">{t('admin.dashboard.operational.supportTickets.user')}</th>
                 <th className="pb-2 pr-3 font-medium">{t('admin.dashboard.operational.supportTickets.issue')}</th>
-                <th className="pb-2 pr-3 font-medium">{t('admin.dashboard.operational.supportTickets.status')}</th>
                 <th className="pb-2 font-medium">{t('admin.dashboard.operational.supportTickets.priority')}</th>
               </tr>
             </thead>
@@ -41,19 +40,6 @@ export function SupportTicketsCard({ data, isLoading, className }: SupportTicket
                     </div>
                   </td>
                   <td className="py-2 pr-3 text-slate-600 dark:text-slate-300">{ticket.issue}</td>
-                  <td className="py-2 pr-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        ticket.status === 'connected'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
-                      }`}
-                    >
-                      {ticket.status === 'connected'
-                        ? t('admin.dashboard.operational.supportTickets.connected')
-                        : t('admin.dashboard.operational.supportTickets.notConnected')}
-                    </span>
-                  </td>
                   <td className="py-2">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
