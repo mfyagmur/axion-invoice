@@ -19,7 +19,7 @@ export function SlowQueriesCard({ alerts, isLoading, className = '' }: SlowQueri
   const rows = alerts ?? []
 
   return (
-    <Card title={t('admin.dashboard.system.slowQueryAlerts')} className={`flex flex-col gap-3 ${className}`}>
+    <Card title={t('admin.dashboard.system.slowQueryAlerts')} className={`flex flex-col py-3 px-5 ${className}`}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading &&
         rows.map((alert) => (
