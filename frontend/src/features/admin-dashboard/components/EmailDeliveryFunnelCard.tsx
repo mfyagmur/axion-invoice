@@ -56,7 +56,7 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
       {!isLoading && data && (
         <div className="flex items-center justify-center gap-10">
           <div className="relative shrink-0">
-            <ResponsiveContainer width={180} height={180}>
+            <ResponsiveContainer width={220} height={220}>
               <PieChart>
                 <Pie
                   data={slices.length > 0 ? slices : legend}
@@ -64,7 +64,7 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
                   nameKey="label"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
+                  outerRadius={100}
                   labelLine={false}
                   label={renderCustomizedLabel}
                   isAnimationActive
