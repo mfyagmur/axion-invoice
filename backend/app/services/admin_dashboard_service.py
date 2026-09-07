@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.request_metrics import SLOW_REQUEST_THRESHOLD_MS, RequestRecord, get_records
-from app.models.invoice import Invoice, InvoiceDueReminder, InvoicePaymentReminder
+from app.models.invoice import Invoice, InvoiceDueReminder, InvoicePaymentReminder, InvoiceStatus
 from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.models.user import User
@@ -252,7 +252,14 @@ def get_admin_delivery_integrations(db: Session) -> AdminDeliveryIntegrationsRes
     )
     sent = invoice_emails_sent + payment_reminders_sent + due_reminders_sent
 
-    email_funnel = EmailDeliveryFunnel(sent=sent, delivered=sent, opened=0, clicked=0, bounced=0)
+    draft = (
+        db.query(Invoice)
+        .join(User, Invoice.user_id == User.id)
+        .filter(User.is_demo.is_(False), Invoice.status == InvoiceStatus.DRAFT, Invoice.email_sent_at.is_(None))
+        .count()
+    )
+
+    email_funnel = EmailDeliveryFunnel(draft=draft, sent=sent, delivered=sent, opened=0, clicked=0, bounced=0)
 
     # SMS gönderimi ve GİB entegrasyonu sistemde henüz kurulmadı - gerçek altyapı gelene kadar sabit placeholder (bkz. docs/todo.md).
     sms_status = SmsNotificationStatus(delivered=0, pending=0, failed=0)

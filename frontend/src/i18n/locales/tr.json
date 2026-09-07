@@ -214,6 +214,7 @@
         "title": "Teslimat ve Entegrasyonlar",
         "emailFunnel": {
           "title": "E-posta Teslimat Hunisi",
+          "draft": "Taslak",
           "sent": "Gönderildi",
           "delivered": "İletildi",
           "opened": "Açıldı",

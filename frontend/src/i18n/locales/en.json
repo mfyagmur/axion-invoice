@@ -213,7 +213,8 @@
       "delivery": {
         "title": "Delivery & Integrations",
         "emailFunnel": {
-          "title": "E-mail Delivery Funnel",
+          "title": "E-mail Delivery Tunnel",
+          "draft": "Draft",
           "sent": "Sent",
           "delivered": "Delivered",
           "opened": "Opened",

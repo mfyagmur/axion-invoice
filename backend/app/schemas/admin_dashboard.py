@@ -80,6 +80,7 @@ class SlowQueryDetailResponse(BaseModel):
 
 
 class EmailDeliveryFunnel(BaseModel):
+    draft: int
     sent: int
     delivered: int
     opened: int

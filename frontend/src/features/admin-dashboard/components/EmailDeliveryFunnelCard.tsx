@@ -21,6 +21,7 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
 
   const legend = data
     ? [
+        { key: 'draft', label: t('admin.dashboard.delivery.emailFunnel.draft'), value: data.draft, color: '#94a3b8' },
         { key: 'sent', label: t('admin.dashboard.delivery.emailFunnel.sent'), value: data.sent, color: '#3b82f6' },
         {
           key: 'delivered',

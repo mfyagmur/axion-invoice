@@ -76,6 +76,7 @@ export interface SlowQueryDetailResponse {
 }
 
 export interface EmailDeliveryFunnel {
+  draft: number
   sent: number
   delivered: number
   opened: number
