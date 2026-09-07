@@ -33,7 +33,6 @@ export function ActiveUsersCard({ data, isLoading }: ActiveUsersCardProps) {
           )}
         </div>
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">{t('admin.dashboard.operational.activeUsers.caption')}</p>
     </Card>
   )
 }

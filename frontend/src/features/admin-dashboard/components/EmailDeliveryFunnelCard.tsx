@@ -51,12 +51,12 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
   const slices = legend.filter((row) => row.value > 0)
 
   return (
-    <Card title={t('admin.dashboard.delivery.emailFunnel.title')} className={`w-131 ${className}`}>
+    <Card title={t('admin.dashboard.delivery.emailFunnel.title')} className={className}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
-        <div className="flex items-center justify-center gap-10">
+        <div className="flex items-center gap-6">
           <div className="relative shrink-0">
-            <ResponsiveContainer width={220} height={220}>
+            <ResponsiveContainer width={150} height={150}>
               <PieChart>
                 <Pie
                   data={slices.length > 0 ? slices : legend}
@@ -64,7 +64,7 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
                   nameKey="label"
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
+                  outerRadius={68}
                   labelLine={false}
                   label={renderCustomizedLabel}
                   isAnimationActive
@@ -79,7 +79,7 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex shrink-0 flex-col gap-2">
+          <div className="flex flex-1 flex-col gap-2">
             {legend.map((row) => (
               <div key={row.key} className="flex items-center justify-between gap-3 text-sm">
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">

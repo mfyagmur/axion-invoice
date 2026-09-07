@@ -81,12 +81,6 @@ export interface EmailDeliveryFunnel {
   delivered: number
 }
 
-export interface SmsNotificationStatus {
-  delivered: number
-  pending: number
-  failed: number
-}
-
 export interface GibGatewayStatus {
   connected: boolean
   uptime_pct: number
@@ -94,7 +88,6 @@ export interface GibGatewayStatus {
 
 export interface AdminDeliveryIntegrations {
   email_funnel: EmailDeliveryFunnel
-  sms_status: SmsNotificationStatus
   gib_status: GibGatewayStatus
 }
 

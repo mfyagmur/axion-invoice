@@ -213,16 +213,10 @@
       "delivery": {
         "title": "Delivery & Integrations",
         "emailFunnel": {
-          "title": "E-mail Delivery Tunnel",
+          "title": "E-mail Delivery",
           "draft": "Draft",
           "sent": "Sent",
           "delivered": "Delivered"
-        },
-        "sms": {
-          "title": "SMS Notification Status",
-          "delivered": "Delivered",
-          "pending": "Pending",
-          "failed": "Failed"
         },
         "gib": {
           "title": "E-Invoicing Gateway Status",
@@ -235,12 +229,10 @@
       "operational": {
         "title": "Operational Metrics",
         "activeUsers": {
-          "title": "Total Active Users (DAU/MAU)",
-          "caption": "Total Registered / Active in Last 30 Days"
+          "title": "Total Active Users (DAU/MAU)"
         },
         "invoicesToday": {
-          "title": "Total Invoices Created (Today)",
-          "caption": "Invoices created today"
+          "title": "Total Invoices Created (Today)"
         },
         "packetUsage": {
           "title": "Packet Usage"

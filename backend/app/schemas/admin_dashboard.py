@@ -85,12 +85,6 @@ class EmailDeliveryFunnel(BaseModel):
     delivered: int
 
 
-class SmsNotificationStatus(BaseModel):
-    delivered: int
-    pending: int
-    failed: int
-
-
 class GibGatewayStatus(BaseModel):
     connected: bool
     uptime_pct: float
@@ -98,7 +92,6 @@ class GibGatewayStatus(BaseModel):
 
 class AdminDeliveryIntegrationsResponse(BaseModel):
     email_funnel: EmailDeliveryFunnel
-    sms_status: SmsNotificationStatus
     gib_status: GibGatewayStatus
 
 

@@ -15,7 +15,6 @@ export function InvoicesTodayCard({ data, isLoading }: InvoicesTodayCardProps) {
       {!isLoading && data !== undefined && (
         <span className="text-2xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{data}</span>
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">{t('admin.dashboard.operational.invoicesToday.caption')}</p>
     </Card>
   )
 }

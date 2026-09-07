@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { Card } from '@/components/Card'
 import type { PacketUsageSlice } from '@/features/admin-dashboard/types/adminDashboard'
 
@@ -17,38 +17,43 @@ const PLAN_COLORS: Record<string, string> = {
 
 export function PacketUsageCard({ data, isLoading, className }: PacketUsageCardProps) {
   const { t } = useTranslation()
+  const [animated, setAnimated] = useState(false)
 
-  const rows = (data ?? []).map((slice) => ({
-    ...slice,
-    label: slice.plan_name,
-  }))
+  useEffect(() => {
+    if (!data) return
+    setAnimated(false)
+    const frame = requestAnimationFrame(() => setAnimated(true))
+    return () => cancelAnimationFrame(frame)
+  }, [data])
 
   return (
     <Card title={t('admin.dashboard.operational.packetUsage.title')} className={className}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {rows.map((row) => (
-              <div key={row.plan_key} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PLAN_COLORS[row.plan_key] ?? '#94a3b8' }} />
-                {row.label}
+        <div className="flex flex-col gap-2.5">
+          {data.map((row) => {
+            const color = PLAN_COLORS[row.plan_key] ?? '#94a3b8'
+            const pct = Math.min(Math.max(row.pct, 0), 100)
+            return (
+              <div key={row.plan_key} className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                    {row.plan_name}
+                  </span>
+                  <span className="tabular-nums text-slate-500 dark:text-slate-400">
+                    {row.user_count} · {pct.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div
+                    className="h-full rounded-full transition-[width] duration-700 ease-out"
+                    style={{ width: animated ? `${pct}%` : '0%', backgroundColor: color }}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="h-[168px] w-full">
-            <ResponsiveContainer width="100%" height={168}>
-              <BarChart data={rows} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
-                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}`} />
-                <YAxis type="category" dataKey="label" width={56} tick={{ fontSize: 12 }} />
-                <Bar dataKey="pct" radius={[0, 4, 4, 0]} isAnimationActive animationDuration={900} animationEasing="ease-out">
-                  {rows.map((row) => (
-                    <Cell key={row.plan_key} fill={PLAN_COLORS[row.plan_key] ?? '#94a3b8'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+            )
+          })}
         </div>
       )}
     </Card>

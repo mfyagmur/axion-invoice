@@ -29,7 +29,6 @@ from app.schemas.admin_dashboard import (
     RequestIssueDetail,
     SlowQueryAlert,
     SlowQueryDetailResponse,
-    SmsNotificationStatus,
     SparklinePoint,
     SupportTicket,
 )
@@ -261,11 +260,10 @@ def get_admin_delivery_integrations(db: Session) -> AdminDeliveryIntegrationsRes
 
     email_funnel = EmailDeliveryFunnel(draft=draft, sent=sent, delivered=sent)
 
-    # SMS gönderimi ve GİB entegrasyonu sistemde henüz kurulmadı - gerçek altyapı gelene kadar sabit placeholder (bkz. docs/todo.md).
-    sms_status = SmsNotificationStatus(delivered=0, pending=0, failed=0)
+    # GİB entegrasyonu sistemde henüz kurulmadı - gerçek altyapı gelene kadar sabit placeholder (bkz. docs/todo.md).
     gib_status = GibGatewayStatus(connected=False, uptime_pct=0.0)
 
-    return AdminDeliveryIntegrationsResponse(email_funnel=email_funnel, sms_status=sms_status, gib_status=gib_status)
+    return AdminDeliveryIntegrationsResponse(email_funnel=email_funnel, gib_status=gib_status)
 
 
 def get_admin_operational_metrics(db: Session) -> AdminOperationalMetricsResponse:

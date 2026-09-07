@@ -13,7 +13,6 @@ import { SystemMetricsColumn } from '@/features/admin-dashboard/components/Syste
 import { SlowQueriesCard } from '@/features/admin-dashboard/components/SlowQueriesCard'
 import { SlowQueryDetailModal } from '@/features/admin-dashboard/components/SlowQueryDetailModal'
 import { EmailDeliveryFunnelCard } from '@/features/admin-dashboard/components/EmailDeliveryFunnelCard'
-import { SmsGaugeCard } from '@/features/admin-dashboard/components/SmsGaugeCard'
 import { GibGatewayStatusCard } from '@/features/admin-dashboard/components/GibGatewayStatusCard'
 import { ActiveUsersCard } from '@/features/admin-dashboard/components/ActiveUsersCard'
 import { InvoicesTodayCard } from '@/features/admin-dashboard/components/InvoicesTodayCard'
@@ -86,14 +85,14 @@ export function AdminDashboardHomePage() {
 
       <section className="flex flex-col gap-4">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('admin.dashboard.delivery.title')}</h1>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-3">
           <EmailDeliveryFunnelCard
             data={delivery.data?.email_funnel}
             isLoading={delivery.isLoading}
             className="sm:col-span-2"
           />
           <div className="flex flex-col gap-3">
-            <SmsGaugeCard data={delivery.data?.sms_status} isLoading={delivery.isLoading} />
+            <PacketUsageCard data={operational.data?.packet_usage} isLoading={operational.isLoading} />
             <GibGatewayStatusCard data={delivery.data?.gib_status} isLoading={delivery.isLoading} />
           </div>
         </div>
@@ -101,14 +100,11 @@ export function AdminDashboardHomePage() {
 
       <section className="flex flex-col gap-4">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('admin.dashboard.operational.title')}</h1>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <ActiveUsersCard data={operational.data?.active_users} isLoading={operational.isLoading} />
-          <InvoicesTodayCard data={operational.data?.invoices_created_today} isLoading={operational.isLoading} />
-          <PacketUsageCard
-            data={operational.data?.packet_usage}
-            isLoading={operational.isLoading}
-            className="sm:row-span-2"
-          />
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-3">
+          <div className="flex flex-col gap-3">
+            <ActiveUsersCard data={operational.data?.active_users} isLoading={operational.isLoading} />
+            <InvoicesTodayCard data={operational.data?.invoices_created_today} isLoading={operational.isLoading} />
+          </div>
           <SupportTicketsCard
             data={operational.data?.support_tickets}
             isLoading={operational.isLoading}

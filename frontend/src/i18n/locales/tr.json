@@ -213,16 +213,10 @@
       "delivery": {
         "title": "Teslimat ve Entegrasyonlar",
         "emailFunnel": {
-          "title": "E-posta Teslimat Hunisi",
+          "title": "E-posta Gönderimi",
           "draft": "Taslak",
           "sent": "Gönderildi",
           "delivered": "İletildi"
-        },
-        "sms": {
-          "title": "SMS Bildirim Durumu",
-          "delivered": "İletildi",
-          "pending": "Bekliyor",
-          "failed": "Başarısız"
         },
         "gib": {
           "title": "E-Fatura Ağ Geçidi Durumu",
@@ -235,12 +229,10 @@
       "operational": {
         "title": "Operasyonel Metrikler",
         "activeUsers": {
-          "title": "Toplam Aktif Kullanıcı (DAU/MAU)",
-          "caption": "Toplam Kayıtlı / Son 30 Gün Aktif Kullanıcı"
+          "title": "Toplam Aktif Kullanıcı (DAU/MAU)"
         },
         "invoicesToday": {
-          "title": "Bugün Oluşturulan Faturalar",
-          "caption": "Bugün oluşturulan fatura sayısı"
+          "title": "Bugün Oluşturulan Faturalar"
         },
         "packetUsage": {
           "title": "Paket Kullanımı"
