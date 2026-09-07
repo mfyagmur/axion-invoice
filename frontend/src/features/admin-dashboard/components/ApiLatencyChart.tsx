@@ -22,7 +22,7 @@ export function ApiLatencyChart({ series, isLoading, isError, onRetry }: ApiLate
   const points = series ?? []
 
   return (
-    <Card title={t('admin.dashboard.system.apiLatency')} className="flex h-full max-h-108 flex-col">
+    <Card title={t('admin.dashboard.system.apiLatency')} className="flex h-full max-h-112 flex-col">
       {isError && <ErrorState onRetry={onRetry} />}
       {!isError && isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isError && !isLoading && points.length > 0 && (
