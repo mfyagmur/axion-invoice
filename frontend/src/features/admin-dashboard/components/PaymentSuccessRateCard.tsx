@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
+import { Cell, Pie, PieChart, ResponsiveContainer, Sector } from 'recharts'
+import type { PieSectorDataItem } from 'recharts/types/polar/Pie'
 import { Card } from '@/components/Card'
 import type { PaymentSuccessRate } from '@/features/admin-dashboard/types/adminDashboard'
 
@@ -35,9 +36,36 @@ function useCountUp(target: number | undefined, durationMs = 800) {
   return value
 }
 
+function renderActiveShape(props: PieSectorDataItem) {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={(outerRadius ?? 0) + 8}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={(outerRadius ?? 0) + 11}
+        outerRadius={(outerRadius ?? 0) + 14}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.35}
+      />
+    </g>
+  )
+}
+
 export function PaymentSuccessRateCard({ data, isLoading }: PaymentSuccessRateCardProps) {
   const { t } = useTranslation()
-  const animatedPaidPct = useCountUp(data?.paid_pct)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   const slices = data
     ? [
@@ -47,42 +75,59 @@ export function PaymentSuccessRateCard({ data, isLoading }: PaymentSuccessRateCa
       ]
     : []
 
+  const displayedIndex = activeIndex ?? 0
+  const displayedSlice = slices[displayedIndex]
+  const animatedValue = useCountUp(displayedSlice?.value)
+
   return (
     <Card title={t('admin.dashboard.financial.paymentSuccessRate')} className="flex h-full flex-col items-center p-4 w-fit pr-9">
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
         <div className="flex flex-1 flex-col items-center justify-center">
           <div className="relative">
-            <ResponsiveContainer width={136} height={136}>
+            <ResponsiveContainer width={164} height={164}>
               <PieChart>
                 <Pie
                   data={slices}
                   dataKey="value"
                   nameKey="name"
-                  innerRadius={46}
+                  innerRadius={38}
                   outerRadius={64}
                   paddingAngle={2}
                   isAnimationActive
                   animationBegin={0}
                   animationDuration={900}
                   animationEasing="ease-out"
+                  activeIndex={displayedIndex}
+                  activeShape={renderActiveShape}
+                  onMouseEnter={(_, index) => setActiveIndex(index)}
+                  onMouseLeave={() => setActiveIndex(null)}
                 >
                   {slices.map((slice) => (
-                    <Cell key={slice.name} fill={slice.color} />
+                    <Cell key={slice.name} fill={slice.color} className="cursor-pointer transition-opacity duration-200" />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-200">
               <span className="text-lg font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-                {animatedPaidPct.toFixed(1)}%
+                {animatedValue.toFixed(1)}%
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">{t('admin.dashboard.financial.success')}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{displayedSlice?.name}</span>
             </div>
           </div>
           <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
-            {slices.map((slice) => (
-              <div key={slice.name} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+            {slices.map((slice, index) => (
+              <div
+                key={slice.name}
+                onMouseEnter={() => setActiveIndex(index)}
+                onMouseLeave={() => setActiveIndex(null)}
+                className={`flex cursor-pointer items-center gap-1.5 text-xs transition-colors duration-150 ${
+                  displayedIndex === index
+                    ? 'font-semibold text-slate-900 dark:text-slate-100'
+                    : 'text-slate-600 dark:text-slate-300'
+                }`}
+              >
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: slice.color }} />
                 {slice.name}
               </div>
