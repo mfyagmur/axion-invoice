@@ -13,7 +13,7 @@ export function SupportTicketsCard({ data, isLoading, className }: SupportTicket
   const { t } = useTranslation()
 
   return (
-    <Card title={t('admin.dashboard.operational.supportTickets.title')} className={className}>
+    <Card title={t('admin.dashboard.operational.supportTickets.title')} className={`h-74 ${className}`}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && data.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400">{t('admin.dashboard.operational.supportTickets.empty')}</p>

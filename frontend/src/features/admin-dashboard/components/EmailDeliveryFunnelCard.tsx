@@ -51,10 +51,10 @@ export function EmailDeliveryFunnelCard({ data, isLoading, className }: EmailDel
   const slices = legend.filter((row) => row.value > 0)
 
   return (
-    <Card title={t('admin.dashboard.delivery.emailFunnel.title')} className={className}>
+    <Card title={t('admin.dashboard.delivery.emailFunnel.title')} className={`h-full ${className}`}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8">
           <div className="relative shrink-0">
             <ResponsiveContainer width={150} height={150}>
               <PieChart>

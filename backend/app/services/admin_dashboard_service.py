@@ -23,6 +23,7 @@ from app.schemas.admin_dashboard import (
     CurrencyMtdAmount,
     EmailDeliveryFunnel,
     GibGatewayStatus,
+    InvoicesTodayStat,
     LatencyPoint,
     PacketUsageSlice,
     PaymentSuccessRate,
@@ -32,7 +33,7 @@ from app.schemas.admin_dashboard import (
     SparklinePoint,
     SupportTicket,
 )
-from app.services.dashboard_service import _build_trend, _effective_date, compute_display_status
+from app.services.dashboard_service import _build_trend, _currency_breakdown, _effective_date, compute_display_status
 
 SPARKLINE_DAYS = 14
 LOCAL_TZ = ZoneInfo("Europe/Istanbul")
@@ -307,11 +308,15 @@ def get_admin_operational_metrics(db: Session) -> AdminOperationalMetricsRespons
 
     day_start = datetime.combine(today, datetime.min.time(), tzinfo=LOCAL_TZ)
     day_end = day_start + timedelta(days=1)
-    invoices_created_today = (
+    today_invoices = (
         db.query(Invoice)
         .join(User, Invoice.user_id == User.id)
         .filter(User.is_demo.is_(False), Invoice.created_at >= day_start, Invoice.created_at < day_end)
-        .count()
+        .all()
+    )
+    invoices_created_today = InvoicesTodayStat(
+        count=len(today_invoices),
+        by_currency=_currency_breakdown(today_invoices),
     )
 
     plan_counts: dict[str, int] = {key: 0 for key in PLAN_ORDER}

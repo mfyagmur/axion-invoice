@@ -12,7 +12,7 @@ export function ActiveUsersCard({ data, isLoading }: ActiveUsersCardProps) {
   const { t } = useTranslation()
 
   return (
-    <Card title={t('admin.dashboard.operational.activeUsers.title')} className="flex flex-col gap-2 p-4">
+    <Card title={t('admin.dashboard.operational.activeUsers.title')} className="flex flex-col p-4 gap-4">
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
         <div className="flex items-center gap-2">

@@ -27,10 +27,10 @@ export function PacketUsageCard({ data, isLoading, className }: PacketUsageCardP
   }, [data])
 
   return (
-    <Card title={t('admin.dashboard.operational.packetUsage.title')} className={className}>
+    <Card title={t('admin.dashboard.operational.packetUsage.title')} className={`h-full ${className}`}>
       {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">{t('common.loading')}</p>}
       {!isLoading && data && (
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col">
           {data.map((row) => {
             const color = PLAN_COLORS[row.plan_key] ?? '#94a3b8'
             const pct = Math.min(Math.max(row.pct, 0), 100)

@@ -232,7 +232,8 @@
           "title": "Toplam Aktif Kullanıcı (DAU/MAU)"
         },
         "invoicesToday": {
-          "title": "Bugün Oluşturulan Faturalar"
+          "title": "Bugün Oluşturulan Faturalar",
+          "unit": "Adet"
         },
         "packetUsage": {
           "title": "Paket Kullanımı"

@@ -232,7 +232,8 @@
           "title": "Total Active Users (DAU/MAU)"
         },
         "invoicesToday": {
-          "title": "Total Invoices Created (Today)"
+          "title": "Total Invoices Created (Today)",
+          "unit": "pcs"
         },
         "packetUsage": {
           "title": "Packet Usage"

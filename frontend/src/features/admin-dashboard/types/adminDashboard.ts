@@ -114,9 +114,20 @@ export interface SupportTicket {
   priority: SupportTicketPriority
 }
 
+export interface CurrencyAmount {
+  currency: string
+  amount: string
+  count: number
+}
+
+export interface InvoicesTodayStat {
+  count: number
+  by_currency: CurrencyAmount[]
+}
+
 export interface AdminOperationalMetrics {
   active_users: ActiveUsersStat
-  invoices_created_today: number
+  invoices_created_today: InvoicesTodayStat
   packet_usage: PacketUsageSlice[]
   support_tickets: SupportTicket[]
 }

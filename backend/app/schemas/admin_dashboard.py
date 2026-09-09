@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from app.schemas.dashboard import TrendPoint
+from app.schemas.dashboard import CurrencyAmount, TrendPoint
 
 
 class CurrencyMtdAmount(BaseModel):
@@ -115,8 +115,13 @@ class SupportTicket(BaseModel):
     priority: Literal["priority", "not_priority"]
 
 
+class InvoicesTodayStat(BaseModel):
+    count: int
+    by_currency: list[CurrencyAmount]
+
+
 class AdminOperationalMetricsResponse(BaseModel):
     active_users: ActiveUsersStat
-    invoices_created_today: int
+    invoices_created_today: InvoicesTodayStat
     packet_usage: list[PacketUsageSlice]
     support_tickets: list[SupportTicket]
