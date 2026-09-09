@@ -299,3 +299,31 @@
   gösteriyor), o yüzden gerçek bir detay sayfası muhtemelen o işle birlikte ele alınmalı.
 - [ ] 2026-09-09: Hover görünümü (`hover:bg-slate-50 dark:hover:bg-slate-800/50`) tarayıcıda hem
   light hem dark modda görsel olarak teyit edilmedi.
+
+## 2026-09-09 — Admin Dashboard "Security Operations & Risk Management" sonrası
+
+- [ ] 2026-09-09: Global Threat Map şu an dependency-free, elips-tabanlı stilize bir dünya haritası
+  kullanıyor (bkz. `docs/PROJECT_DESING.md` "2026-09-09 — Admin Dashboard: ... Security..." girdisi)
+  — coğrafi olarak hassas bir görünüm istenirse `react-simple-maps` + `d3-geo` kurulup
+  `frontend/src/features/admin-dashboard/components/security/WorldMapBase.tsx` gerçek bir GeoJSON
+  ile değiştirilebilir.
+- [ ] 2026-09-09: IP-geolocation ücretsiz `ip-api.com` servisini kullanıyor (45 istek/dk limit,
+  `backend/app/services/geolocation_service.py`'de 40/dk'ya throttled + 6 saat cache). Trafik
+  arttıkça bu limit yetersiz kalabilir — ücretli bir geolocation servisine (MaxMind GeoIP2 vb.)
+  geçiş gerekebilir.
+- [ ] 2026-09-09: `security_alert_service.py`'deki eşik değerleri (brute-force: 15dk'da 5+, sunucu
+  hatası: 5+, yavaş istek: 10+, oturum iptali: 1 saatte 10+) ilk tahminle sabit kodlandı — gerçek
+  trafik gözlemlendikten sonra ayarlanmalı, idealde admin panelinden yapılandırılabilir olmalı.
+- [ ] 2026-09-09: `AuditLog` şu an yalnızca auth akışlarını (login/logout/2FA/şifre sıfırlama/
+  oturum yeniden-kullanım tespiti) kaydediyor. Diğer kritik admin aksiyonları (kullanıcı silme,
+  plan değişikliği, XSLT şablon düzenleme vb.) henüz audit'lenmiyor — kapsam bilinçli olarak login
+  güvenliğiyle sınırlı tutuldu.
+- [ ] 2026-09-09: Bu oturumda headless tarayıcı/screenshot aracı (chromium-cli, Playwright)
+  ortamda kurulu değildi; yeni bölümün responsive davranışı (masaüstü 4 / tablet 2 / mobil 1
+  sütun) ve dark/light mod görünümü API-seviyesinde ve canlı backend log'larından doğrulandı ama
+  görsel olarak teyit edilmedi. Bir sonraki oturumda veya kullanıcının kendi tarayıcısında kontrol
+  edilmeli.
+- [ ] 2026-09-09: `LoginActivitiesCard`'da lokasyon şu an düz metin (`Şehir, Ülke`) gösteriyor;
+  `flag-icons` paketi projede zaten kurulu ama backend ülke adını ISO2 koduna çevirmediğinden
+  bayrak ikonu eklenmedi (isim→kod eşleme tablosu gerekir) — istenirse ayrı bir görev olarak
+  eklenebilir.

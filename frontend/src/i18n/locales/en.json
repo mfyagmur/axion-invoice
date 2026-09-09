@@ -249,6 +249,57 @@
           "notConnected": "Disconnected",
           "notPriority": "Normal"
         }
+      },
+      "security": {
+        "title": "Security Operations & Risk Management",
+        "threatMap": {
+          "title": "Global Threat Map & Active Real-time Threats",
+          "legendCritical": "Critical",
+          "legendHigh": "High",
+          "legendMedium": "Medium",
+          "empty": "No connection data yet"
+        },
+        "loginActivities": {
+          "title": "Login Activities",
+          "time": "Time",
+          "user": "User",
+          "location": "Location",
+          "ip": "IP",
+          "status": "Status",
+          "statusSuccess": "Success",
+          "statusFailed": "Failed",
+          "statusSuspicious": "Suspicious",
+          "empty": "No login activity found"
+        },
+        "audit": {
+          "title": "System Audits Status and Logs",
+          "viewAll": "View All",
+          "empty": "No audit records found",
+          "modalTitle": "Audit Log Details",
+          "actions": {
+            "login.success": "Successful login",
+            "login.success.google": "Successful login (Google)",
+            "login.success.demo": "Successful login (Demo)",
+            "login.failed": "Failed login",
+            "logout": "Logout",
+            "session.revoked_reuse_detected": "Revoked session reuse detected",
+            "password.reset_completed": "Password reset completed"
+          }
+        },
+        "alerts": {
+          "title": "System Alerts",
+          "empty": "No active alerts",
+          "critical": "Critical",
+          "high": "High",
+          "webServer": "Web Server",
+          "low": "Low",
+          "categories": {
+            "brute_force": "Brute-force attempt",
+            "server_error_spike": "Server error spike",
+            "slow_request_spike": "Slow request spike",
+            "session_anomaly": "Session anomaly"
+          }
+        }
       }
     },
     "panel": {

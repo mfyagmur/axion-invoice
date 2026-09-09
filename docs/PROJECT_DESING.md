@@ -1742,3 +1742,90 @@ dönen JSON body) test edilemedi çünkü bu oturumda bilinen admin şifresi (`c
 varsayılan) güncel değildi ve kimlik bilgisi tahmin etmek riskli/verimsiz olurdu; gerçek ortamda
 admin girişiyle her iki endpoint'in ve dashboard sayfasının (özellikle Packet Usage ve Active
 Users kartlarının gerçek DB verisiyle) manuel teyidi öneriliyor.
+
+## 2026-09-09 — Admin Dashboard: "Security Operations & Risk Management" Bölümü
+
+**Durum:** Ekleme.
+
+**Özet:** AdminDashboardHomePage'in en altına, 4 kartlık yeni bir güvenlik bölümü eklendi:
+Global Threat Map, Login Activities, System Audits Status and Logs, System Alerts. Keşif
+aşamasında bu kartları besleyecek hiçbir gerçek veri altyapısının (login denemesi kaydı,
+IP-geolocation, audit log, security alert) sistemde olmadığı tespit edildi — kullanıcıyla
+netleşen karar **minimum gerekli backend altyapısının sıfırdan kurulmasıydı** (mock/sabit veri
+değil).
+
+Backend'e 3 yeni tablo eklendi: `login_attempts` (email, status, ip, user-agent, ülke/şehir/
+lat-lon, failure_reason), `audit_logs` (actor, action, target, ip — login/logout/şifre
+sıfırlama/oturum yeniden-kullanım tespiti gibi olayları kaydeder), `security_alerts` (severity:
+critical/high/web_server/low, category, title, description, source). `backend/app/api/v1/
+auth.py`'deki tüm giriş/çıkış akışlarına (login başarılı/başarısız, 2FA doğrulama, Google login,
+demo login, logout, şifre sıfırlama, refresh-token yeniden-kullanım tespiti) bu tabloları dolduran
+`_record_login_attempt`/`_record_audit_event` yardımcıları eklendi — tamamı try/except ile
+sarılı, herhangi bir loglama hatası mevcut login akışını asla bozmaz. IP-geolocation, login
+gecikmesini etkilememesi için **Celery üzerinden asenkron** yapılıyor (`resolve_login_geolocation`
+task'ı, ücretsiz ip-api.com servisini kullanır; private/loopback IP'ler atlanır, 6 saatlik
+in-memory cache ve 40 istek/dk rate limiter ile ücretsiz kota korunur). `security_alert_service.
+sync_security_alerts()` dashboard okunduğunda çalışır ve 4 kategoriden alert üretir: brute-force
+(15 dk'da 5+ başarısız giriş → critical), sunucu hata artışı (mevcut `request_metrics`'ten → high),
+yavaş istek artışı (→ web_server), anormal oturum iptali hacmi (→ low).
+
+Harita için **yeni bir kütüphane eklenmedi** — `react-simple-maps`/`d3-geo` yerine, birkaç renkli
+nokta için gereksiz bundle ağırlığı getirmemesi amacıyla dependency-free bir inline SVG dünya
+haritası (`WorldMapBase.tsx`, kıta blokları basit elips şekilleriyle temsil edilir) + yüzde bazlı
+lat/lon konumlandırma + Tailwind `animate-ping` pulse efekti tercih edildi. Harita noktalarının
+rengi (kritik/kırmızı, yüksek/turuncu, orta/sarı) `LoginAttempt` verisinden canlı türetiliyor.
+
+Geliştirme sırasında gerçek bir hata bulunup düzeltildi: SQLAlchemy `Enum(PythonEnumClass)`
+varsayılan olarak enum üyesinin `.name`'ini (`"FAILED"`) veritabanına yazmaya çalışıyordu, ama
+migration'lar Postgres enum tipini küçük harfli `.value` değerleriyle (`'failed'`) oluşturmuştu —
+bu uyumsuzluk yüzünden tüm `login_attempts`/`security_alerts` yazımları sessizce (try/except
+içinde) başarısız oluyordu. Her iki modele de `values_callable=lambda e: [x.value for x in e]`
+eklenerek düzeltildi.
+
+**Yapılan dosyalar:**
+- Backend (yeni): `backend/app/models/login_attempt.py`, `audit_log.py`, `security_alert.py`;
+  `backend/app/services/geolocation_service.py`, `security_alert_service.py`;
+  `backend/app/tasks/security_tasks.py`; 3 Alembic migration
+  (`d4e5f6a7b8c9_create_login_attempts_table.py`, `e5f6a7b8c9d1_create_audit_logs_table.py`,
+  `f6a7b8c9d1e2_create_security_alerts_table.py` — gerçek zincir başı `c2d3e4f5a6b7` (iki dalın
+  merge noktası) referans alınarak eklendi, `alembic heads` ile tek head olduğu doğrulandı).
+- Backend (değiştirme): `backend/app/models/__init__.py`, `backend/alembic/env.py` (yeni modeller
+  kayıt edildi); `backend/app/api/v1/auth.py` (login/logout/2FA/Google/demo/refresh/reset-password
+  akışlarına audit+login-attempt kaydı eklendi); `backend/app/services/admin_dashboard_service.py`
+  (4 yeni fonksiyon: `get_admin_security_threat_map`, `get_admin_security_login_activities`,
+  `get_admin_security_audit_logs`, `get_admin_security_alerts`); `backend/app/schemas/
+  admin_dashboard.py` (ilgili response şemaları); `backend/app/api/v1/admin_dashboard.py` (4 yeni
+  `GET /admin/dashboard/security-*` endpoint'i, `require_admin` korumalı); `backend/app/tasks/
+  celery_app.py` (`app.tasks.security_tasks` include listesine eklendi).
+- Frontend (yeni): `frontend/src/features/admin-dashboard/components/security/` altında
+  `WorldMapBase.tsx`, `GlobalThreatMapCard.tsx`, `LoginActivitiesCard.tsx`, `SystemAuditCard.tsx`,
+  `AuditLogDetailModal.tsx`, `SecurityAlertsCard.tsx`; `frontend/src/features/admin-dashboard/
+  hooks/` altında `useAdminSecurityThreatMap.ts`, `useAdminSecurityLoginActivities.ts`,
+  `useAdminSecurityAuditLogs.ts`, `useAdminSecurityAlerts.ts` (20sn `refetchInterval`).
+- Frontend (değiştirme): `frontend/src/features/admin-dashboard/types/adminDashboard.ts` ve
+  `api/adminDashboardApi.ts` (yeni tipler/endpoint çağrıları eklendi); `frontend/src/pages/admin/
+  AdminDashboardHomePage.tsx` (mevcut 4 section'ın altına, `xl:col-span-2` ile tam genişlik
+  kaplayan 5. section eklendi — içinde `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` ile masaüstünde
+  4/tablette 2/mobilde 1 sütun düzeni); `frontend/src/i18n/locales/en.json`,
+  `frontend/src/i18n/locales/tr.json` (`admin.dashboard.security.*` altında tüm başlık/etiket
+  çevirileri eklendi).
+
+**Doğrulama:** Backend: `alembic heads` ile tek head doğrulandı, `alembic upgrade head` container
+içinde temiz uygulandı (mevcut tabloya dokunulmadı). Tüm değiştirilen/yeni Python modülleri
+`python -c "import ..."` ile hatasız import edildi; `from app.main import app` ile route ağacı
+gezilip 4 yeni `/admin/dashboard/security-*` endpoint'inin gerçekten kayıtlı olduğu doğrulandı.
+Docker Compose ortamındaki gerçek `backend-backend-1`/`backend-celery-worker-1` container'ları
+(kodun canlı geliştirme ortamı) yeniden başlatılarak güncel kod yüklendi; ardından **admin
+kullanıcıyla gerçek login denemesi tetiklendi** (`create_admin.py` ile şifre `Admin@123456`'ya
+sıfırlanarak) — başarısız ve başarılı girişlerin `login_attempts`/`audit_logs` tablolarına
+gerçekten yazıldığı, Celery worker'ın `resolve_login_geolocation` task'ını hatasız işlediği ve
+tüm 4 yeni endpoint'in admin JWT token'ı ile gerçek JSON veri döndürdüğü (`security-alerts`
+dahil — geliştirme sırasında yakalanan enum uyumsuzluğu hatası bu testte ortaya çıktı ve
+düzeltildi) doğrulandı. Frontend: `tsc --noEmit` ve `npm run build` (tip aşaması) hatasız geçti
+(projede önceden var olan, bu değişiklikle ilgisiz 4 dosyadaki tip hatasına dokunulmadı — `git
+status` ile bu dosyaların değişmediği teyit edildi). Kullanıcının halihazırda açık olan admin
+dashboard sekmesinin, backend yeniden başlatılmadan önce yeni endpoint'lere otomatik istek attığı
+(React Query `refetchInterval`) ve düzeltmeden sonra bu isteklerin başarılı döndüğü canlı log
+akışından gözlemlendi; ayrı bir headless tarayıcı/screenshot aracı bu ortamda kurulu olmadığından
+görsel responsive/dark-mode teyidi ayrıca yapılamadı — kullanıcının kendi açık sekmesinde kontrol
+etmesi önerilir.

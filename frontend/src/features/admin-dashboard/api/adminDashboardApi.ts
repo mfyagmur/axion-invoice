@@ -4,6 +4,10 @@ import type {
   AdminFinancialOverview,
   AdminOperationalMetrics,
   AdminSystemHealth,
+  SecurityAlertsResponse,
+  SecurityAuditLogsResponse,
+  SecurityLoginActivitiesResponse,
+  SecurityThreatMapResponse,
   SlowQueryDetailResponse,
 } from '@/features/admin-dashboard/types/adminDashboard'
 
@@ -21,4 +25,18 @@ export const adminDashboardApi = {
 
   getOperationalMetrics: () =>
     apiClient.get<AdminOperationalMetrics>('/admin/dashboard/operational-metrics').then((res) => res.data),
+
+  getSecurityThreatMap: () =>
+    apiClient.get<SecurityThreatMapResponse>('/admin/dashboard/security-threat-map').then((res) => res.data),
+
+  getSecurityLoginActivities: () =>
+    apiClient
+      .get<SecurityLoginActivitiesResponse>('/admin/dashboard/security-login-activities')
+      .then((res) => res.data),
+
+  getSecurityAuditLogs: () =>
+    apiClient.get<SecurityAuditLogsResponse>('/admin/dashboard/security-audit-logs').then((res) => res.data),
+
+  getSecurityAlerts: () =>
+    apiClient.get<SecurityAlertsResponse>('/admin/dashboard/security-alerts').then((res) => res.data),
 }

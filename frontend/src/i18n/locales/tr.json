@@ -249,6 +249,57 @@
           "notConnected": "Bağlı Değil",
           "notPriority": "Normal"
         }
+      },
+      "security": {
+        "title": "Güvenlik Operasyonları ve Risk Yönetimi",
+        "threatMap": {
+          "title": "Küresel Tehdit Haritası ve Aktif Tehditler",
+          "legendCritical": "Kritik",
+          "legendHigh": "Yüksek",
+          "legendMedium": "Orta",
+          "empty": "Henüz bağlantı verisi yok"
+        },
+        "loginActivities": {
+          "title": "Giriş Aktiviteleri",
+          "time": "Zaman",
+          "user": "Kullanıcı",
+          "location": "Lokasyon",
+          "ip": "IP",
+          "status": "Durum",
+          "statusSuccess": "Başarılı",
+          "statusFailed": "Başarısız",
+          "statusSuspicious": "Şüpheli",
+          "empty": "Giriş aktivitesi bulunamadı"
+        },
+        "audit": {
+          "title": "Sistem Denetim Durumu ve Kayıtları",
+          "viewAll": "Tümünü Gör",
+          "empty": "Denetim kaydı bulunamadı",
+          "modalTitle": "Denetim Kaydı Detayları",
+          "actions": {
+            "login.success": "Başarılı giriş",
+            "login.success.google": "Başarılı giriş (Google)",
+            "login.success.demo": "Başarılı giriş (Demo)",
+            "login.failed": "Başarısız giriş",
+            "logout": "Çıkış",
+            "session.revoked_reuse_detected": "İptal edilmiş oturum yeniden kullanımı tespit edildi",
+            "password.reset_completed": "Şifre sıfırlama tamamlandı"
+          }
+        },
+        "alerts": {
+          "title": "Sistem Uyarıları",
+          "empty": "Aktif uyarı yok",
+          "critical": "Kritik",
+          "high": "Yüksek",
+          "webServer": "Web Sunucu",
+          "low": "Düşük",
+          "categories": {
+            "brute_force": "Kaba kuvvet (brute-force) girişimi",
+            "server_error_spike": "Sunucu hata artışı",
+            "slow_request_spike": "Yavaş istek artışı",
+            "session_anomaly": "Oturum anomalisi"
+          }
+        }
       }
     },
     "panel": {

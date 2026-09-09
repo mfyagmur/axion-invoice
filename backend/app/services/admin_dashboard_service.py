@@ -8,8 +8,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.request_metrics import SLOW_REQUEST_THRESHOLD_MS, RequestRecord, get_records
+from app.models.audit_log import AuditLog
 from app.models.invoice import Invoice, InvoiceDueReminder, InvoicePaymentReminder, InvoiceStatus
+from app.models.login_attempt import LoginAttempt, LoginAttemptStatus
 from app.models.plan import Plan
+from app.models.security_alert import SecurityAlert
 from app.models.subscription import Subscription
 from app.models.user import User
 from app.models.session import UserSession
@@ -19,21 +22,34 @@ from app.schemas.admin_dashboard import (
     AdminFinancialOverviewResponse,
     AdminOperationalMetricsResponse,
     AdminSystemHealthResponse,
+    AuditLogEntry,
     CountWithSparkline,
     CurrencyMtdAmount,
     EmailDeliveryFunnel,
     GibGatewayStatus,
     InvoicesTodayStat,
     LatencyPoint,
+    LoginActivityRow,
     PacketUsageSlice,
     PaymentSuccessRate,
     RequestIssueDetail,
+    SecurityAlertItem,
+    SecurityAlertsResponse,
+    SecurityAuditLogsResponse,
+    SecurityLoginActivitiesResponse,
+    SecurityThreatMapResponse,
+    SecurityThreatPoint,
     SlowQueryAlert,
     SlowQueryDetailResponse,
     SparklinePoint,
     SupportTicket,
 )
+from app.services import security_alert_service
 from app.services.dashboard_service import _build_trend, _currency_breakdown, _effective_date, compute_display_status
+
+MAX_LOGIN_ATTEMPT_RECORDS = 200
+MAX_LOGIN_ACTIVITY_ROWS = 50
+MAX_AUDIT_LOG_ENTRIES = 100
 
 SPARKLINE_DAYS = 14
 LOCAL_TZ = ZoneInfo("Europe/Istanbul")
@@ -357,4 +373,136 @@ def get_admin_operational_metrics(db: Session) -> AdminOperationalMetricsRespons
         invoices_created_today=invoices_created_today,
         packet_usage=packet_usage,
         support_tickets=support_tickets,
+    )
+
+
+def get_admin_security_threat_map(db: Session) -> SecurityThreatMapResponse:
+    attempts = (
+        db.query(LoginAttempt)
+        .filter(LoginAttempt.latitude.isnot(None), LoginAttempt.longitude.isnot(None))
+        .order_by(LoginAttempt.created_at.desc())
+        .limit(MAX_LOGIN_ATTEMPT_RECORDS)
+        .all()
+    )
+
+    groups: dict[tuple[float, float], dict] = {}
+    for attempt in attempts:
+        key = (round(attempt.latitude, 1), round(attempt.longitude, 1))
+        group = groups.setdefault(
+            key,
+            {"country": attempt.country, "city": attempt.city, "count": 0, "failed_count": 0},
+        )
+        group["count"] += 1
+        if attempt.status == LoginAttemptStatus.FAILED:
+            group["failed_count"] += 1
+
+    points = []
+    for (lat, lon), group in groups.items():
+        if group["failed_count"] >= security_alert_service.BRUTE_FORCE_THRESHOLD:
+            severity = "critical"
+        elif group["failed_count"] > 0:
+            severity = "high"
+        else:
+            severity = "medium"
+        points.append(
+            SecurityThreatPoint(
+                latitude=lat,
+                longitude=lon,
+                severity=severity,
+                country=group["country"],
+                city=group["city"],
+                count=group["count"],
+            )
+        )
+
+    return SecurityThreatMapResponse(points=points)
+
+
+def get_admin_security_login_activities(db: Session) -> SecurityLoginActivitiesResponse:
+    attempts = (
+        db.query(LoginAttempt)
+        .order_by(LoginAttempt.created_at.desc())
+        .limit(MAX_LOGIN_ACTIVITY_ROWS)
+        .all()
+    )
+
+    user_ids = {attempt.user_id for attempt in attempts if attempt.user_id is not None}
+    users_by_id = {}
+    if user_ids:
+        for user in db.query(User).filter(User.id.in_(user_ids)).all():
+            users_by_id[user.id] = user.full_name
+
+    rows = []
+    for attempt in attempts:
+        display_name = users_by_id.get(attempt.user_id) if attempt.user_id else None
+        location_parts = [part for part in (attempt.city, attempt.country) if part]
+        rows.append(
+            LoginActivityRow(
+                time=attempt.created_at,
+                user=display_name or attempt.email,
+                location=", ".join(location_parts) if location_parts else None,
+                ip=attempt.ip_address,
+                status=attempt.status.value,
+            )
+        )
+
+    return SecurityLoginActivitiesResponse(rows=rows)
+
+
+def get_admin_security_audit_logs(db: Session, event_type: str | None = None) -> SecurityAuditLogsResponse:
+    query = db.query(AuditLog).order_by(AuditLog.created_at.desc())
+    if event_type:
+        query = query.filter(AuditLog.action == event_type)
+    logs = query.limit(MAX_AUDIT_LOG_ENTRIES).all()
+
+    actor_ids = {log.actor_user_id for log in logs if log.actor_user_id is not None}
+    users_by_id = {}
+    if actor_ids:
+        for user in db.query(User).filter(User.id.in_(actor_ids)).all():
+            users_by_id[user.id] = user.full_name
+
+    entries = [
+        AuditLogEntry(
+            id=str(log.id),
+            time=log.created_at,
+            action=log.action,
+            actor=users_by_id.get(log.actor_user_id) if log.actor_user_id else None,
+            target_type=log.target_type,
+            target_id=log.target_id,
+            ip=log.ip_address,
+        )
+        for log in logs
+    ]
+
+    return SecurityAuditLogsResponse(entries=entries)
+
+
+def get_admin_security_alerts(db: Session) -> SecurityAlertsResponse:
+    security_alert_service.sync_security_alerts(db)
+
+    alerts = (
+        db.query(SecurityAlert)
+        .filter(SecurityAlert.is_resolved.is_(False))
+        .order_by(SecurityAlert.created_at.desc())
+        .all()
+    )
+
+    counts_by_severity: dict[str, int] = {}
+    for alert in alerts:
+        counts_by_severity[alert.severity.value] = counts_by_severity.get(alert.severity.value, 0) + 1
+
+    return SecurityAlertsResponse(
+        alerts=[
+            SecurityAlertItem(
+                id=str(alert.id),
+                severity=alert.severity.value,
+                category=alert.category,
+                title=alert.title,
+                description=alert.description,
+                source=alert.source,
+                created_at=alert.created_at,
+            )
+            for alert in alerts
+        ],
+        counts_by_severity=counts_by_severity,
     )

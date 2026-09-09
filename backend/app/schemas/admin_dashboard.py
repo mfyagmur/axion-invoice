@@ -125,3 +125,57 @@ class AdminOperationalMetricsResponse(BaseModel):
     invoices_created_today: InvoicesTodayStat
     packet_usage: list[PacketUsageSlice]
     support_tickets: list[SupportTicket]
+
+
+class SecurityThreatPoint(BaseModel):
+    latitude: float
+    longitude: float
+    severity: Literal["critical", "high", "medium"]
+    country: str | None
+    city: str | None
+    count: int
+
+
+class SecurityThreatMapResponse(BaseModel):
+    points: list[SecurityThreatPoint]
+
+
+class LoginActivityRow(BaseModel):
+    time: datetime
+    user: str
+    location: str | None
+    ip: str | None
+    status: Literal["success", "failed", "suspicious"]
+
+
+class SecurityLoginActivitiesResponse(BaseModel):
+    rows: list[LoginActivityRow]
+
+
+class AuditLogEntry(BaseModel):
+    id: str
+    time: datetime
+    action: str
+    actor: str | None
+    target_type: str | None
+    target_id: str | None
+    ip: str | None
+
+
+class SecurityAuditLogsResponse(BaseModel):
+    entries: list[AuditLogEntry]
+
+
+class SecurityAlertItem(BaseModel):
+    id: str
+    severity: Literal["critical", "high", "web_server", "low"]
+    category: str
+    title: str
+    description: str | None
+    source: str | None
+    created_at: datetime
+
+
+class SecurityAlertsResponse(BaseModel):
+    alerts: list[SecurityAlertItem]
+    counts_by_severity: dict[str, int]

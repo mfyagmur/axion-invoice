@@ -11,6 +11,10 @@ from app.schemas.admin_dashboard import (
     AdminFinancialOverviewResponse,
     AdminOperationalMetricsResponse,
     AdminSystemHealthResponse,
+    SecurityAlertsResponse,
+    SecurityAuditLogsResponse,
+    SecurityLoginActivitiesResponse,
+    SecurityThreatMapResponse,
     SlowQueryDetailResponse,
 )
 from app.services import admin_dashboard_service
@@ -55,3 +59,36 @@ def get_admin_operational_metrics(
     db: Annotated[Session, Depends(get_db)],
 ) -> AdminOperationalMetricsResponse:
     return admin_dashboard_service.get_admin_operational_metrics(db)
+
+
+@router.get("/security-threat-map", response_model=SecurityThreatMapResponse)
+def get_admin_security_threat_map(
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> SecurityThreatMapResponse:
+    return admin_dashboard_service.get_admin_security_threat_map(db)
+
+
+@router.get("/security-login-activities", response_model=SecurityLoginActivitiesResponse)
+def get_admin_security_login_activities(
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> SecurityLoginActivitiesResponse:
+    return admin_dashboard_service.get_admin_security_login_activities(db)
+
+
+@router.get("/security-audit-logs", response_model=SecurityAuditLogsResponse)
+def get_admin_security_audit_logs(
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+    event_type: str | None = None,
+) -> SecurityAuditLogsResponse:
+    return admin_dashboard_service.get_admin_security_audit_logs(db, event_type)
+
+
+@router.get("/security-alerts", response_model=SecurityAlertsResponse)
+def get_admin_security_alerts(
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> SecurityAlertsResponse:
+    return admin_dashboard_service.get_admin_security_alerts(db)

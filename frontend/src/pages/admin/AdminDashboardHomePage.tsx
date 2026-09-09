@@ -18,6 +18,15 @@ import { ActiveUsersCard } from '@/features/admin-dashboard/components/ActiveUse
 import { InvoicesTodayCard } from '@/features/admin-dashboard/components/InvoicesTodayCard'
 import { PacketUsageCard } from '@/features/admin-dashboard/components/PacketUsageCard'
 import { SupportTicketsCard } from '@/features/admin-dashboard/components/SupportTicketsCard'
+import { GlobalThreatMapCard } from '@/features/admin-dashboard/components/security/GlobalThreatMapCard'
+import { LoginActivitiesCard } from '@/features/admin-dashboard/components/security/LoginActivitiesCard'
+import { SystemAuditCard } from '@/features/admin-dashboard/components/security/SystemAuditCard'
+import { AuditLogDetailModal } from '@/features/admin-dashboard/components/security/AuditLogDetailModal'
+import { SecurityAlertsCard } from '@/features/admin-dashboard/components/security/SecurityAlertsCard'
+import { useAdminSecurityThreatMap } from '@/features/admin-dashboard/hooks/useAdminSecurityThreatMap'
+import { useAdminSecurityLoginActivities } from '@/features/admin-dashboard/hooks/useAdminSecurityLoginActivities'
+import { useAdminSecurityAuditLogs } from '@/features/admin-dashboard/hooks/useAdminSecurityAuditLogs'
+import { useAdminSecurityAlerts } from '@/features/admin-dashboard/hooks/useAdminSecurityAlerts'
 import type { SlowQueryAlertKey } from '@/features/admin-dashboard/types/adminDashboard'
 
 export function AdminDashboardHomePage() {
@@ -27,6 +36,11 @@ export function AdminDashboardHomePage() {
   const delivery = useAdminDeliveryIntegrations()
   const operational = useAdminOperationalMetrics()
   const [slowQueryModalTab, setSlowQueryModalTab] = useState<SlowQueryAlertKey | null>(null)
+  const securityThreatMap = useAdminSecurityThreatMap()
+  const securityLoginActivities = useAdminSecurityLoginActivities()
+  const securityAuditLogs = useAdminSecurityAuditLogs()
+  const securityAlerts = useAdminSecurityAlerts()
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false)
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr]">
@@ -113,10 +127,30 @@ export function AdminDashboardHomePage() {
         </div>
       </section>
 
+      <section className="flex flex-col gap-4 xl:col-span-2">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('admin.dashboard.security.title')}</h1>
+        <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <GlobalThreatMapCard data={securityThreatMap.data?.points} isLoading={securityThreatMap.isLoading} />
+          <LoginActivitiesCard data={securityLoginActivities.data?.rows} isLoading={securityLoginActivities.isLoading} />
+          <SystemAuditCard
+            data={securityAuditLogs.data?.entries}
+            isLoading={securityAuditLogs.isLoading}
+            onViewAll={() => setIsAuditModalOpen(true)}
+          />
+          <SecurityAlertsCard data={securityAlerts.data?.alerts} isLoading={securityAlerts.isLoading} />
+        </div>
+      </section>
+
       <SlowQueryDetailModal
         isOpen={slowQueryModalTab !== null}
         onClose={() => setSlowQueryModalTab(null)}
         initialTab={slowQueryModalTab ?? 'slow_requests'}
+      />
+      <AuditLogDetailModal
+        isOpen={isAuditModalOpen}
+        onClose={() => setIsAuditModalOpen(false)}
+        data={securityAuditLogs.data?.entries}
+        isLoading={securityAuditLogs.isLoading}
       />
     </div>
   )

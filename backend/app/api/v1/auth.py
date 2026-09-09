@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
@@ -21,10 +22,15 @@ from app.core.security import (
     hash_reset_token,
     verify_password,
 )
+from app.models.audit_log import AuditLog
 from app.models.invoice import Invoice
+from app.models.login_attempt import LoginAttempt, LoginAttemptStatus
 from app.models.password_reset_token import PasswordResetToken
 from app.models.session import UserSession
 from app.models.user import User
+from app.tasks.security_tasks import resolve_login_geolocation_task
+
+logger = logging.getLogger(__name__)
 from app.schemas.auth import (
     ForgotPasswordRequest,
     GoogleAuthRequest,
@@ -74,6 +80,70 @@ def _set_refresh_cookie(response: Response, user_id: str, request: Request, db: 
     db.commit()
 
 
+def _record_login_attempt(
+    db: Session,
+    *,
+    request: Request,
+    email: str,
+    status: LoginAttemptStatus,
+    user: User | None = None,
+    failure_reason: str | None = None,
+    audit_action: str | None = None,
+) -> None:
+    try:
+        ip_address = request.client.host if request.client else None
+        attempt = LoginAttempt(
+            user_id=user.id if user else None,
+            email=email,
+            status=status,
+            ip_address=ip_address,
+            user_agent=request.headers.get("user-agent"),
+            failure_reason=failure_reason,
+        )
+        db.add(attempt)
+        db.add(
+            AuditLog(
+                actor_user_id=user.id if user else None,
+                action=audit_action or ("login.success" if status == LoginAttemptStatus.SUCCESS else "login.failed"),
+                target_type="user",
+                target_id=str(user.id) if user else None,
+                ip_address=ip_address,
+            )
+        )
+        db.commit()
+        if ip_address:
+            resolve_login_geolocation_task.delay(str(attempt.id))
+    except Exception:
+        logger.warning("Login attempt/audit logging failed", exc_info=True)
+        db.rollback()
+
+
+def _record_audit_event(
+    db: Session,
+    *,
+    request: Request | None,
+    action: str,
+    actor: User | None = None,
+    target_type: str | None = None,
+    target_id: str | None = None,
+) -> None:
+    try:
+        ip_address = request.client.host if request and request.client else None
+        db.add(
+            AuditLog(
+                actor_user_id=actor.id if actor else None,
+                action=action,
+                target_type=target_type,
+                target_id=target_id,
+                ip_address=ip_address,
+            )
+        )
+        db.commit()
+    except Exception:
+        logger.warning("Audit logging failed", exc_info=True)
+        db.rollback()
+
+
 def _mask_email(email: str) -> str:
     local, _, domain = email.partition("@")
     if len(local) <= 2:
@@ -121,6 +191,14 @@ def signup(payload: SignupRequest, request: Request, response: Response, db: Ann
 def login(payload: LoginRequest, request: Request, response: Response, db: Annotated[Session, Depends(get_db)]) -> LoginResponse:
     user = db.query(User).filter(User.email == payload.email).first()
     if user is None or user.password_hash is None or not verify_password(payload.password, user.password_hash):
+        _record_login_attempt(
+            db,
+            request=request,
+            email=payload.email,
+            status=LoginAttemptStatus.FAILED,
+            user=user,
+            failure_reason="invalid_credentials",
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="E-posta veya şifre hatalı")
 
     if user.is_2fa_enabled and user.two_factor_email:
@@ -132,6 +210,7 @@ def login(payload: LoginRequest, request: Request, response: Response, db: Annot
             two_factor_otp_expires_at=expires_at,
         )
 
+    _record_login_attempt(db, request=request, email=payload.email, status=LoginAttemptStatus.SUCCESS, user=user)
     _set_refresh_cookie(response, str(user.id), request, db)
     return LoginResponse(access_token=create_access_token(str(user.id)))
 
@@ -173,6 +252,7 @@ def verify_two_factor(
     user.two_factor_otp_purpose = None
     db.commit()
 
+    _record_login_attempt(db, request=request, email=user.email, status=LoginAttemptStatus.SUCCESS, user=user)
     _set_refresh_cookie(response, str(user.id), request, db)
     return TokenResponse(access_token=create_access_token(str(user.id)))
 
@@ -244,6 +324,14 @@ def refresh(
     if jti:
         session = db.query(UserSession).filter(UserSession.refresh_token_jti == jti).first()
         if session is None or session.revoked_at is not None:
+            _record_audit_event(
+                db,
+                request=request,
+                action="session.revoked_reuse_detected",
+                actor=user,
+                target_type="user_session",
+                target_id=str(session.id) if session else None,
+            )
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Oturum iptal edildi")
         session.last_used_at = func.now()
         db.commit()
@@ -275,6 +363,7 @@ def refresh(
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(
+    request: Request,
     response: Response,
     db: Annotated[Session, Depends(get_db)],
     refresh_token: Annotated[str | None, Cookie()] = None,
@@ -288,6 +377,14 @@ def logout(
                 if session:
                     session.revoked_at = func.now()
                     db.commit()
+                    _record_audit_event(
+                        db,
+                        request=request,
+                        action="logout",
+                        actor=db.get(User, session.user_id),
+                        target_type="user_session",
+                        target_id=str(session.id),
+                    )
     response.delete_cookie(settings.refresh_cookie_name, path=settings.refresh_cookie_path)
 
 
@@ -321,6 +418,7 @@ def google_login(
         db.commit()
         db.refresh(user)
 
+    _record_login_attempt(db, request=request, email=user.email, status=LoginAttemptStatus.SUCCESS, user=user, audit_action="login.success.google")
     _set_refresh_cookie(response, str(user.id), request, db)
     return TokenResponse(access_token=create_access_token(str(user.id)))
 
@@ -339,6 +437,7 @@ def demo_login(request: Request, response: Response, db: Annotated[Session, Depe
     if pending_invoice is not None:
         generate_invoice_pdf_task.delay(str(pending_invoice.id))
 
+    _record_login_attempt(db, request=request, email=user.email, status=LoginAttemptStatus.SUCCESS, user=user, audit_action="login.success.demo")
     _set_refresh_cookie(response, str(user.id), request, db)
     return TokenResponse(access_token=create_access_token(str(user.id)))
 
@@ -367,7 +466,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Annotated[Session, Depen
 
 
 @router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
-def reset_password(payload: ResetPasswordRequest, db: Annotated[Session, Depends(get_db)]) -> None:
+def reset_password(payload: ResetPasswordRequest, request: Request, db: Annotated[Session, Depends(get_db)]) -> None:
     token_hash = hash_reset_token(payload.token)
     record = db.query(PasswordResetToken).filter(PasswordResetToken.token_hash == token_hash).first()
     if (
@@ -384,3 +483,4 @@ def reset_password(payload: ResetPasswordRequest, db: Annotated[Session, Depends
         {"revoked_at": func.now()}
     )
     db.commit()
+    _record_audit_event(db, request=request, action="password.reset_completed", actor=user, target_type="user", target_id=str(user.id))

@@ -131,3 +131,63 @@ export interface AdminOperationalMetrics {
   packet_usage: PacketUsageSlice[]
   support_tickets: SupportTicket[]
 }
+
+export type ThreatSeverity = 'critical' | 'high' | 'medium'
+
+export interface SecurityThreatPoint {
+  latitude: number
+  longitude: number
+  severity: ThreatSeverity
+  country: string | null
+  city: string | null
+  count: number
+}
+
+export interface SecurityThreatMapResponse {
+  points: SecurityThreatPoint[]
+}
+
+export type LoginActivityStatus = 'success' | 'failed' | 'suspicious'
+
+export interface LoginActivityRow {
+  time: string
+  user: string
+  location: string | null
+  ip: string | null
+  status: LoginActivityStatus
+}
+
+export interface SecurityLoginActivitiesResponse {
+  rows: LoginActivityRow[]
+}
+
+export interface AuditLogEntry {
+  id: string
+  time: string
+  action: string
+  actor: string | null
+  target_type: string | null
+  target_id: string | null
+  ip: string | null
+}
+
+export interface SecurityAuditLogsResponse {
+  entries: AuditLogEntry[]
+}
+
+export type SecurityAlertSeverity = 'critical' | 'high' | 'web_server' | 'low'
+
+export interface SecurityAlertItem {
+  id: string
+  severity: SecurityAlertSeverity
+  category: string
+  title: string
+  description: string | null
+  source: string | null
+  created_at: string
+}
+
+export interface SecurityAlertsResponse {
+  alerts: SecurityAlertItem[]
+  counts_by_severity: Record<string, number>
+}
