@@ -1924,3 +1924,45 @@ gösteren bir sayaç eklendi.
 4 dosyadaki hata dışında yeni hata yok). Kod incelemesiyle doğrulandı; tüm 4 kart yine mevcut
 `Card`/`Modal` pattern'lerini kullanıyor, backend/API değişikliği gerekmedi (limitleme ve sayaçlar
 tamamen frontend'de, elde zaten var olan response verisi üzerinde uygulanıyor).
+
+---
+
+## 2026-09-09 — Security: Tehdit Haritasına "Normal" (Aktif Bağlantı) Katmanı
+
+**Durum:** Tamamlandı.
+
+**Özet:** Kullanıcı geri bildirimi: "Küresel Tehdit Haritası ve Aktif Tehditler" kartı sadece
+tehdit/başarısız-giriş noktalarını (Kritik/Yüksek/Orta) gösteriyordu; şu anda sisteme bağlı olan
+kullanıcıların hangi konumda/ülkede bağlı olduğu haritada görünmüyordu. Legend'e yeşil "Normal"
+kategorisi eklendi ve haritaya, şu anda aktif (revoke edilmemiş, `access_token_expire_minutes`
+içinde kullanılmış) oturumların konumunu temsil eden yeşil noktalar eklendi — adet bilgisi hem
+nokta tooltip'inde hem legend'deki toplam sayaçta gösteriliyor.
+
+**Yapılan dosyalar:**
+- `backend/app/schemas/admin_dashboard.py` (`SecurityThreatPoint.severity` Literal'ine `"normal"`
+  eklendi).
+- `backend/app/services/admin_dashboard_service.py`
+  (`get_admin_security_threat_map` artık `_get_active_connection_points` sonucunu da noktalara
+  ekliyor; yeni `_get_active_connection_points` fonksiyonu: `UserSession` üzerinden revoke
+  edilmemiş ve `access_token_expire_minutes` içinde kullanılmış oturumları bulur, her oturumun
+  kullanıcı+IP eşleşen (veya en azından kullanıcının) en son başarılı `LoginAttempt` kaydından
+  lat/lon/country/city alır, aynı konumdaki (0.1 derece yuvarlanmış) oturumları toplayıp
+  `severity="normal"` noktalar üretir; `settings.access_token_expire_minutes` için yeni
+  `from app.core.config import settings` import'u eklendi).
+- `frontend/src/features/admin-dashboard/types/adminDashboard.ts` (`ThreatSeverity` union'ına
+  `'normal'` eklendi).
+- `frontend/src/features/admin-dashboard/components/security/GlobalThreatMapCard.tsx`
+  (`SEVERITY_DOT_COLOR`/`SEVERITY_PING_COLOR` içine yeşil `normal` girişi eklendi; legend'e
+  dördüncü satır olarak "Normal" etiketi + yeşil sayaç eklendi — hem kompakt kart hem büyütülmüş
+  modal aynı `ThreatMapCanvas`'ı paylaştığı için tek yerden geldi).
+- `frontend/src/i18n/locales/en.json`, `frontend/src/i18n/locales/tr.json`
+  (`admin.dashboard.security.threatMap.legendNormal` anahtarı her iki dile eklendi: "Normal").
+
+**Doğrulama:** `tsc --noEmit -p tsconfig.app.json` temiz geçti (aynı 4 önceden var olan, ilgisiz
+hata dışında yeni hata yok). Backend değişikliği bu ortamda çalışan bir Python yorumlayıcısı
+olmadığı için `pytest`/`uvicorn` ile canlı doğrulanamadı — kod okuma ile mevcut import'lar
+(`User`, `UserSession`, `LoginAttempt`, `LoginAttemptStatus`, `datetime`, `timedelta`, `timezone`)
+ve şema alanlarıyla tutarlılığı doğrulandı; risk düşük çünkü fonksiyon tamamen additive
+(mevcut kritik/yüksek/orta hesaplamasına dokunmuyor, sadece listeye yeni noktalar ekliyor) ve
+try/except gerektirecek dış çağrı (HTTP, Celery) içermiyor. Kullanıcıya, backend'i çalıştırıp
+gerçek bir oturumla (giriş yapıp) haritada yeşil noktayı görsel olarak doğrulaması önerilecek.

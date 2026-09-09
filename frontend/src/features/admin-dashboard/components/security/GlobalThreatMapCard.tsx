@@ -16,12 +16,14 @@ const SEVERITY_DOT_COLOR: Record<ThreatSeverity, string> = {
   critical: 'bg-red-500',
   high: 'bg-orange-500',
   medium: 'bg-yellow-400',
+  normal: 'bg-green-500',
 }
 
 const SEVERITY_PING_COLOR: Record<ThreatSeverity, string> = {
   critical: 'bg-red-400',
   high: 'bg-orange-400',
   medium: 'bg-yellow-300',
+  normal: 'bg-green-400',
 }
 
 function ThreatDot({ point, size }: { point: SecurityThreatPoint; size: 'sm' | 'lg' }) {
@@ -70,6 +72,13 @@ function ThreatMapLegend({ points, size }: { points: SecurityThreatPoint[]; size
         <span className="text-slate-600 dark:text-slate-300">{t('admin.dashboard.security.threatMap.legendMedium')}</span>
         <span className={`ml-auto font-semibold text-yellow-600 dark:text-yellow-400 ${countText}`}>
           {countBySeverity(points, 'medium')}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className={`${dot} rounded-full bg-green-500`} />
+        <span className="text-slate-600 dark:text-slate-300">{t('admin.dashboard.security.threatMap.legendNormal')}</span>
+        <span className={`ml-auto font-semibold text-green-600 dark:text-green-400 ${countText}`}>
+          {countBySeverity(points, 'normal')}
         </span>
       </div>
     </div>

@@ -132,7 +132,7 @@ export interface AdminOperationalMetrics {
   support_tickets: SupportTicket[]
 }
 
-export type ThreatSeverity = 'critical' | 'high' | 'medium'
+export type ThreatSeverity = 'critical' | 'high' | 'medium' | 'normal'
 
 export interface SecurityThreatPoint {
   latitude: number

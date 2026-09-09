@@ -130,7 +130,7 @@ class AdminOperationalMetricsResponse(BaseModel):
 class SecurityThreatPoint(BaseModel):
     latitude: float
     longitude: float
-    severity: Literal["critical", "high", "medium"]
+    severity: Literal["critical", "high", "medium", "normal"]
     country: str | None
     city: str | None
     count: int

@@ -7,6 +7,7 @@ import psutil
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.request_metrics import SLOW_REQUEST_THRESHOLD_MS, RequestRecord, get_records
 from app.models.audit_log import AuditLog
 from app.models.invoice import Invoice, InvoiceDueReminder, InvoicePaymentReminder, InvoiceStatus
@@ -415,7 +416,75 @@ def get_admin_security_threat_map(db: Session) -> SecurityThreatMapResponse:
             )
         )
 
+    points.extend(_get_active_connection_points(db))
+
     return SecurityThreatMapResponse(points=points)
+
+
+def _get_active_connection_points(db: Session) -> list[SecurityThreatPoint]:
+    """Şu anda bağlı (revoke edilmemiş, son kullanım access-token TTL içinde) oturumların
+    konumunu gösterir. Konum, kullanıcının o IP'den yaptığı en son başarılı LoginAttempt'ten
+    alınır (LoginAttempt'te lat/lon var, UserSession'da yok)."""
+    online_cutoff = datetime.now(timezone.utc) - timedelta(minutes=settings.access_token_expire_minutes)
+    active_sessions = (
+        db.query(UserSession.user_id, UserSession.ip_address)
+        .join(User, UserSession.user_id == User.id)
+        .filter(
+            User.is_demo.is_(False),
+            UserSession.revoked_at.is_(None),
+            UserSession.last_used_at >= online_cutoff,
+        )
+        .all()
+    )
+    if not active_sessions:
+        return []
+
+    active_user_ids = {user_id for user_id, _ in active_sessions}
+    recent_attempts = (
+        db.query(LoginAttempt)
+        .filter(
+            LoginAttempt.user_id.in_(active_user_ids),
+            LoginAttempt.status == LoginAttemptStatus.SUCCESS,
+            LoginAttempt.latitude.isnot(None),
+            LoginAttempt.longitude.isnot(None),
+        )
+        .order_by(LoginAttempt.created_at.desc())
+        .limit(500)
+        .all()
+    )
+
+    location_by_user_ip: dict[tuple, dict] = {}
+    location_by_user: dict = {}
+    for attempt in recent_attempts:
+        entry = {
+            "latitude": attempt.latitude,
+            "longitude": attempt.longitude,
+            "country": attempt.country,
+            "city": attempt.city,
+        }
+        location_by_user_ip.setdefault((attempt.user_id, attempt.ip_address), entry)
+        location_by_user.setdefault(attempt.user_id, entry)
+
+    groups: dict[tuple[float, float], dict] = {}
+    for user_id, ip_address in active_sessions:
+        location = location_by_user_ip.get((user_id, ip_address)) or location_by_user.get(user_id)
+        if location is None:
+            continue
+        key = (round(location["latitude"], 1), round(location["longitude"], 1))
+        group = groups.setdefault(key, {"country": location["country"], "city": location["city"], "count": 0})
+        group["count"] += 1
+
+    return [
+        SecurityThreatPoint(
+            latitude=lat,
+            longitude=lon,
+            severity="normal",
+            country=group["country"],
+            city=group["city"],
+            count=group["count"],
+        )
+        for (lat, lon), group in groups.items()
+    ]
 
 
 def get_admin_security_login_activities(db: Session) -> SecurityLoginActivitiesResponse:
