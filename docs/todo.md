@@ -286,3 +286,16 @@
 - [ ] 2026-09-07: GİB (e-Fatura) resmi entegrasyonu — PROJEPLAN kapsam dışı kararıyla tutarlı olarak hâlâ kurulmadı; `GibGatewayStatusCard` sabit `connected=false` gösteriyor. Gerçek entegrasyon kurulursa bağlantı durumu/uptime canlı GİB servisinden okunmalı.
 - [ ] 2026-09-07: Destek bilet (ticket) sistemi — sistemde ticket/helpdesk modeli yok. `SupportTicketsCard` şu an sabit 2 örnek satır gösteriyor (`get_admin_operational_metrics()` içinde hardcoded). Gerçek bir ticket tablosu/akışı kurulursa bu fonksiyon güncellenmeli.
 - [ ] 2026-09-07: Yeni iki endpoint (`/admin/dashboard/delivery-integrations`, `/admin/dashboard/operational-metrics`) admin girişiyle uçtan uca (gerçek JSON body) test edilmedi — bu oturumda bilinen admin şifresi güncel değildi. Gerçek admin girişiyle her iki endpoint'in ve yeni 4 kartın (özellikle Packet Usage yatay bar chart ve Active Users trend badge) tarayıcıda görsel teyidi yapılmalı.
+
+## 2026-09-09 — SupportTicketsCard Satır Hover/Tıklanabilirlik sonrası
+
+- [ ] 2026-09-09: `SupportTicketsCard.tsx`'teki tablo satırlarına hover rengi + `cursor-pointer`
+  eklendi (satıra tıklanabilir gibi görünmesi için), ancak henüz gerçek bir tıklama aksiyonu/route
+  yok — kullanıcı bilinçli olarak "şimdilik yeni sayfa açılmasın" dedi. **Yapılacak:** ayrı bir
+  ticket detay sayfası (örn. `/admin/support-tickets/:id` veya benzeri) oluşturulup satıra
+  `onClick`/`navigate` eklenmeli. Bu, `docs/todo.md`'deki "2026-09-07 — Admin Dashboard ... sonrası"
+  bölümündeki "Destek bilet (ticket) sistemi" maddesiyle bağlantılı — gerçek ticket modeli/tablosu
+  henüz yok (`SupportTicketsCard` hâlâ `get_admin_operational_metrics()` içinde sabit 2 örnek satır
+  gösteriyor), o yüzden gerçek bir detay sayfası muhtemelen o işle birlikte ele alınmalı.
+- [ ] 2026-09-09: Hover görünümü (`hover:bg-slate-50 dark:hover:bg-slate-800/50`) tarayıcıda hem
+  light hem dark modda görsel olarak teyit edilmedi.

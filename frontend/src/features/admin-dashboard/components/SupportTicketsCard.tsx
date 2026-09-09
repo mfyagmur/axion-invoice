@@ -30,7 +30,10 @@ export function SupportTicketsCard({ data, isLoading, className }: SupportTicket
             </thead>
             <tbody>
               {data.map((ticket, index) => (
-                <tr key={`${ticket.user_name}-${index}`} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+                <tr
+                  key={`${ticket.user_name}-${index}`}
+                  className="cursor-pointer border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+                >
                   <td className="py-2 pr-3">
                     <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
