@@ -33,9 +33,11 @@ const SEVERITY_STYLE: Record<SecurityAlertSeverity, { row: string; icon: ReactNo
   },
 }
 
+const MAX_PREVIEW_ROWS = 5
+
 export function SecurityAlertsCard({ data, isLoading, className }: SecurityAlertsCardProps) {
   const { t } = useTranslation()
-  const alerts = data ?? []
+  const alerts = (data ?? []).slice(0, MAX_PREVIEW_ROWS)
 
   return (
     <Card

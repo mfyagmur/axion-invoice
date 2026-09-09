@@ -302,11 +302,10 @@
 
 ## 2026-09-09 — Admin Dashboard "Security Operations & Risk Management" sonrası
 
-- [ ] 2026-09-09: Global Threat Map şu an dependency-free, elips-tabanlı stilize bir dünya haritası
-  kullanıyor (bkz. `docs/PROJECT_DESING.md` "2026-09-09 — Admin Dashboard: ... Security..." girdisi)
-  — coğrafi olarak hassas bir görünüm istenirse `react-simple-maps` + `d3-geo` kurulup
-  `frontend/src/features/admin-dashboard/components/security/WorldMapBase.tsx` gerçek bir GeoJSON
-  ile değiştirilebilir.
+- [x] 2026-09-09: ~~Global Threat Map elips-tabanlı stilize haritaydı~~ → aynı gün `dotted-map`
+  kütüphanesiyle gerçek noktalı dünya haritasına geçildi + kart başlığına haritayı büyük modalde
+  açan büyüteç ikonu eklendi (bkz. `docs/PROJECT_DESING.md` "2026-09-09 — Security: Gerçek Dünya
+  Haritası ve Tehdit Haritası Büyütme Modalı" girdisi).
 - [ ] 2026-09-09: IP-geolocation ücretsiz `ip-api.com` servisini kullanıyor (45 istek/dk limit,
   `backend/app/services/geolocation_service.py`'de 40/dk'ya throttled + 6 saat cache). Trafik
   arttıkça bu limit yetersiz kalabilir — ücretli bir geolocation servisine (MaxMind GeoIP2 vb.)

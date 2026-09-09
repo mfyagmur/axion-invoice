@@ -15,9 +15,11 @@ const STATUS_STYLE: Record<LoginActivityStatus, string> = {
   suspicious: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
 }
 
+const MAX_PREVIEW_ROWS = 5
+
 export function LoginActivitiesCard({ data, isLoading, className }: LoginActivitiesCardProps) {
   const { t } = useTranslation()
-  const rows = data ?? []
+  const rows = (data ?? []).slice(0, MAX_PREVIEW_ROWS)
 
   const statusLabel = (status: LoginActivityStatus) =>
     status === 'success'

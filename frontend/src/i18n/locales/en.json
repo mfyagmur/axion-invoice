@@ -257,7 +257,9 @@
           "legendCritical": "Critical",
           "legendHigh": "High",
           "legendMedium": "Medium",
-          "empty": "No connection data yet"
+          "empty": "No connection data yet",
+          "expand": "Expand map",
+          "modalTitle": "Global Threat Map & Active Real-time Threats"
         },
         "loginActivities": {
           "title": "Login Activities",

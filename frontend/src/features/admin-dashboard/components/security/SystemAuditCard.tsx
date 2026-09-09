@@ -10,7 +10,7 @@ interface SystemAuditCardProps {
   className?: string
 }
 
-const MAX_PREVIEW_ROWS = 8
+const MAX_PREVIEW_ROWS = 5
 
 function actionIcon(action: string) {
   if (action.startsWith('login.success')) return <LogIn size={14} className="text-green-600 dark:text-green-400" />

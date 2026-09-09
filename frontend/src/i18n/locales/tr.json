@@ -257,7 +257,9 @@
           "legendCritical": "Kritik",
           "legendHigh": "Yüksek",
           "legendMedium": "Orta",
-          "empty": "Henüz bağlantı verisi yok"
+          "empty": "Henüz bağlantı verisi yok",
+          "expand": "Haritayı büyüt",
+          "modalTitle": "Küresel Tehdit Haritası ve Aktif Tehditler"
         },
         "loginActivities": {
           "title": "Giriş Aktiviteleri",

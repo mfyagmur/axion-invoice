@@ -1829,3 +1829,98 @@ dashboard sekmesinin, backend yeniden başlatılmadan önce yeni endpoint'lere o
 akışından gözlemlendi; ayrı bir headless tarayıcı/screenshot aracı bu ortamda kurulu olmadığından
 görsel responsive/dark-mode teyidi ayrıca yapılamadı — kullanıcının kendi açık sekmesinde kontrol
 etmesi önerilir.
+
+---
+
+## 2026-09-09 — Security: Gerçek Dünya Haritası ve Tehdit Haritası Büyütme Modalı
+
+**Durum:** Tamamlandı, gerçek tarayıcıda (Playwright/Chromium) uçtan uca doğrulandı.
+
+**Özet:** Kullanıcı geri bildirimi: (1) önceki dependency-free inline-SVG dünya haritası (kıtalar
+basit elips şekilleriyle) sadece gri bir leke gibi görünüyordu, tanınabilir bir harita değildi;
+(2) "Küresel Tehdit Haritası ve Aktif Tehditler" kart başlığına bir büyüteç ikonu eklenip tıklanınca
+haritanın büyük/modal görünümde açılması istendi. Her iki talep karşılandı.
+
+Harita çözümü için `dotted-map` (MIT lisanslı, ~40KB, gerçek ülke sınırı verisiyle noktalı SVG
+dünya haritası üreten) kütüphanesi eklendi — `react-simple-maps`/`d3-geo` gibi ağır topojson tabanlı
+çözümler yerine tercih edildi çünkü çok daha küçük ve "tehdit haritası" görsel dilinde (Tron/threat-map
+tarzı noktalı harita) endüstri standardı bir görünüm sağlıyor. Kütüphanenin varsayılan constructor'ı
+(`new DottedMap({height, grid})`) çalışma zamanında ülke poligonlarına karşı nokta-içinde-mi testi
+yaptığından (`@turf/boolean-point-in-polygon`) tarayıcıda ~1-3 saniye bloklayıcı hesaplama riski
+taşıyordu; bunun yerine build-time'da `getMapJSON({height:70, grid:'diagonal'})` ile harita verisi
+tek seferlik hesaplanıp `worldMapData.ts` (statik, ~170KB) dosyasına gömüldü, çalışma zamanında
+`dotted-map/without-countries` alt-modülü `{map: worldMapData}` ile anında (hesaplama yapmadan)
+başlatılıyor. Nokta rengi `currentColor` ile ayarlanıp kapsayıcı `div`e Tailwind `dark:text-slate-700`
+verilerek dark mode otomatik destekleniyor. Lat/lon → x/y dönüşümü artık kütüphanenin kendi
+`getPin({lat,lng})` fonksiyonuyla (gerçek projeksiyon matematiği, mercator) yapılıyor — eski elle
+yazılmış equirectangular yaklaşık formülün yerini aldı, dolayısıyla tehdit noktaları artık haritanın
+kendi projeksiyonuyla piksel-hassas hizalanıyor.
+
+Geliştirme sırasında iki ayrı bug bulunup düzeltildi: (a) Vite'ın CJS→ESM interop sarmalayıcısı,
+`dotted-map`'in webpack-UMD çıktısını çift sarmaladığından `import DottedMap from 'dotted-map'`
+"DottedMap is not a constructor" hatası veriyordu — `* as` import edilip `.default` zincirini elle
+çözen (`resolveDottedMapCtor`) bir yardımcı fonksiyonla düzeltildi; (b) `dotted-map`'in ana (`.`)
+export'u (`with-countries`), `map` ayarını görmezden gelip her seferinde `height`/`width`'ten yeniden
+hesaplama yapıyordu ("height or width is required" hatası) — çözüm, önceden hesaplanmış `map` nesnesini
+doğrudan kabul eden `dotted-map/without-countries` alt-modülüne geçmek oldu.
+
+Büyüteç (lucide `Search` ikonu) `Card`'ın `action` prop'una eklendi; tıklanınca mevcut `Modal.tsx`
+(`size="xl"`, aynı `AuditLogDetailModal`/`SlowQueryDetailModal` pattern'i) içinde haritanın büyük
+versiyonu (daha kalın nokta yarıçapı, daha büyük tehdit noktaları/legend) açılıyor. Harita canvas'ı
+(`ThreatMapCanvas`) hem kompakt kart içinde hem modalde aynı bileşenden render ediliyor — kod
+tekrarı yok.
+
+**Yapılan dosyalar:**
+- Yeni: `frontend/src/features/admin-dashboard/components/security/worldMapData.ts` (build-time
+  önceden hesaplanmış `dotted-map` dünya nokta verisi, `node -e "require('dotted-map').getMapJSON({height:70,grid:'diagonal'})"` ile üretildi).
+- Değiştirme: `frontend/src/features/admin-dashboard/components/security/WorldMapBase.tsx`
+  (elips-tabanlı sahte kıtalar tamamen kaldırıldı, `dotted-map/without-countries` + önceden
+  hesaplanmış veriyle gerçek noktalı dünya haritası SVG'si üretiliyor; `latLonToPercent` artık
+  kütüphanenin `getPin` projeksiyonunu kullanıyor); `frontend/src/features/admin-dashboard/
+  components/security/GlobalThreatMapCard.tsx` (harita+legend `ThreatMapCanvas` olarak ayrıştırıldı,
+  `Card`'a büyüteç `action` butonu eklendi, tıklanınca `Modal size="xl"` içinde büyük harita açılıyor);
+  `frontend/src/i18n/locales/en.json`, `tr.json` (`threatMap.expand`, `threatMap.modalTitle` anahtarları
+  eklendi); `frontend/package.json`/`package-lock.json` (`dotted-map@2.2.3` bağımlılığı eklendi —
+  proje genelinde tek yeni npm paketi, `react-simple-maps`/`d3-geo` YOK).
+
+**Doğrulama:** `tsc --noEmit -p tsconfig.app.json` temiz geçti (projeden önceden var olan, ilgisiz
+4 dosyadaki hata dışında yeni hata yok). Bu oturumda Playwright/Chromium (headless) kurulup gerçek
+admin girişiyle (`admin@axioninvoice.app` / `Admin@123456`) `/admin` sayfası uçtan uca tarayıcıda
+render edildi ve ekran görüntüsüyle teyit edildi: (1) dünya haritası artık gerçek tanınabilir kıta
+şekilleriyle (noktalı) görünüyor, gri leke değil; (2) kart başlığındaki büyüteç ikonuna tıklanınca
+aynı haritanın büyük/modal versiyonu (başlık + legend dahil) açılıyor; (3) light ve dark mode'da
+(`colorScheme:'dark'` + `document.documentElement.classList.add('dark')`) harita noktaları ve genel
+kart görünümü doğru render ediliyor, diğer dashboard kartları etkilenmedi. Tehdit noktalarının
+kendisi ekranda görünmüyor çünkü mevcut test ortamındaki tüm login denemeleri Docker-içi özel IP
+(`172.18.0.1`) üzerinden geliyor ve mevcut `geolocation_service.py` bu tür private IP'leri kasıtlı
+olarak atlıyor (önceki oturumda belgelenen, beklenen davranış) — bu, bugünkü değişiklikle ilgisiz.
+
+---
+
+## 2026-09-09 — Security: Kart Satır Limitleri ve Tehdit Haritası Legend Sayaçları
+
+**Durum:** Tamamlandı.
+
+**Özet:** Kullanıcı geri bildirimi: (1) "Giriş Aktiviteleri", "Sistem Denetim Durumu ve Kayıtları"
+ve "Sistem Uyarıları" kartları veri geldikçe sınırsız uzuyordu, kart yüksekliği tutarsızlaşıyordu —
+her üçü de son 5 kayıtla sınırlandırıldı; (2) "Küresel Tehdit Haritası ve Aktif Tehditler" kartındaki
+Kritik/Yüksek/Orta legend etiketleri sadece renk+isim gösteriyordu, o severity'deki aktif tehdit
+sayısı görünmüyordu — her etiketin sağına, ilgili severity'deki noktaların toplam `count` değerini
+gösteren bir sayaç eklendi.
+
+**Yapılan dosyalar:**
+- `frontend/src/features/admin-dashboard/components/security/LoginActivitiesCard.tsx` (yeni
+  `MAX_PREVIEW_ROWS = 5` sabiti, `rows` artık `.slice(0, 5)`).
+- `frontend/src/features/admin-dashboard/components/security/SystemAuditCard.tsx` (var olan
+  `MAX_PREVIEW_ROWS` 8'den 5'e düşürüldü).
+- `frontend/src/features/admin-dashboard/components/security/SecurityAlertsCard.tsx` (yeni
+  `MAX_PREVIEW_ROWS = 5` sabiti, `alerts` artık `.slice(0, 5)`).
+- `frontend/src/features/admin-dashboard/components/security/GlobalThreatMapCard.tsx`
+  (`ThreatMapLegend` artık `points` prop'u alıyor; yeni `countBySeverity` yardımcı fonksiyonu her
+  severity için noktaların `count` toplamını hesaplayıp legend satırının sağında renkli sayı olarak
+  gösteriyor; hem kompakt kart hem büyütülmüş modal aynı hesaplamayı paylaşıyor).
+
+**Doğrulama:** `tsc --noEmit -p tsconfig.app.json` temiz geçti (projeden önceden var olan, ilgisiz
+4 dosyadaki hata dışında yeni hata yok). Kod incelemesiyle doğrulandı; tüm 4 kart yine mevcut
+`Card`/`Modal` pattern'lerini kullanıyor, backend/API değişikliği gerekmedi (limitleme ve sayaçlar
+tamamen frontend'de, elde zaten var olan response verisi üzerinde uygulanıyor).
