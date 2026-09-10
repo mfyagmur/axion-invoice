@@ -57,6 +57,8 @@ class SlowQueryAlert(BaseModel):
 class AdminSystemHealthResponse(BaseModel):
     api_latency_series: list[LatencyPoint]
     active_server_instances: int
+    active_users_total: int
+    active_users_registered: int
     avg_cpu_load_pct: float
     avg_memory_usage_pct: float
     database_healthy: bool

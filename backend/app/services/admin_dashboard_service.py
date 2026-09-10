@@ -7,6 +7,7 @@ import psutil
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core import presence
 from app.core.config import settings
 from app.core.request_metrics import SLOW_REQUEST_THRESHOLD_MS, RequestRecord, get_records
 from app.models.audit_log import AuditLog
@@ -207,9 +208,13 @@ def get_admin_system_health(db: Session) -> AdminSystemHealthResponse:
     except Exception:
         database_healthy = False
 
+    active_users_total, active_users_registered = presence.get_online_counts()
+
     return AdminSystemHealthResponse(
         api_latency_series=series,
         active_server_instances=1,
+        active_users_total=active_users_total,
+        active_users_registered=active_users_registered,
         avg_cpu_load_pct=psutil.cpu_percent(interval=0.1),
         avg_memory_usage_pct=psutil.virtual_memory().percent,
         database_healthy=database_healthy,

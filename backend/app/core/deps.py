@@ -10,6 +10,7 @@ from app.core.security import decode_token
 from app.models.user import User
 
 bearer_scheme = HTTPBearer()
+optional_bearer_scheme = HTTPBearer(auto_error=False)
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,6 +36,25 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+def get_optional_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(optional_bearer_scheme)],
+    db: Annotated[Session, Depends(get_db)],
+) -> User | None:
+    if credentials is None:
+        return None
+
+    payload = decode_token(credentials.credentials)
+    if payload is None or payload.get("type") != "access":
+        return None
+
+    try:
+        user_id = uuid.UUID(payload["sub"])
+    except (KeyError, ValueError):
+        return None
+
+    return db.get(User, user_id)
 
 
 def require_not_demo(current_user: Annotated[User, Depends(get_current_user)]) -> User:

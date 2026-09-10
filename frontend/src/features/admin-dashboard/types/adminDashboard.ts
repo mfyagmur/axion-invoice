@@ -53,6 +53,8 @@ export interface SlowQueryAlert {
 export interface AdminSystemHealth {
   api_latency_series: LatencyPoint[]
   active_server_instances: number
+  active_users_total: number
+  active_users_registered: number
   avg_cpu_load_pct: number
   avg_memory_usage_pct: number
   database_healthy: boolean

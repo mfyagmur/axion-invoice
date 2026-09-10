@@ -13,9 +13,17 @@ export function SystemMetricsColumn({ data, isLoading }: SystemMetricsColumnProp
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <Card className="col-span-2 flex flex-col justify-between gap-1 !border-transparent bg-green-600 p-4 text-white dark:bg-green-700">
+      <Card className="flex flex-col justify-between gap-1 !border-transparent bg-green-600 p-4 text-white dark:bg-green-700">
         <span className="text-sm font-medium text-green-50">{t('admin.dashboard.system.activeInstances')}</span>
         <span className="text-2xl font-semibold">{isLoading ? '—' : data?.active_server_instances}</span>
+      </Card>
+
+      <Card className="flex flex-col justify-between gap-1 !border-transparent bg-blue-600 p-4 text-white dark:bg-blue-700">
+        <span className="text-sm font-medium text-blue-50">{t('admin.dashboard.system.activeUsers')}</span>
+        <span className="text-2xl font-semibold">
+          {isLoading ? '—' : `${data?.active_users_total} / ${data?.active_users_registered}`}
+        </span>
+        <span className="text-xs text-blue-100">{t('admin.dashboard.system.activeUsersHint')}</span>
       </Card>
 
       <Card className="flex flex-col gap-2">

@@ -14,6 +14,7 @@ from app.api.v1.definitions import router as definitions_router
 from app.api.v1.fx import router as fx_router
 from app.api.v1.invoices import router as invoices_router
 from app.api.v1.plans import router as plans_router
+from app.api.v1.presence import router as presence_router
 from app.api.v1.profile import router as profile_router
 from app.api.v1.sessions import router as sessions_router
 from app.api.v1.subscriptions import router as subscriptions_router
@@ -75,6 +76,7 @@ app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(plans_router, prefix="/api/v1")
 app.include_router(subscriptions_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
+app.include_router(presence_router, prefix="/api/v1")
 
 
 @app.get("/health")
