@@ -193,7 +193,7 @@
         "activeUsers": "Active Users",
         "activeUsersHint": "Total / Register",
         "avgCpuLoad": "Average CPU Load",
-        "avgMemoryUsage": "Average Memory Usage",
+        "avgMemoryUsage": "Avg. Memory Usage",
         "databaseHealthy": "Database Healthy",
         "slowQueryAlerts": "Slow Queries Alerts",
         "slowQueryKeys": {
