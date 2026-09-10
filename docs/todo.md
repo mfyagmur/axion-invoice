@@ -2,7 +2,7 @@
 
 ## 2026-09-02 — Dashboard Linkleri
 - [ ] 2026-09-03: Uygulama Nasıl Çalışır ve Ne Nedir Nasıl linklerine yeni sayfa oluşturulacak
-- [ ] 2026-09-03: Detsk için mail belirle
+- [ ] 2026-09-03: Destek için mail belirle
 - [ ] 2026-09-03: Ekranın sağ alt Köşesine Yardım Sistemi
 
 

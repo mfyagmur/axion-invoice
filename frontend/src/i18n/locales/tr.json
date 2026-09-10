@@ -346,6 +346,7 @@
       "overview": "Genel Bakış",
       "greeting": "Merhaba {{name}}",
       "tagline": "Ödemelerinizi yönetin ve kazançlarınızı kolayca takip edin.",
+      "limitWarning": "Aylık fatura limitinize ulaştınız. Yeni fatura oluşturmak için planınızı yükseltin.",
       "newInvoice": "Yeni Fatura Ekle",
       "newCustomer": "Yeni Müşteri Ekle",
       "newTemplate": "Yeni Şablon Ekle",
@@ -861,6 +862,12 @@
         "itemCodeRequired": "Malzeme/Hizmet kodu zorunludur.",
         "descriptionRequired": "Malzeme/Hizmet açıklaması zorunludur."
       }
+    },
+    "limitModal": {
+      "title": "Fatura Limitine Ulaştınız",
+      "description": "Bu ay {{max}} fatura hakkınızın {{used}} tanesini kullandınız. Yeni fatura oluşturmaya devam etmek için planınızı yükseltin.",
+      "upgradeCta": "Planı Yükselt",
+      "cancelCta": "İptal"
     },
     "detail": {
       "download": "PDF İndir",

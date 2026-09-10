@@ -346,6 +346,7 @@
       "overview": "Overview",
       "greeting": "Hello {{name}}",
       "tagline": "Manage your payments and track your earnings with ease.",
+      "limitWarning": "You've reached your monthly invoice limit. Upgrade your plan to create new invoices.",
       "newInvoice": "New Invoice",
       "newCustomer": "New Customer",
       "newTemplate": "New Template",
@@ -861,6 +862,12 @@
         "itemCodeRequired": "Item/Service code is required.",
         "descriptionRequired": "Item/Service description is required."
       }
+    },
+    "limitModal": {
+      "title": "Invoice Limit Reached",
+      "description": "You've used {{used}} of your {{max}} invoices this month. Upgrade your plan to keep creating invoices.",
+      "upgradeCta": "Upgrade Plan",
+      "cancelCta": "Cancel"
     },
     "detail": {
       "download": "Download PDF",

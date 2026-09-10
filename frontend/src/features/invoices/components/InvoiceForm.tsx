@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { List, Landmark, ChevronDown, Eye, FileStack, FileText, Loader2, Plus, Send, User, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
+import { Modal } from '@/components/Modal'
 import { Select } from '@/components/Select'
 import { Textarea } from '@/components/Textarea'
 import { InfoTooltip } from '@/components/InfoTooltip'
@@ -14,6 +16,7 @@ import { useCustomers } from '@/features/customers/hooks/useCustomers'
 import { formatCustomerDisplayName } from '@/features/customers/utils/formatCustomerDisplayName'
 import { getInvoiceErrorKey } from '@/features/invoices/getInvoiceErrorKey'
 import { useCreateInvoice } from '@/features/invoices/hooks/useCreateInvoice'
+import { useInvoiceLimit } from '@/features/billing/hooks/useInvoiceLimit'
 import { invoicesApi } from '@/features/invoices/api/invoicesApi'
 import { InvoiceDraftPreviewModal } from '@/features/invoices/components/InvoiceDraftPreviewModal'
 import type { InvoiceCreatePayload } from '@/types/invoice'
@@ -78,11 +81,13 @@ interface InvoiceFormProps {
 
 export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const { formatDate } = useDateFormat()
   const { data: templates } = useTemplates()
   const { data: customers } = useCustomers()
   const user = useAuthStore((state) => state.user)
   const createInvoice = useCreateInvoice()
+  const { isLimitReached, max: invoiceLimitMax, used: invoiceLimitUsed } = useInvoiceLimit()
   const [isSummaryDetailOpen, setIsSummaryDetailOpen] = useState(false)
   const [isFixedRate, setIsFixedRate] = useState(false)
   const [selectedPaymentTermId, setSelectedPaymentTermId] = useState('')
@@ -291,6 +296,30 @@ export function InvoiceForm({ initialValues }: InvoiceFormProps = {}) {
   const onSubmit = handleSubmit((values) => {
     createInvoice.mutate(buildInvoicePayload(values))
   })
+
+  if (isLimitReached) {
+    return (
+      <Modal
+        isOpen
+        title={t('invoices.limitModal.title')}
+        onClose={() => navigate('/dashboard/invoices')}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => navigate('/dashboard/invoices')}>
+              {t('invoices.limitModal.cancelCta')}
+            </Button>
+            <Button onClick={() => navigate('/dashboard/settings?tab=billing')}>
+              {t('invoices.limitModal.upgradeCta')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          {t('invoices.limitModal.description', { used: invoiceLimitUsed, max: invoiceLimitMax })}
+        </p>
+      </Modal>
+    )
+  }
 
   return (
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">

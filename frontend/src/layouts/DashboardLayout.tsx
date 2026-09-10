@@ -46,7 +46,7 @@ export function DashboardLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <div className="hidden lg:block">
+      <div className="relative z-30 hidden lg:block">
         <SidebarComponent />
       </div>
 
@@ -59,7 +59,7 @@ export function DashboardLayout() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="relative z-0 flex flex-1 flex-col overflow-hidden">
         <header className="flex items-center border-b border-slate-200 px-6 py-3 lg:hidden dark:border-slate-700">
           <button
             type="button"
