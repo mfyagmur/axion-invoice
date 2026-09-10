@@ -4,6 +4,7 @@
 - [ ] 2026-09-03: Uygulama Nasıl Çalışır ve Ne Nedir Nasıl linklerine yeni sayfa oluşturulacak
 - [ ] 2026-09-03: Destek için mail belirle
 - [ ] 2026-09-03: Ekranın sağ alt Köşesine Yardım Sistemi
+- [ ] 2026-09-03: Compact, Classic, Sharp, Clean Şablonlarına Para birimi ekle
 
 
 ## 2026-09-02 — Demo Kullanıcı Dashboard'u sonrası
