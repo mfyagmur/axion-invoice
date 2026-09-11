@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { TriangleAlert, Wallet } from 'lucide-react'
+import { TriangleAlert } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { useAuthStore } from '@/store/authStore'
 import { useDateFormat } from '@/hooks/useDateFormat'
 import { useInvoiceLimit } from '@/features/billing/hooks/useInvoiceLimit'
+import welCardImage from '@/assets/welCard.png'
 
 export function WelcomeCard() {
   const { t } = useTranslation()
@@ -30,9 +31,11 @@ export function WelcomeCard() {
       </div>
 
       <div className="hidden shrink-0 sm:block">
-        <div className="flex w-50 h-44 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-50 to-slate-100 dark:from-indigo-950/40 dark:to-slate-800">
-          <Wallet size={72} className="text-indigo-400 dark:text-indigo-300" />
-        </div>
+        <img
+          src={welCardImage}
+          alt=""
+          className="h-44 w-50 rounded-2xl object-cover"
+        />
       </div>
     </Card>
   )
