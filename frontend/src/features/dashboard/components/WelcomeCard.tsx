@@ -34,7 +34,7 @@ export function WelcomeCard() {
         <img
           src={welCardImage}
           alt=""
-          className="h-44 w-50 rounded-2xl object-cover"
+          className="h-36 rounded-2xl object-cover"
         />
       </div>
     </Card>
