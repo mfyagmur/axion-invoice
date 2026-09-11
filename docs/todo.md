@@ -1,7 +1,23 @@
 # Yapılacaklar / Ertelenen İşler
 
+## 2026-09-11 — "Nasıl Çalışır" Sayfası sonrası
+- [ ] 2026-09-11: Tarayıcıda teyit gerekiyor — bu ortamda `chromium-cli`/Playwright gibi bir
+  tarayıcı otomasyon aracı yoktu, sadece `tsc --noEmit` + kod incelemesiyle sınırlı kaldı.
+  Kullanıcının kendi tarayıcısında kontrol etmesi gerekenler: demo hesapla `/dashboard/
+  nasil-calisir`'e gidilince sayfanın (hero, giriş yöntemleri, 5 modül kartı + mockup'lar,
+  Ayarlar sekmeleri, adım adım rehber, plan karşılaştırması, ipuçları) düzgün render olması,
+  light/dark modda okunabilir kalması, mobil genişlikte taşmadan tek kolona inmesi; sidebar'da
+  avatarın altındaki kullanıcı menüsünü açıp "Destek" linkine tıklayınca aynı sayfaya
+  yönlendirdiğinin ve `/dashboard/ne-nedir-nasil`'in hâlâ eski placeholder'ı gösterdiğinin
+  (regresyon yok) doğrulanması — bkz. `docs/PROJECT_DESING.md` "2026-09-11 — 'Nasıl Çalışır'
+  (/dashboard/nasil-calisir) Sayfası".
+- [ ] 2026-09-11: TR/EN dil değişiminde yeni `howItWorks.*` namespace'indeki tüm metinlerin
+  doğru çevrildiği tarayıcıda görsel olarak teyit edilmeli.
+
 ## 2026-09-02 — Dashboard Linkleri
-- [ ] 2026-09-03: Uygulama Nasıl Çalışır ve Ne Nedir Nasıl linklerine yeni sayfa oluşturulacak
+- [ ] 2026-09-03: "Ne Nedir Nasıl" linkine (`/dashboard/ne-nedir-nasil`) hâlâ yeni bir sayfa
+  oluşturulacak — "Nasıl Çalışır" tarafı 2026-09-11'de tamamlandı (bkz. yukarıdaki grup), bu
+  kısıtlı kapsam kararı kullanıcıyla netleştirildi. Bu madde ayrı bir iş olarak açık kalıyor.
 - [ ] 2026-09-03: Destek için mail belirle
 - [ ] 2026-09-03: Ekranın sağ alt Köşesine Yardım Sistemi
 - [ ] 2026-09-03: Compact, Classic, Sharp, Clean Şablonlarına Para birimi ekle

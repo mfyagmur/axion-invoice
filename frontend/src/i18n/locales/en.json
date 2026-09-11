@@ -424,11 +424,208 @@
     "body": "This page will be active very soon so you can reach us."
   },
   "dashboardPlaceholder": {
-    "howItWorks": {
-      "title": "How does the app work?"
-    },
     "whatIsHow": {
       "title": "What? What is it? How?"
+    }
+  },
+  "howItWorks": {
+    "hero": {
+      "eyebrow": "Getting Started",
+      "title": "How Axion Invoice Works",
+      "subtitle": "Everything you need to know about the modules, login methods, and settings — all on one page."
+    },
+    "quickStart": {
+      "title": "Get Started in 3 Steps",
+      "steps": {
+        "profile": {
+          "title": "Complete Your Profile & Company Info",
+          "body": "Fill in your company/personal details and bank accounts under Settings > Account and Profile."
+        },
+        "customer": {
+          "title": "Add a Customer",
+          "body": "Register your individual or corporate customers and their contacts from the Customers page."
+        },
+        "invoice": {
+          "title": "Create and Send an Invoice",
+          "body": "Use Invoices > New Invoice to pick a template, add line items, download the PDF, or email it directly."
+        }
+      }
+    },
+    "login": {
+      "title": "How Do You Log In?",
+      "subtitle": "You can reach your account through a few different methods.",
+      "methods": {
+        "password": {
+          "title": "Email & Password",
+          "body": "Sign in with your email and password; your session is protected by a secure httpOnly cookie."
+        },
+        "google": {
+          "title": "Sign in with Google",
+          "body": "Log in with one click using your Google account — no separate password to manage."
+        },
+        "demo": {
+          "title": "Demo Account",
+          "body": "Use \"Get Started for Free\" to explore the system with a pre-filled demo account — demo data is read-only sample data."
+        },
+        "twoFactor": {
+          "title": "Two-Factor Authentication (2FA)",
+          "body": "If you enabled email-based 2FA in the Security tab, you'll be asked for the code sent to your email at login."
+        },
+        "forgotPassword": {
+          "title": "Forgot Password",
+          "body": "Use the \"Forgot password\" link on the login screen to set a new password via the link sent to your email."
+        }
+      }
+    },
+    "modules": {
+      "title": "What's in the System?",
+      "subtitle": "A quick summary of what each section in the sidebar does.",
+      "dashboard": {
+        "title": "Dashboard (Overview)",
+        "description": "See the overall state of your invoices at a glance.",
+        "bullets": {
+          "kpi": "KPI cards showing total, paid, pending, and overdue amounts",
+          "charts": "Status distribution and invoice activity-over-time charts",
+          "tables": "Recent invoices and top customers by amount, click through to details"
+        }
+      },
+      "invoices": {
+        "title": "Invoices",
+        "description": "The whole process, from creating an invoice to getting paid, is managed here.",
+        "bullets": {
+          "lifecycle": "Draft → Sent → Paid/Overdue → Archived or Cancelled status flow",
+          "pdf": "Automatic PDF generation and download using your chosen template",
+          "email": "Send to the company itself plus 1-3 selected contacts by email",
+          "reminders": "Automatic reminder emails for invoices approaching or past their due date",
+          "currency": "Support for multiple currencies with live exchange-rate net receivable calculation"
+        }
+      },
+      "templates": {
+        "title": "Templates",
+        "description": "Design your invoice layout to match your corporate identity with a drag-and-drop editor.",
+        "bullets": {
+          "dragDrop": "Position fields by dragging and dropping them on the canvas",
+          "systemTemplates": "Start from ready-made system templates (Basic, Corporate, Minimal, Classic, Sharp, Clean, Compact)",
+          "planLimit": "The number of custom templates you can create depends on your plan"
+        }
+      },
+      "customers": {
+        "title": "Customers",
+        "description": "Manage your individual and corporate customers from one place.",
+        "bullets": {
+          "type": "Different fields depending on Individual/Corporate type (tax number, national ID, etc.)",
+          "contacts": "Add multiple contact people to each customer",
+          "detail": "View details and past invoices from the customer detail page"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Manage your account, company details, and system preferences in one place.",
+        "bullets": {
+          "tabs": "Profile, Account, Preferences, Security, Definitions, and Billing tabs",
+          "definitions": "Fixed values used on invoices, such as currency, tax rate, payment term, bank account",
+          "security": "Password, session management, and two-factor authentication (2FA)"
+        }
+      }
+    },
+    "settingsGuide": {
+      "title": "What's in Settings?",
+      "subtitle": "Reachable from the user menu at the bottom left, or the Settings link in the sidebar.",
+      "tabs": {
+        "profile": {
+          "label": "Profile",
+          "body": "View and update your full name, account type, and profession."
+        },
+        "account": {
+          "label": "Account",
+          "body": "Manage your corporate details such as company name, address, tax office/number."
+        },
+        "preferences": {
+          "label": "Preferences",
+          "body": "Set your language, theme (light/dark/system), and notification preferences."
+        },
+        "security": {
+          "label": "Security",
+          "body": "Change your password, view active sessions, and enable email-based two-factor authentication (2FA)."
+        },
+        "definitions": {
+          "label": "Definitions",
+          "body": "Define the fixed values used on your invoices here:",
+          "groups": {
+            "system": "System: currency, date format, tax year start",
+            "finance": "Finance: invoice number format, tax rates, payment terms, bank accounts",
+            "operations": "Operations: units, categories, fixed notes"
+          }
+        },
+        "billing": {
+          "label": "Billing",
+          "body": "View your current plan, upgrade it, or manage your subscription."
+        }
+      }
+    },
+    "stepGuide": {
+      "title": "Step by Step: Create Your First Invoice",
+      "subtitle": "Start with Invoices > New Invoice.",
+      "steps": {
+        "customer": {
+          "title": "1. Select a Customer",
+          "body": "Pick an existing customer or add a new one without leaving the form."
+        },
+        "template": {
+          "title": "2. Pick a Template",
+          "body": "Choose an invoice template that matches your corporate identity."
+        },
+        "items": {
+          "title": "3. Add Line Items",
+          "body": "Add products/services with quantity and unit price; totals are calculated automatically."
+        },
+        "preview": {
+          "title": "4. Preview",
+          "body": "Preview the PDF output before saving."
+        },
+        "send": {
+          "title": "5. Send or Download",
+          "body": "Download it as a PDF or email it straight to your customer."
+        }
+      }
+    },
+    "plans": {
+      "title": "Plan Differences",
+      "subtitle": "Choose Free, Pro, or Business depending on your needs.",
+      "free": {
+        "title": "Free",
+        "body": "Limited number of invoices, system templates only, watermark on the PDF."
+      },
+      "pro": {
+        "title": "Pro",
+        "body": "Higher invoice limit and the ability to create custom templates."
+      },
+      "business": {
+        "title": "Business",
+        "body": "Near-unlimited usage and all advanced features."
+      },
+      "cta": "Manage your plan from Settings > Billing."
+    },
+    "tips": {
+      "title": "Quick Tips",
+      "items": {
+        "theme": {
+          "title": "Light / Dark Theme",
+          "body": "Choose light, dark, or system theme from the user menu or the Preferences tab."
+        },
+        "language": {
+          "title": "Language",
+          "body": "Switch instantly between Turkish/English from the user menu."
+        },
+        "sidebar": {
+          "title": "Collapsing the Menu",
+          "body": "Collapse the sidebar to get a wider working area."
+        },
+        "support": {
+          "title": "Support",
+          "body": "You can always use the Support link in the user menu if you have questions."
+        }
+      }
     }
   },
   "templates": {

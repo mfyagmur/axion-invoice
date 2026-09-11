@@ -155,13 +155,14 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                   <Settings size={16} />
                   {t('nav.settings')}
                 </NavLink>
-                <button
-                  type="button"
+                <NavLink
+                  to="/dashboard/nasil-calisir"
+                  onClick={() => setIsMenuOpen(false)}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   <HelpCircle size={16} />
-                  {t('nav.support') || 'Support'}
-                </button>
+                  {t('nav.support')}
+                </NavLink>
                 <button
                   type="button"
                   onClick={handleLogout}

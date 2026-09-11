@@ -4,6 +4,55 @@ Bu dosya, projede yapılan önemli backend/frontend değişikliklerinin tarihli 
 
 ---
 
+## 2026-09-11 — "Nasıl Çalışır" (/dashboard/nasil-calisir) Sayfası
+
+**Durum:** Ekleme — Tamamlandı (kod tarafı). Gerçek tarayıcıda görsel teyit bu oturumda yapılamadı
+(ortamda `chromium-cli`/Playwright gibi bir tarayıcı otomasyon aracı yoktu) — bkz. `docs/todo.md`.
+
+**Özet:** `/dashboard/nasil-calisir` rotası daha önce sadece "Yakında" yazan genel amaçlı
+`DashboardPlaceholderPage`'i kullanıyordu (`docs/todo.md`'deki 2026-09-02 tarihli bekleyen madde).
+Bu iterasyonda son kullanıcıya sistemin tamamını (giriş yöntemleri, 5 ana modül, Ayarlar'ın 6
+sekmesi, ilk fatura oluşturma adımları, Free/Pro/Business plan farkları, küçük ipuçları) modern/
+kurumsal, projenin mevcut tasarım diline (Tailwind v4 + hand-rolled `components/`, `lucide-react`,
+dark mode, TR/EN i18n) uygun, responsive bir sayfada anlatan gerçek bir "Nasıl Çalışır" sayfası
+eklendi. Kapsam kullanıcıyla netleştirildiği gibi **sadece bu sayfa** ile sınırlı tutuldu —
+`/dashboard/ne-nedir-nasil` (aynı desendeki ikinci placeholder) dokunulmadan bırakıldı.
+
+Kullanıcıyla netleşen iki karar: (1) **Görseller** gerçek ekran görüntüsü yerine, tasarım sistemine
+uygun CSS/Tailwind tabanlı şematik mini-mockup'larla (harici görsel/`<img>` yok) çizildi — UI
+değiştikçe eskimez, ek bakım gerektirmez; (2) **Erişim** için sidebar'daki avatar/kullanıcı
+menüsünde zaten duran ama işlevsiz "Destek" butonu (`HelpCircle` ikonlu, `onClick` yoktu) bu
+sayfaya yönlendirildi — böylece her sayfadan kalıcı, 2 tıkla erişim var; ana sidebar listesi
+(`dashboardNavItems`) bilinçli olarak değiştirilmedi.
+
+**Yapılan dosyalar:**
+- Frontend (yeni): `frontend/src/features/howItWorks/components/` altında `HowItWorksHero.tsx`
+  (başlık + 3 adımlı hızlı başlangıç şeridi), `LoginGuide.tsx` (5 giriş yöntemi: şifre/Google/
+  demo/2FA/şifremi unuttum), `ModuleShowcase.tsx` + `ModuleCard.tsx` + `moduleMockups.tsx`
+  (Dashboard/Faturalar/Şablonlar/Müşteriler/Ayarlar modül kartları + her biri için CSS tabanlı
+  şematik mockup), `SettingsGuide.tsx` (Ayarlar'ın 6 sekmesinin tek tek açıklaması, Sabit
+  Tanımlar'ın 3 alt grubu dahil), `StepGuide.tsx` (5 adımlı "ilk faturanı oluştur" rehberi),
+  `PlanComparisonStrip.tsx` (Free/Pro/Business kısa karşılaştırma + Ayarlar/Faturalandırma'ya
+  link), `TipsStrip.tsx` (tema/dil/sidebar/destek ipuçları). `frontend/src/pages/dashboard/
+  HowItWorksPage.tsx` — bu bileşenleri birleştiren sayfa.
+- Frontend (değişiklik): `frontend/src/routes/index.tsx` — `/dashboard/nasil-calisir` artık
+  `<HowItWorksPage />` render ediyor (`/dashboard/ne-nedir-nasil` hâlâ eski placeholder).
+  `frontend/src/layouts/Sidebar.tsx` — avatar menüsündeki işlevsiz "Destek" `<button>`,
+  hemen üstündeki Ayarlar linkiyle aynı desende `/dashboard/nasil-calisir`'e giden bir
+  `NavLink`'e çevrildi. `frontend/src/i18n/locales/{tr,en}.json` — yeni `howItWorks.*`
+  namespace'i (hero/quickStart/login/modules/settingsGuide/stepGuide/plans/tips, tamamı TR+EN);
+  artık kullanılmayan `dashboardPlaceholder.howItWorks` key'i temizlendi (`whatIsHow` korunuyor).
+
+**Doğrulama:** `tsc --noEmit` (frontend) temiz geçti, ilgili dosyalarda `eslint` hatası yok.
+`npm run build` çalıştırıldığında `Checkbox.tsx`/`navigation.ts`/`InvoiceSendEmailModal.tsx`/
+`ProfileTab.tsx`'te 4 hata görüldü — bunlar bu değişikliğin hiç dokunmadığı, önceden var olan
+dosyalar (git status ile doğrulandı); bu görevin kapsamı dışında, ayrı ele alınmalı. Gerçek
+tarayıcıda demo hesapla giriş yapılıp sayfanın light/dark modda ve mobil genişlikte doğru
+göründüğünün, ve avatar menüsündeki "Destek" linkinin doğru sayfaya gittiğinin teyidi bu ortamda
+yapılamadı (tarayıcı otomasyon aracı yok) — bkz. `docs/todo.md`.
+
+---
+
 ## 2026-09-02 — Demo Kullanıcı Dashboard'u
 
 **Durum:** Ekleme — Tamamlandı.

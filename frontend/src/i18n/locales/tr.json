@@ -424,11 +424,208 @@
     "body": "Bize ulaşmak için bu sayfa çok yakında aktif olacak."
   },
   "dashboardPlaceholder": {
-    "howItWorks": {
-      "title": "Uygulama nasıl çalışır?"
-    },
     "whatIsHow": {
       "title": "Ne? Nedir? Nasıl?"
+    }
+  },
+  "howItWorks": {
+    "hero": {
+      "eyebrow": "Başlangıç Rehberi",
+      "title": "Axion Invoice Nasıl Çalışır?",
+      "subtitle": "Sistemi tanımanız için tüm modülleri, giriş yöntemlerini ve ayarları tek sayfada topladık."
+    },
+    "quickStart": {
+      "title": "3 Adımda Başlayın",
+      "steps": {
+        "profile": {
+          "title": "Profil & Şirket Bilgisi",
+          "body": "Ayarlar > Hesap ve Profil sekmelerinden şirket/kişisel bilgilerinizi ve banka hesaplarınızı tamamlayın."
+        },
+        "customer": {
+          "title": "Müşteri Ekleyin",
+          "body": "Müşteriler sayfasından bireysel ya da kurumsal müşterilerinizi ve iletişim kişilerini kaydedin."
+        },
+        "invoice": {
+          "title": "Fatura Oluşturun ve Gönderin",
+          "body": "Faturalar > Yeni Fatura ile şablon seçip kalemleri girin, PDF indirin ya da doğrudan e-posta ile gönderin."
+        }
+      }
+    },
+    "login": {
+      "title": "Nasıl Giriş Yaparsınız?",
+      "subtitle": "Hesabınıza birkaç farklı yöntemle erişebilirsiniz.",
+      "methods": {
+        "password": {
+          "title": "E-posta & Şifre",
+          "body": "E-posta ve şifrenizle giriş yapın; oturumunuz güvenli bir httpOnly çerezle korunur."
+        },
+        "google": {
+          "title": "Google ile Giriş",
+          "body": "Google hesabınızla tek tıkla giriş yapın, ayrı bir şifre yönetmenize gerek kalmaz."
+        },
+        "demo": {
+          "title": "Demo Hesap",
+          "body": "\"Ücretsiz Başla\" ile önceden doldurulmuş bir demo hesapla sistemi keşfedin — demo hesaptaki veriler salt okunur örneklerdir."
+        },
+        "twoFactor": {
+          "title": "İki Adımlı Doğrulama (2FA)",
+          "body": "Güvenlik sekmesinden e-posta ile 2FA'yı açtıysanız, girişte e-postanıza gelen kodu girmeniz istenir."
+        },
+        "forgotPassword": {
+          "title": "Şifremi Unuttum",
+          "body": "Giriş ekranındaki \"Şifremi unuttum\" bağlantısıyla e-postanıza gelen linkten yeni şifre belirleyebilirsiniz."
+        }
+      }
+    },
+    "modules": {
+      "title": "Sistemde Neler Var?",
+      "subtitle": "Sol menüdeki her bölümün ne işe yaradığını kısaca özetledik.",
+      "dashboard": {
+        "title": "Dashboard (Genel Bakış)",
+        "description": "Faturalarınızın genel durumunu tek bakışta görün.",
+        "bullets": {
+          "kpi": "Toplam, ödenen, bekleyen ve geciken tutarları gösteren KPI kartları",
+          "charts": "Durum dağılımı ve zaman içindeki fatura aktivitesi grafikleri",
+          "tables": "Son faturalar ve en yüksek tutarlı müşteriler listesi, tıklayınca detaya gider"
+        }
+      },
+      "invoices": {
+        "title": "Faturalar",
+        "description": "Faturalarınızın oluşturulmasından tahsilatına kadar tüm süreç burada yönetilir.",
+        "bullets": {
+          "lifecycle": "Taslak → Gönderildi → Ödendi/Gecikmiş → Arşiv veya İptal durum akışı",
+          "pdf": "Seçtiğiniz şablonla otomatik PDF üretimi ve indirme",
+          "email": "Şirketin kendisine ve seçtiğiniz 1-3 iletişim kişisine e-posta ile gönderim",
+          "reminders": "Vadesi yaklaşan/geçen faturalar için otomatik hatırlatma e-postaları",
+          "currency": "Farklı para birimleri ve güncel kur ile net alacak hesaplama"
+        }
+      },
+      "templates": {
+        "title": "Şablonlar",
+        "description": "Fatura görünümünü sürükle-bırak editörle kendi kurumsal kimliğinize göre tasarlayın.",
+        "bullets": {
+          "dragDrop": "Alanları canvas üzerinde sürükleyip bırakarak konumlandırma",
+          "systemTemplates": "Hazır sistem şablonlarından (Basit, Kurumsal, Minimal, Classic, Sharp, Clean, Compact) başlama",
+          "planLimit": "Özel şablon sayısı hesap planınıza göre sınırlıdır"
+        }
+      },
+      "customers": {
+        "title": "Müşteriler",
+        "description": "Bireysel ve kurumsal müşterilerinizi tek yerden yönetin.",
+        "bullets": {
+          "type": "Bireysel/Kurumsal ayrımına göre farklı alanlar (vergi no, TC kimlik vb.)",
+          "contacts": "Her müşteriye birden fazla iletişim kişisi ekleyebilme",
+          "detail": "Müşteri detay sayfasından bilgileri ve geçmiş faturaları görüntüleme"
+        }
+      },
+      "settings": {
+        "title": "Ayarlar",
+        "description": "Hesabınızı, şirket bilgilerinizi ve sistem tercihlerinizi tek yerden yönetin.",
+        "bullets": {
+          "tabs": "Profil, Hesap, Tercihler, Güvenlik, Sabit Tanımlar ve Faturalandırma sekmeleri",
+          "definitions": "Para birimi, vergi oranı, ödeme vadesi, banka hesabı gibi sabit tanımlar",
+          "security": "Şifre, oturum yönetimi ve iki adımlı doğrulama (2FA)"
+        }
+      }
+    },
+    "settingsGuide": {
+      "title": "Ayarlar'da Neler Var?",
+      "subtitle": "Sağ alttaki kullanıcı menüsünden ya da sidebar'daki Ayarlar bağlantısından erişilir.",
+      "tabs": {
+        "profile": {
+          "label": "Profil",
+          "body": "Ad soyad, hesap türü ve mesleğinizi görüntüleyip güncelleyin."
+        },
+        "account": {
+          "label": "Hesap",
+          "body": "Firma adı, adres, vergi dairesi/numarası gibi kurumsal bilgilerinizi yönetin."
+        },
+        "preferences": {
+          "label": "Tercihler",
+          "body": "Dil, tema (açık/koyu/sistem) ve bildirim tercihlerinizi ayarlayın."
+        },
+        "security": {
+          "label": "Güvenlik",
+          "body": "Şifrenizi değiştirin, açık oturumlarınızı görün ve e-posta ile iki adımlı doğrulamayı (2FA) açın."
+        },
+        "definitions": {
+          "label": "Sabit Tanımlar",
+          "body": "Faturalarınızda kullanılacak sabit değerleri burada tanımlarsınız:",
+          "groups": {
+            "system": "Sistem: Para birimi, tarih formatı, vergi yılı başlangıcı",
+            "finance": "Finans: Fatura numara formatı, vergi oranları, ödeme vadeleri, banka hesapları",
+            "operations": "Operasyon: Birimler, kategoriler, sabit notlar"
+          }
+        },
+        "billing": {
+          "label": "Faturalandırma",
+          "body": "Mevcut planınızı görüntüleyin, yükseltin ya da aboneliğinizi yönetin."
+        }
+      }
+    },
+    "stepGuide": {
+      "title": "Adım Adım: İlk Faturanızı Oluşturun",
+      "subtitle": "Faturalar > Yeni Fatura ile başlayın.",
+      "steps": {
+        "customer": {
+          "title": "1. Müşteri Seçin",
+          "body": "Kayıtlı bir müşteri seçin ya da formu terk etmeden yeni müşteri ekleyin."
+        },
+        "template": {
+          "title": "2. Şablon Seçin",
+          "body": "Kurumsal kimliğinize uygun bir fatura şablonu seçin."
+        },
+        "items": {
+          "title": "3. Kalemleri Girin",
+          "body": "Ürün/hizmet kalemlerini, miktar ve birim fiyatlarını ekleyin; toplam otomatik hesaplanır."
+        },
+        "preview": {
+          "title": "4. Önizleyin",
+          "body": "Kaydetmeden önce faturanın PDF çıktısını önizleyin."
+        },
+        "send": {
+          "title": "5. Gönderin veya İndirin",
+          "body": "PDF olarak indirin ya da doğrudan müşterinize e-posta ile gönderin."
+        }
+      }
+    },
+    "plans": {
+      "title": "Plan Farkları",
+      "subtitle": "İhtiyacınıza göre Free, Pro ya da Business planını seçebilirsiniz.",
+      "free": {
+        "title": "Free",
+        "body": "Sınırlı sayıda fatura, sadece sistem şablonları, PDF üzerinde filigran."
+      },
+      "pro": {
+        "title": "Pro",
+        "body": "Daha yüksek fatura limiti ve özel şablon oluşturma imkânı."
+      },
+      "business": {
+        "title": "Business",
+        "body": "Sınırsıza yakın kullanım ve tüm gelişmiş özellikler."
+      },
+      "cta": "Planınızı Ayarlar > Faturalandırma sekmesinden yönetebilirsiniz."
+    },
+    "tips": {
+      "title": "Küçük İpuçları",
+      "items": {
+        "theme": {
+          "title": "Açık / Koyu Tema",
+          "body": "Kullanıcı menüsünden ya da Tercihler sekmesinden açık, koyu ya da sistem temasını seçebilirsiniz."
+        },
+        "language": {
+          "title": "Dil",
+          "body": "Kullanıcı menüsünden Türkçe/İngilizce arasında anında geçiş yapabilirsiniz."
+        },
+        "sidebar": {
+          "title": "Menüyü Daraltma",
+          "body": "Sol menüyü daraltıp daha geniş bir çalışma alanı elde edebilirsiniz."
+        },
+        "support": {
+          "title": "Destek",
+          "body": "Sorularınız için kullanıcı menüsündeki Destek bağlantısını her zaman kullanabilirsiniz."
+        }
+      }
     }
   },
   "templates": {

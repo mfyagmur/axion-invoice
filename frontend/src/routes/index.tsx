@@ -16,6 +16,7 @@ import { CustomerDetailPage } from '@/pages/dashboard/CustomerDetailPage'
 import { CustomersPage } from '@/pages/dashboard/CustomersPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
 import { DashboardPlaceholderPage } from '@/pages/dashboard/DashboardPlaceholderPage'
+import { HowItWorksPage } from '@/pages/dashboard/HowItWorksPage'
 import { InvoiceCreatePage } from '@/pages/dashboard/InvoiceCreatePage'
 import { InvoiceDetailPage } from '@/pages/dashboard/InvoiceDetailPage'
 import { InvoicesPage } from '@/pages/dashboard/InvoicesPage'
@@ -65,10 +66,7 @@ export const router = createBrowserRouter([
             ],
           },
           { path: '/dashboard', element: <DashboardHomePage /> },
-          {
-            path: '/dashboard/nasil-calisir',
-            element: <DashboardPlaceholderPage titleKey="dashboardPlaceholder.howItWorks.title" />,
-          },
+          { path: '/dashboard/nasil-calisir', element: <HowItWorksPage /> },
           {
             path: '/dashboard/ne-nedir-nasil',
             element: <DashboardPlaceholderPage titleKey="dashboardPlaceholder.whatIsHow.title" />,
